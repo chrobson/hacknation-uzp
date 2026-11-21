@@ -72,7 +72,7 @@ Zarzut nr 1 – naruszenia art. 16 Pzp."""
 
 def test_llm_fills_only_fields_rules_could_not(fake):
     calls, answers = fake
-    answers += [{"value": "2026-02-27"}, {"value": 12}]  # czynnosc_dzien, then czynnosc_powod_id
+    answers += [{"value": "2026-02-27"}, {"value": "projektowane postanowienia umowy"}]  # czynnosc_dzien, then czynnosc_powod_id
     out = extract(Document(Path("x.pdf"), [APPEAL_WITHOUT_KNOWN_ACTION]), CLS["odwolanie"])
     assert out["OdwolanieKIO"]["czynnosc_dzien"] == "2026-02-27"
     assert out["OdwolanieKIO"]["czynnosc_powod_id"] == 12
@@ -89,3 +89,15 @@ def test_rules_only_mode_makes_no_calls(monkeypatch):
     out = extract(Document(Path("x.pdf"), [APPEAL_WITHOUT_KNOWN_ACTION]), CLS["odwolanie"])
     assert out["OdwolanieKIO"]["czynnosc_powod_id"] is None
     llm.force(None)
+
+
+def test_reason_asks_with_word_labels_on_first_charge_only(fake):
+    """Small models pick word labels, not numbers; the model sees at most 1500 characters of the first charge."""
+    calls, answers = fake
+    answers += [{"value": None}, {"value": "zaniechanie wykluczenia wykonawcy"}]
+    out = extract(Document(Path("x.pdf"), [APPEAL_WITHOUT_KNOWN_ACTION]), CLS["odwolanie"])
+    assert out["OdwolanieKIO"]["czynnosc_powod_id"] == 8
+    q = calls[1]
+    enum = q["response_format"]["json_schema"]["schema"]["properties"]["value"]["enum"]
+    assert "zaniechanie wykluczenia wykonawcy" in enum and all(isinstance(e, str) for e in enum)
+    assert len(q["messages"][1]["content"].split("<<<\n", 1)[1]) <= 1500 + 4

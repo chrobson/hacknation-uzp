@@ -343,7 +343,12 @@ def _llm(spec: dict[str, Any], ctx: Context) -> Any:
 
     if not llm.enabled():
         return None
-    value = llm.ask(spec["question"], ctx.text, spec.get("schema", {"type": "string"}))
+    text = ctx.text[: int(spec["max_chars"])] if "max_chars" in spec else ctx.text
+    choices = spec.get("choices")  # {"word key": output value}: small models pick word labels far better than numbers
+    if choices:
+        value = llm.ask(spec["question"], text, {"type": "string", "enum": list(choices)})
+        return None if value is None else choices[value]
+    value = llm.ask(spec["question"], text, spec.get("schema", {"type": "string"}))
     if value is not None and spec.get("value") == "date":
         value = N.find_date(str(value))
     return value
