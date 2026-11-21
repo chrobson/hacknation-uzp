@@ -73,6 +73,40 @@ def find_amount(text: str) -> float | None:
     return min(candidates)[1] if candidates else None
 
 
+# Polish company name: capitalised words (small connectors allowed) ending with a legal form. Case-sensitive.
+_WORD = r"(?!Mocodaw|Działając|Pełnomoc|Dane\b|Zamawiaj|Wykonawc|Odwołując|Konsorcj|Ja\b|Nazwa\b|Firma\b)" \
+        r"(?:[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż][\w\-.&]*|[A-ZŁŚŻŹĆŃÓ0-9][\w]*-[\w\-]+|[A-ZŁŚŻŹĆŃÓ]{2,}|„[^”]+”)"
+LEGAL_FORM = r"(?:S\.A\.|sp\.\s*z\s*o\.\s*o\.(?:\s*sp\.\s*k\.)?|Sp\.\s*z\s*o\.\s*o\.|sp\.\s*k\.|sp\.\s*j\.|sp\.\s*p\.|s\.c\.|" \
+             r"spółka\s+(?:akcyjna|jawna|komandytowa|partnerska|z\s+ograniczoną\s+odpowiedzialnością))"
+COMPANY_RE = re.compile(rf"(?<![\w])({_WORD}(?:[ \t\n]+(?:{_WORD}|i|w|z|oraz|im\.))*?[ \t\n]+{LEGAL_FORM})")
+# Public bodies have no legal form: "Gmina X", "Miasto X", "Szpital ...", "Uniwersytet ...", "Zarząd Dróg ..."
+PUBLIC_BODY_RE = re.compile(
+    r"(?<![\w])((?:Gmina|Miasto|Powiat|Województwo|Skarb\s+Państwa|Szpital|Samodzielny|Uniwersytet|Politechnika|Akademia|"
+    r"Zarząd|Urząd|Ministerstwo|Instytut|Państwowe|Regionaln\w+|Wojewódzk\w+|Miejsk\w+|Powiatow\w+|Centrum|Agencja|"
+    r"Generalna|Komenda|Narodow\w+|Zakład|Przedsiębiorstwo)[^\n,;:()]{2,120}?)(?=\s*(?:,|\n|\(|;|$|\s+(?:ul\.|al\.|KRS|NIP|REGON)))"
+)
+
+ID_PATTERNS = {
+    "nip": re.compile(r"NIP\W{0,3}(?:PL[ \u00a0-]?)?(\d(?:[ \u00a0-]?\d){9})(?!\d)", re.IGNORECASE),
+    "krs": re.compile(r"KRS\W{0,3}(\d(?:[ \u00a0]?\d){9})(?!\d)", re.IGNORECASE),
+    "regon": re.compile(r"REGON\W{0,3}(\d(?:[ \u00a0]?\d){13}|\d(?:[ \u00a0]?\d){8})(?!\d)", re.IGNORECASE),
+    "pesel": re.compile(r"PESEL\W{0,3}(\d{11})(?!\d)", re.IGNORECASE),
+    "email": re.compile(r"([\w.+-]+@[\w-]+(?:\.[\w-]+)+)"),
+}
+
+
+def find_company(text: str) -> str | None:
+    m = COMPANY_RE.search(text) or PUBLIC_BODY_RE.search(text)
+    return clean_text(m.group(1)) if m else None
+
+
+def find_id(kind: str, text: str) -> str | None:
+    m = ID_PATTERNS[kind].search(text)
+    if not m:
+        return None
+    return m.group(1) if kind == "email" else digits(m.group(1))
+
+
 def digits(s: str) -> str:
     return re.sub(r"\D", "", s)
 

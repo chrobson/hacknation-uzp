@@ -8,6 +8,8 @@ specs tried in order until one returns a value. Spec types:
                    (value: date | amount | token | account | regex)
   text_after_label text that follows a label, across lines, until a stop label
   account          26-digit account by role (sender/receiver) decided by the nearest preceding keyword
+  near             first value of a kind after a role keyword, before a competing role (layout-independent)
+  first_line, exists, keyword_map, names, llm: see the functions below
 
 New document classes reuse these types through configuration only.
 """
@@ -38,6 +40,10 @@ def _finder(kind: str, spec: dict[str, Any]) -> Callable[[str], Any]:
     if kind == "token":
         tok = re.compile(spec.get("token_pattern", r"[A-Z0-9][A-Z0-9./\-]{3,}"), re.IGNORECASE)
         return lambda s: (m := tok.search(s)) and m.group(0).rstrip(".,;")
+    if kind == "company":
+        return N.find_company
+    if kind in N.ID_PATTERNS:
+        return lambda s: N.find_id(kind, s)
     if kind == "regex":
         rx = re.compile(spec["value_pattern"], FLAGS)
         return lambda s: (m := rx.search(s)) and (m.group(1) if m.groups() else m.group(0))
@@ -305,6 +311,27 @@ def _llm(spec: dict[str, Any], ctx: Context) -> Any:
     return value
 
 
+def _near(spec: dict[str, Any], ctx: Context) -> Any:
+    """Layout-independent: the first value of a kind found after a role keyword, before any competing role keyword.
+
+    anchors  role keywords (e.g. 'Zamawiając\\w*', 'Instytucja\\s+zamawiająca')
+    value    date | amount | account | token | regex | company | nip | krs | regon | pesel | email
+    stop     keywords of other roles; the search window ends at the first one (e.g. 'Odwołując\\w*')
+    window   max characters after the anchor (default 400)
+    """
+    find = _finder(spec.get("value", "token"), spec)
+    window = int(spec.get("window", 400))
+    stops = _compile(spec.get("stop", []))
+    hits = sorted((m for rx in _compile(spec["anchors"]) for m in rx.finditer(ctx.text)), key=lambda m: m.start())
+    for m in hits:
+        seg = ctx.text[m.end() : m.end() + window]
+        cut = min((sm.start() for rx in stops if (sm := rx.search(seg))), default=len(seg))
+        value = find(seg[:cut])
+        if value not in (None, ""):
+            return value
+    return None
+
+
 TYPES: dict[str, Callable[[dict[str, Any], Context], Any]] = {
     "labeled": _labeled,
     "text_after_label": _text_after_label,
@@ -315,6 +342,7 @@ TYPES: dict[str, Callable[[dict[str, Any], Context], Any]] = {
     "keyword_map": _keyword_map,
     "names": _names,
     "llm": _llm,
+    "near": _near,
 }
 
 
@@ -342,7 +370,17 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
 
     text = ctx.section(spec["section"]) if "section" in spec else ctx.text
     if text is None:
-        return [copy.deepcopy(item_template)]
+        # No section found (unknown layout): only layout-independent specs marked `if_no_section` may run,
+        # on the whole document, producing a single item.
+        item = copy.deepcopy(item_template)
+        doc = ctx.sub(ctx.text)
+        for path, fspecs in spec["fields"].items():
+            usable = [f for f in (fspecs if isinstance(fspecs, list) else [fspecs]) if f.get("if_no_section")]
+            if usable:
+                value = extract_field(usable, doc)
+                if value is not None:
+                    set_path(item, path, value)
+        return [item]
     chunks, labels = [text], [""]
     if "split" in spec:
         rx = _compile(spec["split"])[0]
