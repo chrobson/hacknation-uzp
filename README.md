@@ -24,15 +24,15 @@ Na końcu przebiegu program wypisuje podsumowanie: liczbę PDF, odrzucone, użyc
 |---|---|---|
 | dane treningowe UZP (45 spraw) | 1,000 | 1,000 |
 | holdout z danych UZP (15 spraw, nieużywany do strojenia) | 1,000 | 1,000 |
-| synth-dev (120 dokumentów o innych układach, także wielopodmiotowe) | 0,940 | 0,940 |
-| skany UZP przez OCR (30 dokumentów) | 0,817 | 0,830 |
+| synth-dev (120 dokumentów o innych układach, także wielopodmiotowe) | 0,942 | 0,942 |
+| skany UZP przez OCR (30 dokumentów) | 0,953 | 0,953 |
 
 Numery rachunków są zapisywane tak, jak w dokumencie: z prefiksem `PL`, jeśli dokument go podaje (bez spacji, np. `PL61109010140000071219812874`), w przeciwnym razie 26 cyfr. Tak potwierdził UZP (21.11.2026); lokalne dane wzorcowe poprawiono skryptem `eval/gt_account_pl.py`, bo część wzorcowych JSON-ów UZP pomijała `PL`.
 
 Dokumenty obce (ogłoszenia, wyroki KIO, SWZ, faktury, umowy, pisma podobne do klas): 0 przyjętych na 36. Bramka jakości (`make gate`, 9 testów, m.in. brak regresji, 0 fałszywych przyjęć, niezależność od nazw plików, praca bez LLM, < 1 s/dokument) pilnuje każdej zmiany.
 
 ## Jak to działa
-1. **Tekst**: `pdfplumber` (słowa ze współrzędnymi); PDF bez warstwy tekstowej → lokalny OCR (Tesseract `pol`, strony równolegle). Dwukolumnowe nagłówki stron są czytane kolumnami.
+1. **Tekst**: `pdfplumber` (słowa ze współrzędnymi); PDF bez warstwy tekstowej → lokalny OCR (Tesseract `pol`, strony równolegle; przekrzywiony skan jest prostowany i czytany ponownie; typowe błędy OCR, np. „@” czytane jako „(O”, są poprawiane). Dwukolumnowe nagłówki stron są czytane kolumnami.
 2. **Klasyfikacja**: każda klasa w YAML ma kotwice wymagane, ważone sygnały i próg; wspólne reguły odrzucenia (`config/reject.yaml`) wyłapują dokumenty obce. Dla skanów z błędami OCR działa dodatkowo rozmyte głosowanie słów kluczowych.
 3. **Ekstrakcja**: pola opisane w YAML typami wielokrotnego użytku (`labeled`, `pattern`, `near`, `names`, `account`, `keyword_map`, `first_line`, `exists`, …), z sekcjami dokumentu, listami (np. kilku zamawiających / mocodawców) i normalizacją (daty, kwoty, NIP/KRS/REGON, mianownik imion i nazwisk).
 4. **LLM (opcjonalnie)**: tylko dla pól, które reguły zostawiły puste, z zamkniętym słownikiem odpowiedzi i walidacją; awaria → reguły.
@@ -60,7 +60,7 @@ Plik `examples/klasy/wezwanie_do_uzupelnienia.yaml` (~40 linii) definiuje kotwic
 
 ## OCR i wydajność
 - **OCR jest lokalny**: Tesseract (`tesseract -l pol`) uruchamiany jako proces na tym samym komputerze, bez modelu językowego i bez żadnego API.
-- Czas zmierzony na laptopie (Apple M2 Pro, LLM włączony): **206 PDF (dane treningowe + 30 skanów) w 60 s**, średnio 0,3 s/PDF; dokument tekstowy ok. 0,1–0,2 s, 7-stronicowy skan ok. 5,5 s.
+- Czas zmierzony na laptopie (Apple M2 Pro, LLM włączony): **226 PDF (dane treningowe + 30 skanów) w ok. 2,5 min**: 196 PDF z warstwą tekstową w 31 s (0,16 s/PDF), 30 skanów w 123 s (ok. 4 s/skan, z prostowaniem i drugim przebiegiem OCR).
 - Najgorszy przypadek: OCR maks. 12 stron na dokument i 60 s na stronę, limit 180 s na dokument (wtedy zapisywany jest wynik częściowy), model językowy po pierwszej awarii (15 s × 2 próby) wyłączony do końca przebiegu. Limit konkursowy (150 PDF w 45 min) jest spełniony z dużym zapasem.
 
 ## Interfejs WWW (podgląd wyników)

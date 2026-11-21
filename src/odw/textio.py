@@ -8,6 +8,7 @@ yields no text and the document is rejected ({}), with a warning in the log.
 from __future__ import annotations
 
 import logging
+import math
 import os
 from concurrent.futures import ThreadPoolExecutor
 import re
@@ -17,6 +18,7 @@ import tempfile
 from functools import cache
 from dataclasses import dataclass, field, replace
 from pathlib import Path
+from statistics import median
 
 import pdfplumber
 
@@ -59,6 +61,10 @@ OCR_MAX_PAGES = 12
 OCR_PAGE_TIMEOUT_S = 60
 OCR_WORKERS = max(1, min(8, (os.cpu_count() or 2)))
 OCR_LANG = os.environ.get("ODW_OCR_LANG", "pol")
+_OCR_ZOO = re.compile(r"(?i)(\bsp\.?\s*z\s*)(?:0\.\s?[0o]|o\.\s?0)\.")  # at least one zero: real "o.o." untouched
+# "@" read as "(O", "(Q", "(d", "(a", "(" (then the domain) or with a stray letter before it ("biuroQ@")
+_EMAIL_PAREN = re.compile(r"\b([\w.+-]{2,})\([OQGadwo0]?(?=[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}\b)")
+_EMAIL_DOUBLE = re.compile(r"\b([\w.+-]{2,}?)[QG]@(?=[\w-])")
 _EMAIL_AT = re.compile(r"\b([\w.+-]{2,})[Q©®](?=[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}\b)")
 
 
@@ -78,13 +84,49 @@ def ocr_available() -> bool:
     return True
 
 
-def _ocr_page(image_path: Path, scale: float) -> tuple[str, list[dict]]:
-    """Tesseract TSV → page text (one line per OCR line) and word boxes in PDF points (origin top-left)."""
-    out = subprocess.run(
-        ["tesseract", str(image_path), "stdout", "-l", OCR_LANG, "--psm", "4", "-c", "tessedit_create_tsv=1"],
+OCR_PSM = os.environ.get("ODW_OCR_PSM", "3")  # 3 = automatic page segmentation (better than 4 on real scans)
+
+
+def _tesseract_tsv(image_path: Path) -> str:
+    return subprocess.run(
+        ["tesseract", str(image_path), "stdout", "-l", OCR_LANG, "--psm", OCR_PSM, "-c", "tessedit_create_tsv=1"],
         capture_output=True, text=True, timeout=OCR_PAGE_TIMEOUT_S,
         env={**os.environ, "OMP_THREAD_LIMIT": "1"},  # pages run in parallel; one thread each avoids oversubscription
     ).stdout
+
+
+def _skew_deg(tsv: str) -> float:
+    """Median baseline slope of the longer text lines (least squares over word centres), in degrees."""
+    by_line: dict[tuple[str, str, str], list[tuple[float, float]]] = {}
+    for row in tsv.splitlines()[1:]:
+        c = row.split("\t")
+        if len(c) < 12 or c[0] != "5" or len(c[11].strip()) < 3:
+            continue
+        left, top, width, height = (int(x) for x in c[6:10])
+        by_line.setdefault((c[2], c[3], c[4]), []).append((left + width / 2, top + height / 2))
+    slopes = []
+    for pts in by_line.values():
+        if len(pts) < 4 or pts[-1][0] - pts[0][0] < 400:
+            continue
+        n = len(pts)
+        mx, my = sum(x for x, _ in pts) / n, sum(y for _, y in pts) / n
+        den = sum((x - mx) ** 2 for x, _ in pts)
+        if den:
+            slopes.append(sum((x - mx) * (y - my) for x, y in pts) / den)
+    return math.degrees(math.atan(median(slopes))) if len(slopes) >= 3 else 0.0
+
+
+def _ocr_page(image_path: Path, scale: float) -> tuple[str, list[dict]]:
+    """Tesseract TSV → page text (one line per OCR line) and word boxes in PDF points (origin top-left).
+    A skewed scan (0.15°–10°, estimated from the first pass) is straightened and read again."""
+    out = _tesseract_tsv(image_path)
+    angle = _skew_deg(out)
+    if 0.15 < abs(angle) < 10:
+        from PIL import Image
+
+        with Image.open(image_path) as im:
+            im.convert("L").rotate(angle, resample=Image.BICUBIC, expand=True, fillcolor=255).save(image_path)
+        out = _tesseract_tsv(image_path)
     lines: dict[tuple[int, int, int], list[str]] = {}
     words: list[dict] = []
     for row in out.splitlines()[1:]:
@@ -98,6 +140,8 @@ def _ocr_page(image_path: Path, scale: float) -> tuple[str, list[dict]]:
         words.append({"text": text, "x0": round(left / scale, 1), "top": round(top / scale, 1),
                       "x1": round((left + width) / scale, 1), "bottom": round((top + height) / scale, 1)})
     page_text = "\n".join(" ".join(ws) for _, ws in sorted(lines.items()))
+    page_text = _OCR_ZOO.sub(r"\1o.o.", page_text)  # OCR reads "sp. z o.o." as "sp. z 0.0."
+    page_text = _EMAIL_PAREN.sub(r"\1@", _EMAIL_DOUBLE.sub(r"\1@", page_text))
     return _EMAIL_AT.sub(r"\1@", page_text), words
 
 

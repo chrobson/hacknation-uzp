@@ -22,8 +22,8 @@ ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6, "VII": 7, "VIII": 
 _ROMAN_ALT = "|".join(sorted(ROMAN, key=len, reverse=True))
 
 DATE_RE = re.compile(
-    r"(?P<iso>\b(?P<y1>\d{4})[-./](?P<m1>\d{1,2})[-./](?P<d1>\d{1,2})\b)"
-    r"|(?P<dmy>\b(?P<d2>\d{1,2})[-./](?P<m2>\d{1,2})[-./](?P<y2>\d{4})\b)"
+    r"(?P<iso>\b(?P<y1>\d{4})[-./](?P<m1>\d{1,2})[-./](?P<d1>\d{1,2})(?!\d))"  # (?!\d), not \b: "05.06.2026r."
+    r"|(?P<dmy>\b(?P<d2>\d{1,2})[-./](?P<m2>\d{1,2})[-./](?P<y2>\d{4})(?!\d))"
     rf"|(?P<word>\b(?P<d3>\d{{1,2}})[\s-]+(?P<m3>{_MONTH_ALT})\.?[\s-]+(?P<y3>\d{{4}}))"
     rf"|(?P<roman>\b(?P<d4>\d{{1,2}})[\s.]+(?P<m4>(?-i:{_ROMAN_ALT}))[\s.]+(?P<y4>\d{{4}}))"
     rf"|(?P<en>\b(?P<m5>{_MONTH_ALT})\.?\s+(?P<d5>\d{{1,2}}),?\s+(?P<y5>\d{{4}}))"

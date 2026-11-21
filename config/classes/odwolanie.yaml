@@ -124,7 +124,7 @@ fields:
     - {type: pattern, pattern: '^\s*([A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+(?:[ \t-][A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+)*)[ \t]+(?:dnia[ \t]+)?\d{1,2}[.\-/]\d{1,2}[.\-/]\d{4}', clean: true}
   OdwolanieKIO.czynnosc_dzien:
     # data z pierwszej pozycji wyliczenia zaskarżonych czynności ("1) ... (25.06.2026 r.);")
-    - {type: labeled, value: date, labels: ['(?:polegając\w*|w\s+postaci|tj\.)\s*(?:na\s*)?:?\s*1\)(?=[^;]*\d{4})'], window: 250, section: czynnosc}
+    - {type: labeled, value: date, labels: ['(?:(?:polegając\w*|w\s+postaci|tj\.)\s*(?:na\s*)?:?|wobec\s*:)\W{0,6}1[.)](?=[^;]*\d{4})'], window: 250, section: czynnosc}
     - {type: labeled, value: date, labels: ['w\s+dniu', 'z\s+dnia'], window: 40, section: czynnosc}
     - {type: labeled, value: date, labels: ['w\s+dniu', 'z\s+dnia', '\bdnia'], window: 40, section: czynnosc_alt}
     # LLM (jeśli włączony) tylko gdy żadna reguła nie zadziałała; dostaje fragment od "wnoszę" do drugiego zarzutu.
@@ -133,7 +133,7 @@ fields:
   OdwolanieKIO.czynnosc_powod_id:
     - type: keyword_map
       section: czynnosc
-      after: '(?:polegając\w*|w\s+postaci|tj\.)\s*(?:na\s*)?:?\s*1\)\s*'
+      after: '(?:(?:polegając\w*|w\s+postaci|tj\.)\s*(?:na\s*)?:?|wobec\s*:)\W{0,6}1[.)]\s*'
       window: 400
       until: ';'
       cast: int
@@ -147,7 +147,7 @@ fields:
         1: ['odrzuceni\w*\s+ofert', 'odrzucił\w*\s+ofert']
         2: ['wyb[oó]r\w*\s+(?:jako\s+)?(?:najkorzystniejsz|ofert)', 'wynik\w*\s+postępowania']
         5: ['modyfikac\w*\s+treści', 'zmodyfikow\w*', 'zmian\w*\s+treści\s+(?:SWZ|Specyfikacji)']
-        6: ['wyjaśnie\w*\s+treści', 'odpowiedzi\s+na\s+pytania', 'udzieleni\w*\s+odpowiedzi']
+        6: ['wyjaśnie\w*\s+(?:treści\s+)?(?:SWZ|specyfikacji)', 'wyjaśnie\w*\s+treści', 'odpowiedzi\s+na\s+pytania', 'udzieleni\w*\s+odpowiedzi']
         11: ['opis\w*\s+przedmiotu\s+zamówienia', '\bOPZ\b']
         4: ['specyfikacj\w*\s+warunków', 'publikac\w*\s+SWZ', '\bSWZ\b']
     - type: keyword_map
@@ -284,7 +284,7 @@ lists:
       przez-pelnomocnika:
         - {if_no_section: true, type: exists, scope: document, pattern: ['reprezentowan\w*\s+(?:jest\s+)?przez', 'pełnomocnik(?!\w*\s+Odwołującego\s*$)']}
       pelnomocnik.imie_nazwisko:
-        - {if_no_section: true, type: pattern, scope: document, pattern: '(?:reprezentowan\w*\s+(?:jest\s+)?przez|pełnomocnik\w*(?:\s*\(cy\))?(?:\s+Odwołując\w*)?)\s*[:–-]?\s*(?:pełnomocnika\s*[–-]?\s*)?(?:(?:adw\.|r\.\s*pr\.|apl\.\s*adw\.|radc\w*\s+prawn\w*|adwokat\w*|mec\.)\s*)?((?-i:[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?))(?![\w.])'}
+        - {if_no_section: true, type: pattern, scope: document, pattern: '(?:reprezentowan\w*\s+(?:jest\s+)?przez|pełnomocnik\w*(?:\s*\(cy\))?(?:\s+Odwołując\w*)?)\s*[:–-]?\s*(?:pełnomocnika\s*[–-]?\s*)?(?:(?:adw\.|r\.\s*pr\.|apl\.\s*adw\.|radc\w*\s+prawn\w*|adwokat\w*|mec\.)\s*)?((?-i:[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?))(?![\w.])', nominative: true}
       pelnomocnik.nazwa:
         - {if_no_section: true, type: pattern, scope: document, pattern: 'adres\s+do\s+korespondencji:\s*([\s\S]+?)(?=,\s*(?:ul\.|al\.|pl\.|os\.)|\n\s*(?:ul\.|tel))', clean: true, strip_inserts: true, require: ['Kancelari|adwokac|radc|prawn|legal|partnersk|attorney|\blaw\b']}
         # nazwa kancelarii tylko w pobliżu wskazania pełnomocnika (inaczej null: GT nie ma kancelarii)

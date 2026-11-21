@@ -142,6 +142,8 @@ def _assign_accounts(text: str, cfg: dict[str, Any]) -> dict[str, str]:
     last_kw: list[dict[str, int]] = []  # last position of each role's keyword before each account
     spans: list[tuple[int, int]] = []
     for m in N.ACCOUNT_RE.finditer(text):
+        if not m.group("num"):
+            continue
         acct = N.digits(m.group("num"))
         if any(a == acct for a, _ in found):
             continue
@@ -171,6 +173,28 @@ def _assign_accounts(text: str, cfg: dict[str, Any]) -> dict[str, str]:
         if role and role not in roles:
             roles[role] = acct
     accts = [a for a, _ in found]
+    # The number as printed: "PL" prefix kept when any occurrence of that number carries it in the document.
+    prefixed = {N.digits(m.group("num")) for m in N.ACCOUNT_RE.finditer(text) if m.group("pl") and m.group("num")}
+
+    def printed(r: dict[str, str]) -> dict[str, str]:
+        return {role: ("PL" + a if a in prefixed else a) for role, a in r.items()}
+
+    # Domain prior (config): the payee of a KIO fee / stamp duty is a public office. If exactly one of the first
+    # two accounts is a configured payee account or has an owner line naming such an office, it is the receiver.
+    hints = _compile(cfg.get("receiver_hints", []))
+    known = {N.digits(str(k)) for k in cfg.get("known_receivers", [])}
+    if len(accts) >= 2 and (hints or known):
+        def hinted(i: int) -> bool:
+            if accts[i] in known:
+                return True
+            nxt = spans[i + 1][0] if i + 1 < len(spans) else len(text)
+            after = "\n".join(text[spans[i][1] : min(nxt, spans[i][1] + 200)].split("\n")[:3])
+            return any(h.search(after) for h in hints)
+
+        flags = [hinted(0), hinted(1)]
+        if flags[0] != flags[1]:
+            r = 0 if flags[0] else 1
+            return printed({"receiver": accts[r], "sender": accts[1 - r]})
     # Two accounts but roles missing or clashing (e.g. two-column layout): document order = sender, receiver.
     if len(accts) >= 2 and (len(roles) < 2 or roles.get("sender") == roles.get("receiver")):
         if "sender" in roles and roles["sender"] in accts[:2]:
@@ -179,9 +203,7 @@ def _assign_accounts(text: str, cfg: dict[str, Any]) -> dict[str, str]:
             roles["sender"] = next(a for a in accts if a != roles["receiver"])
         else:
             roles = {"sender": accts[0], "receiver": accts[1]}
-    # The number as printed: "PL" prefix kept when any occurrence of that number carries it in the document.
-    prefixed = {N.digits(m.group("num")) for m in N.ACCOUNT_RE.finditer(text) if m.group("pl")}
-    return {role: ("PL" + a if a in prefixed else a) for role, a in roles.items()}
+    return printed(roles)
 
 
 def _labeled(spec: dict[str, Any], ctx: Context) -> Any:

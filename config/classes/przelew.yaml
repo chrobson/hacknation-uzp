@@ -52,8 +52,11 @@ output_template:
 # Rachunki: rola (nadawca/odbiorca) z najbliższego słowa kluczowego przed numerem.
 accounts:
   lookback_chars: 150
+  # Odbiorca opłaty to urząd: rachunek wpisowy UZP albo rachunek, pod którym stoi nazwa urzędu (gdy pasuje dokładnie jeden z dwóch).
+  known_receivers: ['60101010100081362231000000']
+  receiver_hints: ['(?-i:Urząd|URZĄD)\s+(?i:Zamówień|Miasta|Miejski|Gminy|Skarbowy)', 'Centrum\s+Obsługi\s+Podatnika']
   sender_keywords: ['obciąż\w*', 'nadawc\w*', 'zleceniodawc\w*', 'płatnik\w*', '\bz\s+rachunku', 'rachunek\s+źródłowy', 'z\s+konta', '\bdebit\w*', 'ordering\s+party', '\bsender\b', '\bpayer\b', 'from\s+account']
-  receiver_keywords: ['odbiorc\w*', 'beneficjent\w*', 'uznaw\w*', 'adresat\w*', '\bna\s+rachunek', 'rachunek\s+docelowy', 'na\s+konto', 'uznan\w*', 'beneficiary', '\brecipient\b', '\bpayee\b', 'to\s+account']
+  receiver_keywords: ['odbiorc\w*', 'beneficjent\w*', 'uznaw\w*', 'adresat\w*', '\bna\s+rachunek(?!\s+(?:obcy|własny|w\s))', 'rachunek\s+docelowy', 'na\s+konto', 'uznan\w*', 'beneficiary', '\brecipient\b', '\bpayee\b', 'to\s+account']
 
 fields:
   przelew_bankowy.z_rachunku: {type: account, role: sender}
@@ -75,9 +78,11 @@ fields:
     # Układ nieznany: data w pobliżu słów o wykonaniu/dniu operacji (nie wydruku):
     - {type: near, value: date, anchors: ['\bdat[ay]\b(?!\s+(i\s+godzina|wydruku|wygenerowania|sporządzenia|zlecenia|utworzenia|generowania|eksportu))', '(?<!z )\bdnia\b', 'zrealizowan\w*', 'zaksięgowan\w*', 'wykonan\w*', '\bdate\b'], stop: ['wydruk\w*', 'wygenerowan\w*', 'sporządz\w*', 'eksport\w*', 'printed', 'generated'], window: 60}
   przelew_bankowy.numer_transakcji:
+    # Etykieta złamana między wierszami: "Numer 305494\ntransakcji".
+    - {type: pattern, pattern: '^[ \t]*Numer[ \t]+([A-Z0-9]{5,})[ \t|:.]*\n[ \t]*transakcji\b'}
     - {type: labeled, value: token, labels: ['nr\.?\s*ref\w*\.?', 'numer\s+referencyjny', 'numer\s+transakcji(\s+operacji)?', '(id|identyfikator)\s+transakcji', 'nr\s+transakcji', 'referencj\w+'], token_pattern: '[A-Z]{2,}[0-9]{6,}|[0-9]{8,}', window: 80}
     # Układ nieznany: identyfikator w pobliżu "ref / transakcja / identyfikator / ID" (bez 26-cyfrowych rachunków):
-    - {type: near, value: token, anchors: ['\bref\w*', 'transakcj\w*', 'identyfikator\w*', '\bID\b', 'numer\s+operacji', 'transaction'], token_pattern: '\b(?!PL\d{26}\b)[A-Z]{2,}[0-9]{6,}\b|(?<![\d\s])[0-9]{8,20}(?!\d)', window: 120}
+    - {type: near, value: token, anchors: ['\bref\w*', 'transakcj\w*', 'identyfikator\w*', '\bID\b', 'numer\s+operacji', 'transaction'], token_pattern: '\b(?!PL\d{26}\b)[A-Z]{2,}[0-9]{6,}\b|(?<![\w\s./-])[0-9]{8,20}(?![\w.])', window: 120}
     - {type: pattern, pattern: '\b([A-Z]{3}\d{10,})\b'}
   przelew_bankowy.tytul:
     # Tabela dwukolumnowa: etykieta w środkowym wierszu zawiniętej wartości ("…\nTytuł przelewu …\n…"):
@@ -85,6 +90,11 @@ fields:
       pattern: '^(?![ \t]*(?:data|kwota|rachun|numer|nr\b|nazwa|status|rodzaj|dane|odbiorc|nadawc|zleceniod|tytu|identyfikator|id\b|ref|kanał|typ\b|tryb|waluta|bank|adres|saldo|opis|potwierdz|wydruk|wygenerowan|zrealizowan|beneficjent|płatnik|transaction|amount|value|execution))(?![^\n]*(?:\d[,.]\d{2}(?!\d)|\d{1,2}[./-]\d{1,2}[./-]\d{4}|\d{4}-\d{2}-\d{2}|\d{8,}|\d\s+[a-ząćęłńóśźż]+\s+\d{4}|\d{1,2}[\s.]+[IVX]+[\s.]+\d{4}|\d\s*(?:zł|PLN)|(?:zł|PLN)\s*\d))(?=[^\n]*(?-i:[a-ząćęłńóśźż]){3})([^\n]+)\n[ \t]*(?:Tytuł\s+przelewu|Tytułem|Tytuł)[ \t]+(?!(?:przelewu|operacji|płatności|transakcji)\b|:)([^\n]+)(?:\n(?![ \t]*(?:kwota|numer|nr\b|data|rachun|status|rodzaj|dane|nazwa|saldo|ref|id\b|odbiorc|nadawc|zleceniod))([^\n]+))?'
       format: '{1} {2} {3}'
     - type: text_after_label
-      labels: ['^\s*tytuł\s+przelewu', '^\s*tytułem', '^\s*tytuł\s+(operacji|płatności|transakcji)', '^\s*tytuł', '^\s*opis\s+(operacji|transakcji|przelewu|płatności)', '^\s*opis', '^\s*treść', '^\s*cel\s+(płatności|przelewu)', 'tytuł\w*\s+przelewu', '^\s*payment\s+details', '^\s*reference\s*/\s*title', '^\s*(transfer\s+|payment\s+)?(title|description)\b', 'tytułem', '\btytuł\w*\s*:']
-      stop_labels: ['^\s*(nr\.?\s*ref|numer|data|kwota|status|rachun|nadawc|odbiorc|zleceniod|kanał|potwierdz|bank|zrealizowan|strona|dane|identyfikator|id\b|saldo|wartoś|waluta|typ|rodzaj|nr\.?\s+(transakcji|operacji)|ref\b|wygenerowan|wydruk|dokument\s+(nr|elektroniczny|wygenerowany)|transaction|fee\b|amount|value\s+date|execution|[¹²³]|\d{1,2}[./-]\d{1,2}[./-]\d{4}|(PLN|zł)\s*\d)']
+      labels: ['^\s*tytuł\s+przelewu', '^\s*tytułem', '^\s*szczegóły\s+płatności', '^\s*tytuł\s+(operacji|płatności|transakcji)', '^\s*tytuł', '^\s*opis\s+(operacji|transakcji|przelewu|płatności)', '^\s*opis', '^\s*treść', '^\s*cel\s+(płatności|przelewu)', 'tytuł\w*\s+przelewu', '^\s*payment\s+details', '^\s*reference\s*/\s*title', '^\s*(transfer\s+|payment\s+)?(title|description)\b', 'tytułem', '\btytuł\w*\s*:']
+      stop_labels: ['^\s*(nr\.?\s*ref|numer|data|kwota|status|rachun|nadawc|odbiorc|zleceniod|kanał|potwierdz|bank|zrealizowan|strona|dane|identyfikator|id\b|saldo|wartoś|waluta|typ|rodzaj|nr\.?\s+(transakcji|operacji)|ref\b|wygenerowan|wydruk|dokument\b|niniejsz|signature|podpisan|bank\b[^\n]*z\s+siedzibą|transaction|fee\b|amount|value\s+date|execution|[¹²³]|\d{1,2}[./-]\d{1,2}[./-]\d{4}|(PLN|zł)\s*\d)']
       max_lines: 4
+    # Bez etykiety: linia zaczynająca się od typowej treści tytułu opłaty.
+    - type: text_after_label
+      labels: ['^(?=[ \t]*(?:wpis\s+od\s+odw|opłata\s+skarbowa))']
+      stop_labels: ['^\s*(dokument\b|niniejsz|signature|podpisan|bank\b|strona|data|kwota|numer|nr\b|wydruk|wygenerowan)']
+      max_lines: 3
