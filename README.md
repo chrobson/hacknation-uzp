@@ -64,9 +64,11 @@ bash scripts/demo_nowa_klasa.sh
 ```
 Przykładowe klasy leżą celowo poza `config/classes`, żeby nie były aktywne podczas oceny.
 
+**Test mutacyjny** (`bash scripts/mutation_proof.sh`): losowa zmiana nazw wszystkich klas i wszystkich kluczy wyjściowych w YAML (np. `przelew_bankowy.kwota` → `f328.f664`) daje po odwzorowaniu nazw wynik identyczny co do wartości (0 różnic w 120 dokumentach synth-dev i 196 dokumentach train), bez zmiany ani jednej linii Pythona.
+
 **Co się konfiguruje w YAML:**
 - **Rozpoznawanie** (`classify:`): `required` (choć jedna kotwica musi wystąpić), ważone `signals` (także ujemne, np. nagłówek innej klasy), `threshold`, `head_chars` (szukanie tylko w nagłówku), `fuzzy` (głosowanie słów odpornych na błędy OCR); wspólne reguły odrzucenia dokumentów obcych w `config/reject.yaml`.
-- **Walidacja wartości**: typ wartości (`value: date | amount | nip | krs | regon | pesel | email | account`) normalizuje i odrzuca wartości w złym formacie (np. NIP to 10 cyfr, data jest sprawdzana jako data kalendarzowa); `reject` / `require` (wzorce, które wartość musi spełnić albo których nie może zawierać), `cast: int`; dla modelu: `choices` (zamknięta lista odpowiedzi), `verbatim` (tylko cytat występujący w tekście), `schema` (typ JSON). Suma kontrolna IBAN jest używana w kodzie do rozstrzygania rachunków.
+- **Walidacja wartości**: typ wartości (`value: date | amount | nip | krs | regon | pesel | email | account`) normalizuje i odrzuca wartości w złym formacie (np. NIP to 10 cyfr, data jest sprawdzana jako data kalendarzowa); `reject` / `require` (wzorce, które wartość musi spełnić albo których nie może zawierać), `cast: int`; dla modelu: `choices` (zamknięta lista odpowiedzi), `verbatim` (tylko cytat występujący w tekście), `schema` (typ JSON). Osobno, sekcja `validate:` sprawdza sumy kontrolne NIP/REGON/PESEL/IBAN i formaty (tylko ostrzeżenia, opis niżej).
 - **Mapowanie**: ścieżka pola w wyniku (`przelew_bankowy.kwota`, listy `Odwolujacy[]`), `output_template` (kolejność i komplet kluczy, `null` dla braków), słowniki (`config/dictionaries/czynnosc_powod.yaml`: identyfikator → opis, pole pochodne `{from: …, dictionary: …}`), `keyword_map` (słowa → kod).
 
 | typ pola | co robi | przykład |
@@ -82,6 +84,25 @@ Przykładowe klasy leżą celowo poza `config/classes`, żeby nie były aktywne 
 | `exists` | wartość zależna od obecności wzorca | `{type: exists, pattern: ['CEIDG'], if_true: osoba_fizyczna}` |
 | `llm` | pytanie do modelu z walidacją odpowiedzi | `{type: llm, question: 'Podaj datę pisma', value: date}` |
 
+## Rozpoznawanie, walidacja, mapowanie: trzy pliki YAML
+Wszystkie trzy rodzaje reguł są konfiguracją, nie kodem; żadna z nich nie zmienia plików w `output/`.
+
+| Co | Gdzie | Wynik |
+|---|---|---|
+| **Rozpoznawanie** i ekstrakcja | `config/classes/*.yaml` (`classify:`, `fields:`) | `output/<sprawa>/*.json` |
+| **Walidacja pól** | sekcja `validate:` w tym samym pliku klasy, np. `Odwolujacy[*].nip: [{check: nip}]` | ostrzeżenia `{path, check, ok, message}` w `evidence/…/*.evidence.json`, klucz `validation` |
+| **Kontrola formalna sprawy** | `config/case_rules.yaml`: 5 reguł między dokumentami sprawy (wpis na rachunek UZP, opłata skarbowa 17 zł, mocodawca = Odwołujący, pełnomocnik umocowany, termin od czynności) | `evidence/<sprawa>/_sprawa.report.json` + jedna linia na sprawę w konsoli |
+| **Mapowanie / eksport** | `config/mappings/rejestr_kio.yaml`: lista `{column, path, join}` | `--map rejestr_kio` → `exports/rejestr_kio.csv` (wiersz na sprawę, UTF-8 z BOM i `;`, otwiera się w Excelu) |
+
+Sprawdzenia pól: `nip`, `regon`, `pesel` (sumy kontrolne), `krs`, `iban_pl`, `date_not_future`, `amount_range`, `regex`, `enum`. Operatory reguł sprawy: `exists`, `in`, `eq`, `fuzzy_eq`, `one_of_amounts`, `days_between_le`. Literówka w nazwie sprawdzenia lub operatora zatrzymuje program z czytelnym komunikatem przy starcie.
+
+Walidacja tylko ostrzega i nie usuwa wartości. Dane konkursowe zawierają fikcyjne identyfikatory: w `data/train` sumę kontrolną spełnia 115/189 numerów NIP, 85/123 REGON i 43/120 rachunków (`python -m eval.validate_gt`). Odrzucanie takich wartości obniżyłoby wynik.
+
+```bash
+bash start.sh --input input --output output --map rejestr_kio
+# jedna linia na sprawę: liczba spełnionych reguł i krótkie komunikaty (reguły informacyjne z prefiksem info:)
+```
+
 ## Model językowy (opcjonalny dodatek do reguł)
 | | |
 |---|---|
@@ -91,6 +112,17 @@ Przykładowe klasy leżą celowo poza `config/classes`, żeby nie były aktywne 
 | Kiedy | wyłącznie gdy żadna reguła nie dała wartości; nigdy nie nadpisuje reguły |
 | Wejście | wycinek pierwszego zarzutu odwołania (≤1500 znaków), a nie cały dokument |
 | Klasyfikacja | wyłącznie reguły (`classify_tiebreak: false`) |
+
+**Ablacja (ile daje model i jaki rozmiar):**
+
+| wariant | train | skany | synth-dev | zbiór kontrolny (bez wglądu) | wywołania modelu |
+|---|---|---|---|---|---|
+| same reguły (0 parametrów) | 1,000 | 0,953 | 0,942 | 0,731 | 0 |
+| reguły + `ministral-3b-2512` | 1,000 | 0,953 | 0,942 | 0,747 | 5 na 300 dok. |
+| reguły + `ministral-8b-2512` (domyślnie) | 1,000 | 0,953 | 0,942 | **0,754** | 5 na 300 dok. |
+| sam LLM 8b (cały tekst + specyfikacja, bez reguł; 60 dok.) | — | 0,861 | 0,784 | — | 60 na 60, ok. 1000× więcej tokenów |
+
+Pomiar na wersji rc4 (bez zmian w kodzie, tylko `model:` i `--llm`), dwa przebiegi, rozrzut 0. Model jest ostatnią deską ratunku: na naszych zbiorach pytany 5 razy na 300 dokumentów; zysk widać na trudniejszym zbiorze kontrolnym (data czynności, powód). Zmiana modelu to jedna linia `model:` w `config/llm.yaml` (albo `LLM_MODEL` w `.env`).
 
 **Klucz w pliku `.env` (wzór: `.env.example`); bez klucza działa tryb regułowy.** Bez sieci, z `LLM_ENABLED=0` albo z `--llm off` również działają same reguły. Po nieudanym wywołaniu (timeout, 401/429, brak sieci) model jest wyłączany do końca przebiegu.
 
@@ -115,6 +147,7 @@ start.sh, main.py   # uruchomienie
 src/odw/            # silnik: textio (PDF/OCR), classify, fields (typy pól), names, normalize, evidence, llm, pipeline
 config/classes/     # definicje klas (YAML): odwolanie, pelnomocnictwo, przelew
 config/reject.yaml  # reguły odrzucenia dokumentów obcych
+config/case_rules.yaml, config/mappings/  # kontrola formalna sprawy, eksporty CSV
 config/dictionaries/, config/llm.yaml
 examples/klasy/     # przykład nowej klasy (rozszerzalność)
 eval/               # metryka UZP, bramka jakości, perturbacje; scripts/ (test czystego klonu, demo)

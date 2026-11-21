@@ -81,6 +81,7 @@ fields:
   # potem cały dokument: nazwisko po tytule zawodowym, wiersz tabeli "1 X Y adwokat", punktor "• X Y – r. pr.".
   pelnomocnicy:
     - type: names
+      field: imie_nazwisko      # klucz wyjściowy imienia i nazwiska (jawnie, bez domyślnej nazwy w kodzie)
       nominative: true   # GT ma imiona i nazwiska w mianowniku
       titlecase: true
       section: pelnomocnicy_formularz
@@ -95,6 +96,7 @@ fields:
       nominative: true
       titlecase: true
       section: pelnomocnicy_lista
+      field: imie_nazwisko
       pattern: '(?<![\w-])(?<!ul\.[ \t])(?<!al\.[ \t])(?<!im\.[ \t])(?<!pl\.[ \t])([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?[ \t]*\n?[ \t]*[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?)(?![\wąćęłńóśźż])(?![ \t]+(?:sp\.|S\.A\.|spółk|Sp\.))'
       reject_context: *rep_ctx
       stopwords: *rep_stop
@@ -102,6 +104,7 @@ fields:
       extra: {pesel: null}
       attrs: *rep_attrs
     - type: names
+      field: imie_nazwisko      # klucz wyjściowy imienia i nazwiska (jawnie, bez domyślnej nazwy w kodzie)
       nominative: true   # GT ma imiona i nazwiska w mianowniku
       titlecase: true
       pattern:
@@ -167,6 +170,7 @@ lists:
       # Podpisujący: nazwiska w bloku podpisów (po pierwszej linii kropek), bez pełnomocników i nazw funkcji.
       podpisujacy:
         type: names
+        field: imie_nazwisko      # klucz wyjściowy imienia i nazwiska (jawnie, bez domyślnej nazwy w kodzie)
         nominative: true   # GT ma imiona i nazwiska w mianowniku
         titlecase: true
         scope: document
@@ -186,4 +190,12 @@ lists:
         not_in: data.nazwa     # „Tervana Systemy” z nazwy firmy mocodawcy to nie osoba
         min_word_len: 3        # śmieci OCR („Pawia Il”)
         assign_to_item: true   # kilku mocodawców: podpisy przypisane do bloku / „(firma)” pod podpisem
+        company_field: nazwa     # klucz nazwy mocodawcy w pozycji listy (do przypisania podpisów)
         stopwords: [Za, W, Imieniu, Prezes, Wiceprezes, Członek, Zarządu, Prokurent, Dyrektor, Właściciel, Wspólnik, Pełnomocnik, Pełnomocnictwo, Mocodawca, Mocodawcy, Zarząd, Generalny, Finansowy, Komplementariusz, Partner, Kierownik, Imię, Nazwisko, Podpis, Data, Miejsce, Strona, Sp, Spółka, Prezesa, Członka, Upoważniony, Upoważniona, Główny, Księgowy, Handlowy, Przedsiębiorca, Samoistny, Management, Board, President, Member, Principal, Attorney, Przyjęcie, Wykonawca, Wykonawcy, Lider, Konsorcjum, Kancelaria, Radcy, Radca, Prawnego, Prawny, Adwokacka, Adwokat, Dokument, Signature, Verified, Podpisany, Podpisano]
+
+# Walidacja (tylko ostrzeżenia w evidence/, wynik w output/ bez zmian). Dostępne checki: src/odw/validate.py.
+validate:
+  mocodawca[*].data.nip: [{check: nip}]
+  mocodawca[*].data.krs: [{check: krs}]
+  mocodawca[*].data.typ: [{check: enum, values: [osoba_prawna, osoba_fizyczna]}]
+  pelnomocnicy[*].pesel: [{check: pesel}]

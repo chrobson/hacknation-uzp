@@ -235,7 +235,33 @@ async function showRun(meta, idx) {
     t.addEventListener("click", () => selectDoc(i));
     tabs.append(t);
   });
+  renderCaseReport(meta.id);
   await selectDoc(Math.min(Math.max(idx, 0), docs.length - 1));
+}
+
+// Kontrola formalna sprawy (config/case_rules.yaml): karta nad dokumentami, zielone/czerwone wiersze.
+async function renderCaseReport(rid) {
+  const box = $("#case-report");
+  box.hidden = true;
+  box.replaceChildren();
+  let rep;
+  try { rep = await (await api(`/api/runs/${rid}/case_report`)).json(); } catch { return; }
+  if (!rep.rules || !rep.rules.length || state.run?.id !== rid) return;
+  const head = el("button", "case-head");
+  head.append(el("strong", null, "Kontrola formalna sprawy"),
+    el("span", "muted", ` ${rep.passed}/${rep.evaluated} reguł spełnionych` + (rep.total > rep.evaluated ? ` · ${rep.total - rep.evaluated} nie dotyczy` : "")),
+    el("span", "muted case-src", "config/case_rules.yaml"));
+  head.addEventListener("click", () => box.classList.toggle("collapsed"));
+  const list = el("div", "case-rules");
+  for (const r of rep.rules) {
+    const row = el("div", `case-rule ${r.status === "ok" ? "ok" : r.status === "fail" ? (r.severity === "info" ? "info" : "fail") : "na"}`);
+    row.append(el("span", "case-dot"), el("span", "case-label", r.label + (r.severity === "info" ? " · informacyjnie" : "")),
+      el("span", "case-msg muted", r.message || ""));
+    row.title = `${r.label}\n${r.message || ""}`;
+    list.append(row);
+  }
+  box.append(head, list);
+  box.hidden = false;
 }
 
 // ------------------------------------------------------------------------------------------------ document
@@ -526,6 +552,13 @@ function renderLeaf(key, value, path) {
       chip = el("span", "chip nobox", `s. ${f.page}`);
       chip.title = "Znaleziono w tekście strony, ale bez dokładnej ramki";
     }
+  }
+  const warns = (state.ev?.validation || []).filter((w) => w.path === path && !w.ok);
+  if (warns.length) {
+    row.classList.add("vwarn");
+    const w = el("span", "vwarn-mark", "!");
+    w.title = "Walidacja (tylko ostrzeżenie, wartość bez zmian): " + warns.map((x) => `${x.check}: ${x.message}`).join("; ");
+    v.append(w);
   }
   row.append(k, v, chip);
   row.addEventListener("mouseenter", () => hover(path, true));

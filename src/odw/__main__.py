@@ -43,6 +43,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--evidence", type=Path, default=ROOT / "evidence",
                     help="folder na pliki evidence (strona + fragment źródła dla każdego pola); domyślnie ./evidence")
     ap.add_argument("--no-evidence", action="store_true", help="nie zapisuj evidence")
+    ap.add_argument("--no-case-check", action="store_true",
+                    help="nie sprawdzaj spraw regułami z config/case_rules.yaml (raport w evidence/<sprawa>/_sprawa.report.json)")
+    ap.add_argument("--map", action="append", default=[], metavar="NAZWA",
+                    help="eksport wg config/mappings/NAZWA.yaml do folderu --exports (np. --map rejestr_kio); można podać wiele razy")
+    ap.add_argument("--exports", type=Path, default=ROOT / "exports", help="folder na eksporty CSV (domyślnie ./exports)")
     ap.add_argument("--llm", choices=["on", "off"], help="wymuś włączenie/wyłączenie LLM (domyślnie: config/llm.yaml)")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
@@ -61,7 +66,26 @@ def main(argv: list[str] | None = None) -> int:
     if args.evidence.resolve() == args.output.resolve() or args.output.resolve() in args.evidence.resolve().parents:
         print("evidence nie może trafiać do folderu output (dodatkowe pliki obniżają ocenę)", file=sys.stderr)
         return 2
+    if args.map and (args.exports.resolve() == args.output.resolve() or args.output.resolve() in args.exports.resolve().parents):
+        print("eksporty nie mogą trafiać do folderu output (dodatkowe pliki obniżają ocenę)", file=sys.stderr)
+        return 2
+    from .case_check import load_rules, run_cases
+    from .mapping import export, load_mapping
+
+    for name in args.map:
+        load_mapping(name)  # fail fast on a typo, before the (long) run
+    rules = [] if args.no_case_check else load_rules()
     results = run(args.input, args.output, classes, None if args.no_evidence else args.evidence)
+    reports = {}
+    try:  # extras after output/ is written: a failing rule or export must not change the exit code
+        reports = run_cases(results, args.input, None if args.no_evidence else args.evidence, rules, echo=print) if rules else {}
+    except Exception:
+        logging.getLogger(__name__).exception("case check failed (output is complete)")
+    for name in args.map:
+        try:
+            print(f"eksport {name}: {export(name, results, args.input, args.exports, reports)}")
+        except Exception:
+            logging.getLogger(__name__).exception("export %s failed (output is complete)", name)
     rejected = sum(1 for r in results if r.verdict.cls is None)
     from . import llm
     print(f"przetworzono {len(results)} PDF, odrzucono {rejected}, wynik: {args.output}")

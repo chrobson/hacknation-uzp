@@ -1,0 +1,20 @@
+# Mapowanie do rejestru spraw: jeden wiersz CSV na sprawę (podfolder input/). Uruchomienie: --map rejestr_kio
+# Kolumna = {column: nagłówek, path: <klasa>.<pole JSON>, join: separator wielu wartości (bez join = pierwsza), default}
+# Ścieżki specjalne: _sprawa (nazwa folderu), _kontrola.summary / _kontrola.passed / _kontrola.evaluated (raport z case_rules.yaml).
+delimiter: ";"
+columns:
+  - {column: Sprawa, path: _sprawa}
+  - {column: Data odwołania, path: odwolanie.OdwolanieKIO.data}
+  - {column: Miejscowość, path: odwolanie.OdwolanieKIO.miejscowosc}
+  - {column: Odwołujący, path: 'odwolanie.Odwolujacy[*].nazwa', join: " | "}
+  - {column: NIP Odwołującego, path: 'odwolanie.Odwolujacy[*].nip', join: " | "}
+  - {column: Pełnomocnik, path: 'odwolanie.Odwolujacy[*].pelnomocnik.imie_nazwisko', join: " | ", default: "-"}
+  - {column: Zamawiający, path: 'odwolanie.Zamawiajacy[*].nazwa', join: " | "}
+  - {column: Numer postępowania, path: odwolanie.ZamowieniePubliczne.numer_postepowania}
+  - {column: Numer BZP, path: odwolanie.ZamowieniePubliczne.numer_bzp}
+  - {column: Numer TED, path: odwolanie.ZamowieniePubliczne.numer_ted}
+  - {column: Czynność, path: odwolanie.OdwolanieKIO.czynnosc_opis}
+  - {column: Data czynności, path: odwolanie.OdwolanieKIO.czynnosc_dzien}
+  - {column: Kwoty przelewów, path: przelew.przelew_bankowy.kwota, join: " + "}
+  - {column: Data przelewu, path: przelew.przelew_bankowy.data_operacji}
+  - {column: Kontrola formalna, path: _kontrola.summary}

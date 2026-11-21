@@ -379,6 +379,8 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
     pattern     regex whose group 1 is the name (default: two capitalised words on one line)
     after       optional regex; search only after its first match (e.g. the signature block)
     exclude_from  output path of another field whose names are excluded (e.g. representatives)
+    field       output key of the name in each item (default imie_nazwisko)
+    company_field  key of the list item's company name, used by assign_to_item (default nazwa)
     stopwords   first/last words that mark a role, not a name (e.g. Prezes, Zarządu)
     not_in      path inside the current list item (e.g. data.nazwa): a name that is part of that company name
                 (with a legal form: S.A., sp., spółka) is a company word, not a person ("Tervana Systemy")
@@ -434,15 +436,16 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
         items.append(item)
         tails.append(text[m.end() : m.end() + 120])
     if spec.get("assign_to_item") and not segmented and ctx.n_items > 1 and ctx.item_text and items:
-        items = _assign_to_item(items, tails, field, ctx) or items
+        items = _assign_to_item(items, tails, field, ctx, spec.get("company_field", "nazwa")) or items
     return items or None
 
 
-def _assign_to_item(items: list[dict[str, Any]], tails: list[str], field: str, ctx: Context) -> list[dict[str, Any]]:
+def _assign_to_item(items: list[dict[str, Any]], tails: list[str], field: str, ctx: Context,
+                    company_field: str = "nazwa") -> list[dict[str, Any]]:
     """Several principals sign one document: keep the names that belong to the current one — the surname occurs in its
     own block ("Reprezentowany przez …") or the signature is followed by its name in brackets ("(Alfa sp. z o.o.)")."""
     own = ctx.item_text.lower()
-    company = _first_str(ctx.item)
+    company = _first_str(ctx.item, company_field)
     key = company.lower()[:12] if company else None
     kept = []
     for it, tail in zip(items, tails):
@@ -458,14 +461,14 @@ def _assign_to_item(items: list[dict[str, Any]], tails: list[str], field: str, c
     return kept
 
 
-def _first_str(item: dict[str, Any] | None) -> str | None:
-    """The item's name: first non-empty 'nazwa' (possibly nested, e.g. data.nazwa)."""
+def _first_str(item: dict[str, Any] | None, key: str = "nazwa") -> str | None:
+    """The item's name: first non-empty `key` (possibly nested, e.g. data.nazwa)."""
     if not isinstance(item, dict):
         return None
-    if isinstance(item.get("nazwa"), str) and item["nazwa"]:
-        return item["nazwa"]
+    if isinstance(item.get(key), str) and item[key]:
+        return item[key]
     for v in item.values():
-        if isinstance(v, dict) and (r := _first_str(v)):
+        if isinstance(v, dict) and (r := _first_str(v, key)):
             return r
     return None
 

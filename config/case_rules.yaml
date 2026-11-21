@@ -1,0 +1,50 @@
+# Kontrola formalna sprawy: reguły sprawdzane na JSON-ach wszystkich dokumentów jednego podfolderu input/<sprawa>/.
+# Raport: evidence/<sprawa>/_sprawa.report.json (nigdy output/). Zmiana reguły = edycja tego pliku, bez kodu.
+#
+# Ścieżka: <klasa>.<pole JSON>, [*] = każdy element listy, np. odwolanie.Odwolujacy[*].nazwa.
+# Operatory (src/odw/case_check.py): exists, in, eq, fuzzy_eq (min_score 0-100), one_of_amounts, days_between_le (max).
+# Prawa strona: right (inna ścieżka) | values (lista) | values_from (klucz z innego pliku YAML).
+# when: ścieżki, które muszą istnieć, inaczej reguła "nie dotyczy". severity: error | info (informacyjna).
+# on_fail: krótki komunikat do jednolinijkowego podsumowania w konsoli.
+
+rules:
+  - id: wpis_na_rachunek_uzp
+    label: "Wpis od odwołania przelany na rachunek UZP (informacyjnie: w sprawie bywa tylko przelew opłaty skarbowej)"
+    severity: info
+    op: in
+    left: przelew.przelew_bankowy.na_rachunek
+    values_from: {file: config/classes/przelew.yaml, key: accounts.known_receivers}
+    on_fail: brak przelewu na rachunek UZP
+
+  - id: oplata_skarbowa_pelnomocnictwo
+    label: Opłata skarbowa 17 zł od pełnomocnictwa (17 zł za każde)
+    when: [pelnomocnictwo]
+    op: one_of_amounts
+    left: przelew.przelew_bankowy.kwota
+    values: [17, 34, 51, 68]
+    on_fail: brak opłaty skarbowej 17 zł
+
+  - id: mocodawca_to_odwolujacy
+    label: Mocodawca z pełnomocnictwa = Odwołujący
+    op: fuzzy_eq
+    left: pelnomocnictwo.mocodawca[*].data.nazwa
+    right: odwolanie.Odwolujacy[*].nazwa
+    min_score: 85
+    on_fail: mocodawca inny niż Odwołujący
+
+  - id: pelnomocnik_zgodny
+    label: Pełnomocnik z odwołania umocowany w pełnomocnictwie
+    op: fuzzy_eq
+    left: odwolanie.Odwolujacy[*].pelnomocnik.imie_nazwisko
+    right: pelnomocnictwo.pelnomocnicy[*].imie_nazwisko
+    min_score: 90
+    on_fail: pełnomocnik nieumocowany
+
+  - id: termin_odwolania
+    label: Odwołanie wniesione w ciągu 15 dni od czynności (informacyjnie)
+    severity: info
+    op: days_between_le
+    left: odwolanie.OdwolanieKIO.data
+    right: odwolanie.OdwolanieKIO.czynnosc_dzien
+    max: 15
+    on_fail: termin odwołania > 15 dni

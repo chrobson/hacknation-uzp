@@ -355,6 +355,14 @@ def doc_evidence(rid: str, idx: int) -> JSONResponse:
     return JSONResponse(ev or {"fields": {}, "class": doc.get("class"), "page_sizes": []})
 
 
+@app.get("/api/runs/{rid}/case_report")
+def case_report(rid: str) -> JSONResponse:
+    """Kontrola formalna sprawy (config/case_rules.yaml), zapisana przez pipeline obok evidence."""
+    run = _run_dir(rid)
+    meta = _read_meta(run)
+    return JSONResponse(_load_json(run / "evidence" / meta["case"] / "_sprawa.report.json") or {"rules": []})
+
+
 @app.get("/api/runs/{rid}/zip")
 def run_zip(rid: str) -> Response:
     run = _run_dir(rid)

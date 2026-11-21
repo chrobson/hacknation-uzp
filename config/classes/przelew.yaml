@@ -101,3 +101,10 @@ fields:
       labels: ['^(?=[ \t]*(?:wpis\s+od\s+odw|opłata\s+skarbowa))']
       stop_labels: ['^\s*(dokument\s+(?:nr|elektroniczn\w*|wygenerowan\w*|jest|podpis\w*|sporządz\w*|został\w*)|niniejsz\w*\s+potwierdz|signature|bank\b|strona|data|kwota|numer|nr\b|wydruk|wygenerowan)']
       max_lines: 3
+
+# Walidacja (tylko ostrzeżenia w evidence/, wynik w output/ bez zmian). Dostępne checki: src/odw/validate.py.
+validate:
+  przelew_bankowy.z_rachunku: [{check: iban_pl}]
+  przelew_bankowy.na_rachunek: [{check: iban_pl}]
+  przelew_bankowy.kwota: [{check: amount_range, min: 1, max: 100000}]
+  przelew_bankowy.data_operacji: [{check: date_not_future, not_before: '2016-07-28'}]

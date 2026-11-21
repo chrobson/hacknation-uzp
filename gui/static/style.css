@@ -246,3 +246,20 @@ code { font-family: var(--mono); font-size: .92em; background: var(--line-2); pa
   .data-pane { flex: none; min-height: 70vh; margin-top: 12px; }
   .gutter { display: none; }
 }
+
+/* ---------- formal case check + validation warnings ---------- */
+.case-report { background: #fff; border-bottom: 1px solid var(--line); padding: 6px 16px 8px; font-size: 12.5px; }
+.case-head { display: flex; gap: 8px; align-items: baseline; width: 100%; border: 0; background: none; padding: 2px 0; font: inherit; color: var(--ink); cursor: pointer; text-align: left; }
+.case-head .case-src { margin-left: auto; font-family: var(--mono); font-size: 11px; }
+.case-report.collapsed .case-rules { display: none; }
+.case-rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 3px 10px; margin-top: 4px; }
+.case-rule { display: grid; grid-template-columns: 10px minmax(0, auto) minmax(0, 1fr); gap: 7px; align-items: baseline; padding: 3px 8px; border-radius: 6px; }
+.case-rule .case-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.case-rule .case-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--null); }
+.case-rule .case-msg { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+.case-rule.ok { background: #e6f5ee; } .case-rule.ok .case-dot { background: var(--ok); }
+.case-rule.fail { background: #fbe9e7; } .case-rule.fail .case-dot { background: #c62f2f; }
+.case-rule.info { background: #fdf3dc; } .case-rule.info .case-dot { background: var(--accent); }
+.case-rule.na { background: #f3f5f8; color: var(--muted); }
+.vwarn-mark { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin-left: 6px; border-radius: 50%; background: #f4c542; color: #3d2c00; font: 700 11px var(--sans); vertical-align: 1px; cursor: help; }
+.leaf.vwarn { box-shadow: inset -3px 0 0 #f4c542; }

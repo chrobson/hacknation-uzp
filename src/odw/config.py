@@ -80,6 +80,10 @@ def _signals(items: list[dict[str, Any]] | None) -> list[Signal]:
 def load_class(path: Path) -> DocClass:
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     cls = raw["classify"]
+    from .validate import config_errors  # optional `validate:` section: field checks, warn-only (see validate.py)
+
+    if problems := config_errors(raw.get("validate")):
+        raise SystemExit(f"{path.name}: błędna sekcja validate: " + "; ".join(problems))
     return DocClass(
         name=raw["name"],
         signals=_signals(cls.get("signals")),

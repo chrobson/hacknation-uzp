@@ -139,6 +139,10 @@ def _write_evidence(target: Path, result: Result) -> None:
     try:
         target.parent.mkdir(parents=True, exist_ok=True)
         payload = build(result.doc, result.verdict.name, result.data)
+        if result.verdict.cls is not None and result.verdict.cls.raw.get("validate"):
+            from .validate import validate  # warn-only: reported next to the evidence, output/ untouched
+
+            payload["validation"] = validate(result.data, result.verdict.cls.raw["validate"])
         target.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception:  # evidence is a convenience; it must never break the run
         log.exception("evidence for %s failed", result.source)

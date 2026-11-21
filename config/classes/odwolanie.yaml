@@ -347,3 +347,17 @@ lists:
 
 derive:
   OdwolanieKIO.czynnosc_opis: {from: OdwolanieKIO.czynnosc_powod_id, dictionary: czynnosc_powod}
+
+# Walidacja (tylko ostrzeżenia w evidence/, wynik w output/ bez zmian). Dostępne checki: src/odw/validate.py.
+validate:
+  Odwolujacy[*].nip: [{check: nip}]
+  Odwolujacy[*].regon: [{check: regon}]
+  Odwolujacy[*].krs: [{check: krs}]
+  Odwolujacy[*].pelnomocnik.mail: [{check: regex, pattern: '[^@\s]+@[^@\s]+\.[A-Za-z]{2,}', message: 'niepoprawny adres e-mail'}]
+  Zamawiajacy[*].nip: [{check: nip}]
+  Zamawiajacy[*].regon: [{check: regon}]
+  Zamawiajacy[*].krs: [{check: krs}]
+  OdwolanieKIO.data: [{check: date_not_future, not_before: '2016-07-28'}]
+  OdwolanieKIO.czynnosc_dzien: [{check: date_not_future, not_before: '2016-07-28'}]
+  ZamowieniePubliczne.numer_bzp: [{check: regex, pattern: '\d{4}/BZP\d{8}(/\d{2})?', message: 'numer BZP powinien mieć postać RRRR/BZPNNNNNNNN'}]
+  ZamowieniePubliczne.numer_ted: [{check: regex, pattern: '\d{5,6}-\d{4}', message: 'numer TED powinien mieć postać NNNNNN-RRRR'}]
