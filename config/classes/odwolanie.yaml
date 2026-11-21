@@ -10,6 +10,8 @@ classify:
     - '^\s*(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)\b'
     - 'wnosz\w*\s.{0,40}odwołani'
   signals:
+    # Pisma KIO i zamawiającego innych rodzajów (nagłówek):
+    - {pattern: '^\s*(?-i:WEZWANIE|ZAWIADOMIENIE|INFORMACJA\s+O\s+WYNIKU)\b', weight: -6, head_chars: 1500}
     - {pattern: '^\s*O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E\b', weight: 3}
     - {pattern: 'wnosz[eę]\s+(niniejsze\s+)?odwołani', weight: 3}
     - {pattern: 'Krajow\w+\s+Izb\w+\s+Odwoławcz\w+', weight: 2, head_chars: 1500}

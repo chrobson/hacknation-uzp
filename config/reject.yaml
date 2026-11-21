@@ -7,3 +7,6 @@ reject:
   - name: orzeczenie_kio
     all: ['^\s*(?-i:WYROK|POSTANOWIENIE)\b', 'Krajow\w+\s+Izb\w+\s+Odwoławcz\w+\s*[-–]?\s*w\s+składzie|Przewodnicząc\w*\s*:']
     head_chars: 1500
+  # Dokumenty postępowania, które nie są żadną z klas (nagłówek u góry strony).
+  - {name: swz, pattern: '^\s*(?-i:SPECYFIKACJA\s+WARUNKÓW\s+ZAMÓWIENIA)', head_chars: 600}
+  - {name: faktura, pattern: '^\s*(?:Faktura(?:\s+VAT)?|FAKTURA(?:\s+VAT)?)\s*(?:nr\b|$)', head_chars: 300}

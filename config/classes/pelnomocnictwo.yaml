@@ -8,6 +8,8 @@ classify:
     - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', head_chars: 800}
     - 'udziel\w*\s+(\w+\s+)?pełnomocnictw|ustanawia\w*\s+(\w+\s+)?pełnomocnik|upoważniam'
   signals:
+    # Pisma KIO i zamawiającego innych rodzajów (nagłówek):
+    - {pattern: '^\s*(?-i:WEZWANIE|ZAWIADOMIENIE|INFORMACJA\s+O\s+WYNIKU)\b', weight: -6, head_chars: 1500}
     - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', weight: 3, head_chars: 600}
     - {pattern: 'ustanawia\w*\s+(\w+\s+)?pełnomocnik|udziela\w*\s+(\w+\s+)*?pełnomocnictw|umocowan', weight: 2}
     - {pattern: 'mocodaw', weight: 2}

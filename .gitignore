@@ -3,7 +3,6 @@ __pycache__/
 *.pyc
 .env
 output/*
-!output/.gitkeep
 
 # Notatki robocze (plany, research, ustalenia, taski): tylko lokalnie, nie trafiają do repo
 notes/
