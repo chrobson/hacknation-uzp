@@ -19,3 +19,26 @@ output_template:
     numer_transakcji: null
     tytul: null
     z_rachunku: null
+
+# Rachunki: rola (nadawca/odbiorca) z najbliższego słowa kluczowego przed numerem.
+accounts:
+  lookback_chars: 150
+  sender_keywords: ['obciąż\w*', 'nadawc\w*', 'zleceniodawc\w*', 'płatnik\w*', '\bz\s+rachunku', 'rachunek\s+źródłowy', 'z\s+konta']
+  receiver_keywords: ['odbiorc\w*', 'beneficjent\w*', 'uznaw\w*', 'adresat\w*', '\bna\s+rachunek', 'rachunek\s+docelowy', 'na\s+konto', 'uznan\w*']
+
+fields:
+  przelew_bankowy.z_rachunku: {type: account, role: sender}
+  przelew_bankowy.na_rachunek: {type: account, role: receiver}
+  przelew_bankowy.kwota:
+    - {type: labeled, value: amount, labels: ['kwot\w*', 'wartoś\w*', 'w\s+kwocie', 'suma'], window: 120}
+    - {type: pattern, pattern: '(\d[\d  .]*[,.]\d{2})\s*(?:PLN|zł)'}
+  przelew_bankowy.data_operacji:
+    - {type: labeled, value: date, labels: ['data\s+(operacji|transakcji|realizacji|wykonania|księgowania|przelewu|obciążenia)', 'w\s+dniu', 'zrealizowan\w*\s+dnia'], window: 120}
+  przelew_bankowy.numer_transakcji:
+    - {type: labeled, value: token, labels: ['nr\.?\s*ref\w*\.?', 'numer\s+referencyjny', 'numer\s+transakcji(\s+operacji)?', '(id|identyfikator)\s+transakcji', 'nr\s+transakcji', 'referencj\w+'], token_pattern: '[A-Z]{2,}[0-9]{6,}|[0-9]{8,}', window: 80}
+    - {type: pattern, pattern: '\b([A-Z]{3}\d{10,})\b'}
+  przelew_bankowy.tytul:
+    - type: text_after_label
+      labels: ['^\s*tytuł\s+przelewu', '^\s*tytułem', '^\s*tytuł', '^\s*opis\s+(operacji|transakcji|przelewu)', '^\s*opis', '^\s*treść', 'tytuł\w*\s+przelewu']
+      stop_labels: ['^\s*(nr\.?\s*ref|numer|data|kwota|status|rachun|nadawc|odbiorc|zleceniod|kanał|potwierdz|bank|zrealizowan|strona|dane|identyfikator|id\s|saldo|wartoś|waluta|typ|rodzaj)']
+      max_lines: 4

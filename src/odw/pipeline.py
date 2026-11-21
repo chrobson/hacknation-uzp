@@ -11,6 +11,7 @@ from typing import Any
 
 from .classify import Verdict, classify
 from .config import DocClass, load_classes
+from .fields import Context, extract_field, set_path
 from .textio import Document, load_pdf
 
 log = logging.getLogger(__name__)
@@ -24,8 +25,11 @@ class Result:
 
 
 def extract(doc: Document, doc_class: DocClass) -> dict[str, Any]:
-    # Extraction is filled in per class; until then the schema skeleton (all null) is returned.
-    return copy.deepcopy(doc_class.output_template)
+    out = copy.deepcopy(doc_class.output_template)
+    ctx = Context(doc.text, doc_class.raw)
+    for path, specs in (doc_class.raw.get("fields") or {}).items():
+        set_path(out, path, extract_field(specs, ctx))
+    return out
 
 
 def process_pdf(path: Path, classes: list[DocClass]) -> Result:
