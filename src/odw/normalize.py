@@ -13,6 +13,10 @@ MONTHS = {
 }
 MONTHS.update({m: i + 1 for i, m in enumerate(
     ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"])})
+for _abbr, _n in {"sty": 1, "lut": 2, "mar": 3, "kwi": 4, "maj": 5, "cze": 6, "lip": 7, "sie": 8, "wrz": 9, "paź": 10,
+                  "paz": 10, "lis": 11, "gru": 12, "jan": 1, "feb": 2, "apr": 4, "may": 5, "jun": 6, "jul": 7, "aug": 8,
+                  "sep": 9, "sept": 9, "oct": 10, "nov": 11, "dec": 12}.items():
+    MONTHS.setdefault(_abbr, _n)
 _MONTH_ALT = "|".join(sorted(MONTHS, key=len, reverse=True))
 ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10, "XI": 11, "XII": 12}
 _ROMAN_ALT = "|".join(sorted(ROMAN, key=len, reverse=True))
@@ -20,9 +24,10 @@ _ROMAN_ALT = "|".join(sorted(ROMAN, key=len, reverse=True))
 DATE_RE = re.compile(
     r"(?P<iso>\b(?P<y1>\d{4})[-./](?P<m1>\d{1,2})[-./](?P<d1>\d{1,2})\b)"
     r"|(?P<dmy>\b(?P<d2>\d{1,2})[-./](?P<m2>\d{1,2})[-./](?P<y2>\d{4})\b)"
-    rf"|(?P<word>\b(?P<d3>\d{{1,2}})\s+(?P<m3>{_MONTH_ALT})\s+(?P<y3>\d{{4}}))"
+    rf"|(?P<word>\b(?P<d3>\d{{1,2}})[\s-]+(?P<m3>{_MONTH_ALT})\.?[\s-]+(?P<y3>\d{{4}}))"
     rf"|(?P<roman>\b(?P<d4>\d{{1,2}})[\s.]+(?P<m4>(?-i:{_ROMAN_ALT}))[\s.]+(?P<y4>\d{{4}}))"
-    rf"|(?P<en>\b(?P<m5>{_MONTH_ALT})\s+(?P<d5>\d{{1,2}}),?\s+(?P<y5>\d{{4}}))",
+    rf"|(?P<en>\b(?P<m5>{_MONTH_ALT})\.?\s+(?P<d5>\d{{1,2}}),?\s+(?P<y5>\d{{4}}))"
+    r"|(?P<dmy2>\b(?P<d6>\d{1,2})[.\-/](?P<m6>\d{1,2})[.\-/](?P<y6>\d{2})\b(?![.\-/]\d))",
     re.IGNORECASE,
 )
 
@@ -30,7 +35,7 @@ DATE_RE = re.compile(
 AMOUNT_RE = re.compile(r"(?<![\d.,])(\d{1,3}(?:[  .]\d{3})+|\d+)[,.](\d{2})(?![\d])")
 
 # 26-digit Polish account number, optional PL, any whitespace (incl. line breaks) between groups
-ACCOUNT_RE = re.compile(r"(?<![\dA-Z])(?:PL)?\s?(\d{2}(?:\s?\d{4}){6})(?!\d)")
+ACCOUNT_RE = re.compile(r"(?<![\dA-Z])(?:PL)?\s?((?:\d[\s-]?){25}\d)(?!\d)")
 
 
 def parse_date(m: re.Match[str]) -> str | None:
@@ -39,6 +44,8 @@ def parse_date(m: re.Match[str]) -> str | None:
             y, mo, d = int(m.group("y1")), int(m.group("m1")), int(m.group("d1"))
         elif m.group("dmy"):
             y, mo, d = int(m.group("y2")), int(m.group("m2")), int(m.group("d2"))
+        elif m.group("dmy2"):
+            y, mo, d = 2000 + int(m.group("y6")), int(m.group("m6")), int(m.group("d6"))
         elif m.group("en"):
             y, mo, d = int(m.group("y5")), MONTHS[m.group("m5").lower()], int(m.group("d5"))
         elif m.group("roman"):

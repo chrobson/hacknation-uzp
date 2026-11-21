@@ -355,7 +355,14 @@ def _near(spec: dict[str, Any], ctx: Context) -> Any:
     window = int(spec.get("window", 400))
     stops = _compile(spec.get("stop", []))
     hits = sorted((m for rx in _compile(spec["anchors"]) for m in rx.finditer(ctx.text)), key=lambda m: m.start())
+    before = int(spec.get("before", 0))  # also look this many characters before the anchor (nearest value wins)
     for m in hits:
+        if before:
+            prev = ctx.text[max(0, m.start() - before) : m.start()]
+            cut = max((sm.end() for rx in stops for sm in rx.finditer(prev)), default=0)
+            found = [f for f in (find(prev[i:]) for i in range(cut, len(prev), 40)) if f]
+            if found:
+                return found[-1]
         end = m.end() + window
         while end < len(ctx.text) and not ctx.text[end].isspace():  # never cut a token at the window edge
             end += 1

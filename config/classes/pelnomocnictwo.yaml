@@ -27,7 +27,9 @@ classify:
     - {pattern: '^\s*(?:potwierdzeni\w*\s+(?:realizacji\s+|wykonania\s+)?(?:polecenia\s+)?przelewu|polecenie\s+przelewu|dowód\s+wykonania\s+przelewu)', weight: -6, head_chars: 600}
     # Pisma KIO i zamawiającego innych rodzajów (nagłówek):
     - {pattern: '^\s*(?-i:WEZWANIE|ZAWIADOMIENIE|INFORMACJA\s+O\s+WYNIKU)\b', weight: -6, head_chars: 1500}
-    - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', weight: 3, head_chars: 600}
+    - {pattern: '^\s*P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', weight: 3, head_chars: 600}   # tytuł w linii, nie w tytule przelewu
+    # Pełnomocnictwo do złożenia oferty / udziału w przetargu to inny dokument (0/100 prawdziwych ma „ofert”)
+    - {pattern: '\bofert\w*', weight: -3}
     - {pattern: 'ustanawia\w*\s+(\w+\s+)?pełnomocnik|udziela\w*\s+(\w+\s+)*?pełnomocnictw|umocowan', weight: 2}
     - {pattern: 'mocodaw', weight: 2}
     - {pattern: '(?:upoważnia|ustanawia|udziela)\w*\s+(?:[\w„”.-]+\s+){0,5}?do\s+reprezentowania', weight: 2}
