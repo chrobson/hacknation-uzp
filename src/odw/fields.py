@@ -201,7 +201,13 @@ def _pattern(spec: dict[str, Any], ctx: Context) -> Any:
                 value = spec["format"].format(*groups)
                 return "".join(value.split()) if spec.get("nospace") else value
             value = m.group(1) if m.groups() else m.group(0)
-            return N.digits(value) if spec.get("digits") else N.clean_text(value) if spec.get("clean") else value
+            value = N.digits(value) if spec.get("digits") else N.clean_text(value) if spec.get("clean") else value
+            if spec.get("titlecase") or spec.get("nominative"):
+                from .names import nominative, titlecase_upper
+
+                value = titlecase_upper(value) if spec.get("titlecase") else value
+                value = nominative(value) if spec.get("nominative") else value
+            return value
     return None
 
 
@@ -284,8 +290,14 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
     field = spec.get("field", "imie_nazwisko")
     items: list[dict[str, Any]] = []
     matches = sorted((m for rx in rxs for m in rx.finditer(text)), key=lambda m: m.start())
+    from .names import nominative, titlecase_upper
+
     for m in matches:
         name = " ".join(m.group(1).split())
+        if spec.get("titlecase"):
+            name = titlecase_upper(name)
+        if spec.get("nominative"):
+            name = nominative(name)
         words = name.split()
         if any(w.lower() in stop for w in words) or name in exclude or any(i[field] == name for i in items):
             continue

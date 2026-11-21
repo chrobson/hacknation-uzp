@@ -55,6 +55,8 @@ fields:
   # potem cały dokument: nazwisko po tytule zawodowym, wiersz tabeli "1 X Y adwokat", punktor "• X Y – r. pr.".
   pelnomocnicy:
     - type: names
+      nominative: true   # GT ma imiona i nazwiska w mianowniku
+      titlecase: true
       section: pelnomocnicy_formularz
       pattern:
         - 'Imię\s+i\s+nazwisko[ \t:]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
@@ -62,6 +64,8 @@ fields:
       extra: {pesel: null}
       attrs: {pesel: '\A(?:(?!\boraz\b|\bi\b|[;•]|\n[ \t]*(?:[–•\-]|\d+[ \t]))[\s\S])*?(?:PESEL\W{0,3}|[ \t—–-])(\d{11})(?!\d)'}
     - type: names
+      nominative: true   # GT ma imiona i nazwiska w mianowniku
+      titlecase: true
       pattern:
         - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
         # bez tytułu zawodowego: "udziela pełnomocnictwa: Jan Kowalski"
@@ -110,6 +114,8 @@ lists:
       # Podpisujący: nazwiska w bloku podpisów (po pierwszej linii kropek), bez pełnomocników i nazw funkcji.
       podpisujacy:
         type: names
+        nominative: true   # GT ma imiona i nazwiska w mianowniku
+        titlecase: true
         scope: document
         # Blok podpisów zaczyna się od pierwszej linii kropek/podkreśleń/kresek lub znacznika podpisu.
         after: '\.{8,}|…{2,}|_{5,}|-{8,}|\(podpis\)|/podpis/|/-/|(?-i:^[ \t]*Podpis(?:y\b|[ \t]+Mocodaw|:))'
