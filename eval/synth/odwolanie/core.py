@@ -125,7 +125,7 @@ CANON = {
     3: "Decyzja o wykluczeniu wykonawcy",
     4: "Publikacja specyfikacji warunków zamówienia (SWZ)",
     5: "Modyfikacja treści SWZ",
-    6: "Odpowiedzi i wyjaśnienia do SWZ",  # train GT wording (dict says "Odpowiedzi/wyjaśnienia")
+    6: "Odpowiedzi/wyjaśnienia do SWZ",  # train GT wording (dict says "Odpowiedzi/wyjaśnienia")
     7: "Zaniechanie odrzucenia oferty",
     8: "Zaniechanie wykluczenia wykonawcy",
     9: "Decyzja o unieważnieniu postępowania",
