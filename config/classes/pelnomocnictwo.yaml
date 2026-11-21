@@ -163,4 +163,5 @@ lists:
           - '(?i:dokument[ \t]+podp\S*[ \t]+\S+)[ \t]+([A-ZŁŚŻŹĆŃÓ][A-ZŁŚŻŹĆŃÓ]+[ \t]+[A-ZŁŚŻŹĆŃÓ][A-Za-ząćęłńóśźżŁŚŻŹĆŃÓ]+)'
         segment_by: '^\s*(?:W\s+imieniu|Za)\s[^\n]*:\s*$'
         exclude_from: pelnomocnicy
+        assign_to_item: true   # kilku mocodawców: podpisy przypisane do bloku / „(firma)” pod podpisem
         stopwords: [Za, W, Imieniu, Prezes, Wiceprezes, Członek, Zarządu, Prokurent, Dyrektor, Właściciel, Wspólnik, Pełnomocnik, Pełnomocnictwo, Mocodawca, Mocodawcy, Zarząd, Generalny, Finansowy, Komplementariusz, Partner, Kierownik, Imię, Nazwisko, Podpis, Data, Miejsce, Strona, Sp, Spółka, Prezesa, Członka, Upoważniony, Upoważniona, Główny, Księgowy, Handlowy, Przedsiębiorca, Samoistny, Management, Board, President, Member, Principal, Attorney, Przyjęcie, Wykonawca, Wykonawcy, Lider, Konsorcjum, Kancelaria, Radcy, Radca, Prawnego, Prawny, Adwokacka, Adwokat, Dokument, Signature, Verified, Podpisany, Podpisano]

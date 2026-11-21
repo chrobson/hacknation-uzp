@@ -62,6 +62,8 @@ class Context:
         self._accounts: dict[str, str] | None = None
         self._sections: dict[str, str | None] = {}
         self.values: dict[str, Any] = {}  # fields extracted so far (path → value), for cross-field checks
+        self.item_text: str | None = None  # inside a list: the current item's own block (also from document scope)
+        self.item: dict[str, Any] | None = None
 
     def section(self, name: str) -> str | None:
         """Text after the section's start label up to the next section start or end label."""
@@ -340,6 +342,7 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
     exclude = set(ctx.cfg.get("_excluded_names", {}).get(spec.get("exclude_from", ""), []))
     field = spec.get("field", "imie_nazwisko")
     items: list[dict[str, Any]] = []
+    tails: list[str] = []
     matches = sorted((m for rx in rxs for m in rx.finditer(text)), key=lambda m: m.start())
     from .names import nominative, titlecase_upper
 
@@ -363,7 +366,42 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
             if am:
                 item[key] = am.group(1)
         items.append(item)
+        tails.append(text[m.end() : m.end() + 120])
+    if spec.get("assign_to_item") and not segmented and ctx.n_items > 1 and ctx.item_text and items:
+        items = _assign_to_item(items, tails, field, ctx) or items
     return items or None
+
+
+def _assign_to_item(items: list[dict[str, Any]], tails: list[str], field: str, ctx: Context) -> list[dict[str, Any]]:
+    """Several principals sign one document: keep the names that belong to the current one — the surname occurs in its
+    own block ("Reprezentowany przez …") or the signature is followed by its name in brackets ("(Alfa sp. z o.o.)")."""
+    own = ctx.item_text.lower()
+    company = _first_str(ctx.item)
+    key = company.lower()[:12] if company else None
+    kept = []
+    for it, tail in zip(items, tails):
+        surname = it[field].split()[-1].lower()
+        bracket = re.match(r"[^\n(]{0,40}\n?[^\n(]{0,60}?\(([^)\n]{3,})\)", tail)
+        if key and bracket:
+            if bracket.group(1).lower().startswith(key[:8]):
+                kept.append(it)
+            continue  # signature attributed to some company: only that company keeps it
+        stem = surname[:-1] if len(surname) > 4 else surname  # tolerate case endings (Kowalski / Kowalskiego)
+        if stem in own:
+            kept.append(it)
+    return kept
+
+
+def _first_str(item: dict[str, Any] | None) -> str | None:
+    """The item's name: first non-empty 'nazwa' (possibly nested, e.g. data.nazwa)."""
+    if not isinstance(item, dict):
+        return None
+    if isinstance(item.get("nazwa"), str) and item["nazwa"]:
+        return item["nazwa"]
+    for v in item.values():
+        if isinstance(v, dict) and (r := _first_str(v)):
+            return r
+    return None
 
 
 def _llm(spec: dict[str, Any], ctx: Context) -> Any:
@@ -557,6 +595,7 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
         doc = ctx.sub(ctx.text, n_items=len(chunks))
         for c in (sub, whole, doc):
             c.index = index
+            c.item_text, c.item = chunk, item  # the item's own block and its (partly filled) values
         scopes = {"section": whole, "document": doc}
         for path, fspecs in spec["fields"].items():
             value = extract_field(fspecs, sub, scopes)  # each spec may pick its own scope (item/section/document)

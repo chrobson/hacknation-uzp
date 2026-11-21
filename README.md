@@ -2,7 +2,12 @@
 
 Automatyczna klasyfikacja i ekstrakcja danych z dokumentów PDF spraw odwoławczych KIO (odwołanie, pełnomocnictwo, potwierdzenie przelewu) do ustrukturyzowanego JSON.
 
-> README produktu: instrukcja instalacji, uruchomienia (CLI), konfiguracji LLM, architektura i dodawanie nowych klas dokumentów zostaną uzupełnione wraz z implementacją.
+## Uruchomienie (Linux / macOS; Windows: to samo w WSL)
+```bash
+cp .env.example .env      # potem wklej do .env LLM_API_KEY z formularza zgłoszenia (pole z kluczem API)
+bash start.sh             # czyta ./input/<sprawa>/*.pdf, zapisuje ./output/<sprawa>/<nazwa_pdf>.json
+```
+Bez klucza działa tryb regułowy: pełna funkcjonalność, niższa jakość pól czynności (powód, data). `start.sh` sam instaluje zależności (uv + Python 3.13, a Tesseract z językiem polskim do skanów, jeśli się da).
 
 ## Struktura
 ```
