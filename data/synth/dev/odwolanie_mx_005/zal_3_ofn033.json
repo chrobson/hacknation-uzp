@@ -1,0 +1,52 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-05-08",
+    "czynnosc_dzien": "2026-05-03",
+    "czynnosc_powod_id": 10,
+    "czynnosc_opis": "Zaniechanie unieważnienia postępowania",
+    "miejscowosc": "Bydgoszcz"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9996772331",
+      "nazwa": "Iberis Sieci sp. z o.o.",
+      "nip": "9990796243",
+      "regon": "999050100",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Renata Kowalczyk",
+        "nazwa": "Kowalczyk Legal Kancelaria Radców Prawnych sp. z o.o.",
+        "mail": "sekretariat@kowalczyk.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9996208666",
+      "nazwa": "Uldaris Usługi sp. z o.o.",
+      "nip": "9991994577",
+      "regon": "999602656",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": "9993301211",
+      "nazwa": "Jantara Wyposażenie sp. k.",
+      "nip": "9995897747",
+      "regon": "999055622",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": "9997034296",
+      "nazwa": "Belmoria Automatyka S.A.",
+      "nip": "9996379405",
+      "regon": "999454776",
+      "prowadzacy_postepowanie": 1
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999748",
+    "numer_postepowania": "DAZ/PN/67/26",
+    "numer_ted": "999035-2026",
+    "tytul": "Sukcesywna dostawa jednorazowych wyrobów medycznych do zabiegów endoskopowych w podziale na 6 pakietów"
+  }
+}

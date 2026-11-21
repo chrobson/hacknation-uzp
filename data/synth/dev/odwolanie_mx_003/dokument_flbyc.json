@@ -1,0 +1,52 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-04-23",
+    "czynnosc_dzien": "2026-04-18",
+    "czynnosc_powod_id": 5,
+    "czynnosc_opis": "Modyfikacja treści SWZ",
+    "miejscowosc": "Łódź"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9996325136",
+      "nazwa": "Wexford Systemy sp. z o.o.",
+      "nip": "9991432253",
+      "regon": "999129757",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Grzegorz Rutkiewicz",
+        "nazwa": "Kancelaria Prawna i Partnerzy",
+        "mail": "biuro@poczta.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Państwowa Akademia Nauk Stosowanych w Krzemienicy",
+      "nip": "9996334986",
+      "regon": null,
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": null,
+      "nazwa": "Ypsilon Usługi sp. j.",
+      "nip": "9994288070",
+      "regon": "999461865",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": "9996808116",
+      "nazwa": "Wexoria Systemy sp. z o.o.",
+      "nip": null,
+      "regon": "999331453",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "DI.906.2026",
+    "numer_ted": "999779-2026",
+    "tytul": "Kompleksowe usługi utrzymania czystości, ochrony fizycznej i obsługi technicznej obiektów Zamawiających w latach 2026–2029"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-07-07",
+    "czynnosc_dzien": "2026-06-30",
+    "czynnosc_powod_id": 1,
+    "czynnosc_opis": "Decyzja o odrzuceniu oferty",
+    "miejscowosc": "Bydgoszcz"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9992397370",
+      "nazwa": "Gildentia Wyposażenie sp. z o.o.",
+      "nip": "9995126748",
+      "regon": "999165641",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Zbigniew Dobrowolski",
+        "nazwa": "Kancelaria Prawna i Partnerzy",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9997131107",
+      "nazwa": "Samodzielny Publiczny Zakład Opieki Zdrowotnej w Kamionnej",
+      "nip": "9994615677",
+      "regon": "999520961",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999143",
+    "numer_postepowania": "SZP/PN/66/26",
+    "numer_ted": null,
+    "tytul": "Modernizacja sieci ciepłowniczej wraz z budową węzłów cieplnych w rejonie ulic Hallera i Powstańców Śląskich we Wrocławiu"
+  }
+}

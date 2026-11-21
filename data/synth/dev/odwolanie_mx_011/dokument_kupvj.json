@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-09-01",
+    "czynnosc_dzien": "2026-08-26",
+    "czynnosc_powod_id": 4,
+    "czynnosc_opis": "Publikacja specyfikacji warunków zamówienia (SWZ)",
+    "miejscowosc": "Wrocław"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9995522683",
+      "nazwa": "Imperon Serwis sp. z o.o.",
+      "nip": "9993124780",
+      "regon": "999513156",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Zbigniew Dobrowolski",
+        "nazwa": null,
+        "mail": "z.dobrowolski@poczta.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9992446832",
+      "nazwa": "Kadmos Systemy sp. k.",
+      "nip": "9998081160",
+      "regon": "999915958",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": "9995350331",
+      "nazwa": "Zakład Usług Komunalnych w Zalesiu Królewskim sp. z o.o.",
+      "nip": "9991216707",
+      "regon": "999633654",
+      "prowadzacy_postepowanie": 1
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999143",
+    "numer_postepowania": "SWZ.613.2026",
+    "numer_ted": "999032-2026",
+    "tytul": "Budowa instalacji fotowoltaicznych na budynkach użyteczności publicznej"
+  }
+}

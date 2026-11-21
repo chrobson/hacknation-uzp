@@ -1,0 +1,52 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-05-19",
+    "czynnosc_dzien": "2026-05-09",
+    "czynnosc_powod_id": 7,
+    "czynnosc_opis": "Zaniechanie odrzucenia oferty",
+    "miejscowosc": "Tarnów"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9995831483",
+      "nazwa": "Rubiconis Technologie S.A.",
+      "nip": "9998174794",
+      "regon": "999481460",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Zbigniew Dobrowolski",
+        "nazwa": "Kancelaria Prawna i Partnerzy",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Krakowskie Zakłady Komunalne S.A.",
+      "nip": "9990457736",
+      "regon": "999762149",
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": null,
+      "nazwa": "Szpital Specjalistyczny im. Jana Pawła II w Brzozówce",
+      "nip": "9994537600",
+      "regon": null,
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": "9990078038",
+      "nazwa": "Zorina Technologie sp. z o.o.",
+      "nip": "9995791492",
+      "regon": "999387761",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999809",
+    "numer_postepowania": "SZP/PN/66/26",
+    "numer_ted": "999327-2026",
+    "tytul": "Modernizacja sieci ciepłowniczej wraz z budową węzłów cieplnych w rejonie ulic Hallera i Powstańców Śląskich we Wrocławiu"
+  }
+}

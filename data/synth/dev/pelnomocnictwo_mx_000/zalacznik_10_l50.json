@@ -1,0 +1,41 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9994591405",
+        "nazwa": "Silvaro Automatyka S.A.",
+        "nip": "9992297886",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Halina Szulc"
+        },
+        {
+          "imie_nazwisko": "Dorota Zalewska"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9993605513",
+        "nazwa": "Vendora Rozwiązania sp. z o.o.",
+        "nip": "9996089736",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Agata Wróblewska"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Grzegorz Michalak",
+      "pesel": null
+    }
+  ]
+}

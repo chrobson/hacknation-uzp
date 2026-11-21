@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-08-27",
+    "czynnosc_dzien": "2026-08-22",
+    "czynnosc_powod_id": 3,
+    "czynnosc_opis": "Decyzja o wykluczeniu wykonawcy",
+    "miejscowosc": "Rzeszów"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Corvantis Sieci sp. z o.o.",
+      "nip": "9995584735",
+      "regon": "999992367",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Dorota Zawadzki",
+        "nazwa": "Kancelaria Radców Prawnych Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@biuro.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Przedsiębiorstwo Energetyki Cieplnej w Olszance Dolnej sp. z o.o.",
+      "nip": "9992187790",
+      "regon": "999947717",
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": null,
+      "nazwa": "Elarion Technologie sp. z o.o.",
+      "nip": "9996764238",
+      "regon": "999940293",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999112",
+    "numer_postepowania": "ZS.791.2026",
+    "numer_ted": null,
+    "tytul": "Dostawa licencji oprogramowania do monitorowania infrastruktury i alarmowej"
+  }
+}

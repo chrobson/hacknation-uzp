@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-01-24",
+    "czynnosc_dzien": "2026-01-15",
+    "czynnosc_powod_id": 8,
+    "czynnosc_opis": "Zaniechanie wykluczenia wykonawcy",
+    "miejscowosc": "Kraków"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9995522683",
+      "nazwa": "Imperon Serwis sp. z o.o.",
+      "nip": "9993124780",
+      "regon": null,
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Norbert Szulc",
+        "nazwa": "Kancelaria Adwokacka Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@biuro.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9995063913",
+      "nazwa": "Miejskie Przedsiębiorstwo Komunikacyjne w Jodłowcu sp. z o.o.",
+      "nip": "9995459293",
+      "regon": "999758293",
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": "9999716254",
+      "nazwa": "Aurelink Automatyka S.A.",
+      "nip": "9997518659",
+      "regon": "999184816",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": null,
+    "numer_ted": "999583-2026",
+    "tytul": "Świadczenie usług utrzymania infrastruktury sieciowej w budynkach administracyjnych"
+  }
+}

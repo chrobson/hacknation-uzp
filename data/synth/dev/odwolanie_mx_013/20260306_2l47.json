@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-07-13",
+    "czynnosc_dzien": "2026-07-07",
+    "czynnosc_powod_id": 2,
+    "czynnosc_opis": "Ogłoszenie wyboru oferty",
+    "miejscowosc": "Warszawa"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Galdaris Technologie sp. k.",
+      "nip": "9993885533",
+      "regon": "999308916",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Ignacy Rutkiewicz",
+        "nazwa": null,
+        "mail": "i.rutkiewicz@poczta.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Uldaris Usługi sp. z o.o.",
+      "nip": "9991994577",
+      "regon": "999602656",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "ZS.550.2026",
+    "numer_ted": "999137-2026",
+    "tytul": "Odbiór i zagospodarowanie odpadów komunalnych powstałych w obiektach"
+  }
+}

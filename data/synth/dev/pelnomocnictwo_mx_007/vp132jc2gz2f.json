@@ -1,0 +1,46 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": "Renata Lewicka",
+        "krs": null,
+        "nazwa": "Renata Lewicka Usługi Remontowo-Budowlane",
+        "nip": "9997831037",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Renata Lewicka"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9994387983",
+        "nazwa": "Xenonix Technologie S.A.",
+        "nip": "9995704079",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Ignacy Adamczyk"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Łukasz Zawadzki",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Cezary Mazur",
+      "pesel": "69100703453"
+    },
+    {
+      "imie_nazwisko": "Joanna Tomaszewska",
+      "pesel": null
+    }
+  ]
+}

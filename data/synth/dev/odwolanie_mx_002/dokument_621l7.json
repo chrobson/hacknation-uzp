@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-07-26",
+    "czynnosc_dzien": "2026-07-16",
+    "czynnosc_powod_id": 11,
+    "czynnosc_opis": "Opis przedmiotu zamówienia (OPZ)",
+    "miejscowosc": "Kielce"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9996203344",
+      "nazwa": "Centaur Usługi sp. z o.o.",
+      "nip": "9996658849",
+      "regon": "999413872",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Tadeusz Nowak",
+        "nazwa": "Kancelaria Prawa Zamówień Publicznych Nowak Zielińska s.c.",
+        "mail": "nowak@nowakkancelaria.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Gmina Rudnik Wielki",
+      "nip": "9990264287",
+      "regon": "999242211",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": null,
+      "nazwa": "Kadmos Systemy sp. k.",
+      "nip": "9998081160",
+      "regon": "999915958",
+      "prowadzacy_postepowanie": 1
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "DAZ.24.2026",
+    "numer_ted": "999408-2026",
+    "tytul": "Usługi ochrony fizycznej i monitoringu w systemie całodobowym"
+  }
+}
