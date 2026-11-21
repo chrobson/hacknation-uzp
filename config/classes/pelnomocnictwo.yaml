@@ -44,16 +44,33 @@ sections:
     start: '\A'
     end: ['udziela\w*\s+(niniejszym\s+)?pełnomocnictw', 'ustanawia\w*', 'upoważniam\w*', 'udzielają', '^\s*Pełnomocni(cy|k)\b', '§\s*2\b', 'reprezentowan\w*\s+przez\s+osoby']
 
+  # Formularz/tabela: nagłówek "PEŁNOMOCNIK", "PEŁNOMOCNICY" albo "2. Pełnomocnik" w osobnej linii.
+  pelnomocnicy_formularz:
+    start: '^[ \t]*(?:\d\.[ \t]*|[IVX]+\.[ \t]*)?Pełnomocni(?:cy|k)[ \t]*$'
+    end: ['^[ \t]*(?:\d\.[ \t]*)?Zakres\b', '^[ \t]*Postępowanie\b', 'do\s+reprezentowania']
+
 fields:
-  # Pełnomocnicy: imię i nazwisko po tytule zawodowym (adw., r. pr., ...), bez powtórzeń.
+  # Pełnomocnicy. Najpierw formularz/tabela pod nagłówkiem "PEŁNOMOCNIK(CY)" ("Imię i nazwisko X"),
+  # potem cały dokument: nazwisko po tytule zawodowym, wiersz tabeli "1 X Y adwokat", punktor "• X Y – r. pr.".
   pelnomocnicy:
-    type: names
-    pattern:
-      - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
-      # bez tytułu zawodowego: "udziela pełnomocnictwa: Jan Kowalski"
-      - '(?:udziel\w*|ustanawia\w*)\s+(?:niniejszym\s+)?pełnomocni\w+\s*:?\s*(?:Pan\w*\s+)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
-    extra: {pesel: null}
-    attrs: {pesel: 'PESEL\W{0,3}(\d{11})'}
+    - type: names
+      section: pelnomocnicy_formularz
+      pattern:
+        - 'Imię\s+i\s+nazwisko[ \t:]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+        - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+      extra: {pesel: null}
+      attrs: {pesel: '\A(?:(?!\boraz\b|\bi\b|[;•]|\n[ \t]*(?:[–•\-]|\d+[ \t]))[\s\S])*?(?:PESEL\W{0,3}|[ \t—–-])(\d{11})(?!\d)'}
+    - type: names
+      pattern:
+        - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+        # bez tytułu zawodowego: "udziela pełnomocnictwa: Jan Kowalski"
+        - '(?:udziel\w*|ustanawia\w*)\s+(?:niniejszym\s+)?pełnomocni\w+\s*:?\s*(?:Pan\w*\s+)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+        # wiersz tabeli pełnomocników: "1 Jan Kowalski adwokat — 12345678901"
+        - '^[ \t]*\d{1,2}\.?[ \t]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)[ \t]+(?:adw|r\.\s*pr|radc|apl|rzecz|—|–|-|brak)'
+        # punktor z nazwiskiem na początku: "• Jan Kowalski – r. pr."
+        - '^[ \t]*[•▪◦*][ \t]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)[ \t]*(?:–|-|,|\(|$)'
+      extra: {pesel: null}
+      attrs: {pesel: '\A(?:(?!\boraz\b|\bi\b|[;•]|\n[ \t]*(?:[–•\-]|\d+[ \t]))[\s\S])*?(?:PESEL\W{0,3}|[ \t—–-])(\d{11})(?!\d)'}
 
 lists:
   mocodawca:
@@ -76,7 +93,10 @@ lists:
       podpisujacy:
         type: names
         scope: document
-        after: '\.{8,}'
+        # Blok podpisów zaczyna się od pierwszej linii kropek/podkreśleń/kresek lub znacznika podpisu.
+        after: '\.{8,}|…{2,}|_{5,}|-{8,}|\(podpis\)|/podpis/|/-/|(?-i:^[ \t]*Podpis(?:y\b|[ \t]+Mocodaw|:))'
+        # Dwa wyrazy z wielkiej litery, ale nie nazwa firmy (po nich forma prawna).
+        pattern: '(?<![\w-])([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)(?![\w-]|[ \t]+(?:S\.\s?A\.|[Ss]p\.|[Ss]półk))'
         segment_by: '^\s*(?:W\s+imieniu|Za)\s[^\n]*:\s*$'
         exclude_from: pelnomocnicy
-        stopwords: [Za, W, Imieniu, Prezes, Wiceprezes, Członek, Zarządu, Prokurent, Dyrektor, Właściciel, Wspólnik, Pełnomocnik, Pełnomocnictwo, Mocodawca, Mocodawcy, Zarząd, Generalny, Finansowy, Komplementariusz, Partner, Kierownik, Imię, Nazwisko, Podpis, Data, Miejsce, Strona, Sp, Spółka, Prezesa, Członka, Upoważniony, Upoważniona, Główny, Księgowy, Handlowy]
+        stopwords: [Za, W, Imieniu, Prezes, Wiceprezes, Członek, Zarządu, Prokurent, Dyrektor, Właściciel, Wspólnik, Pełnomocnik, Pełnomocnictwo, Mocodawca, Mocodawcy, Zarząd, Generalny, Finansowy, Komplementariusz, Partner, Kierownik, Imię, Nazwisko, Podpis, Data, Miejsce, Strona, Sp, Spółka, Prezesa, Członka, Upoważniony, Upoważniona, Główny, Księgowy, Handlowy, Przedsiębiorca, Samoistny, Management, Board, President, Member, Principal, Attorney, Przyjęcie, Wykonawca, Wykonawcy, Lider, Konsorcjum]
