@@ -1,5 +1,6 @@
 # Klasa dokumentu: potwierdzenie przelewu bankowego (wpis od odwołania).
 name: przelew
+description: bankowe potwierdzenie przelewu (wpis od odwołania lub opłata skarbowa)
 
 classify:
   threshold: 4

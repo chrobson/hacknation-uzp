@@ -287,6 +287,18 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
     return items or None
 
 
+def _llm(spec: dict[str, Any], ctx: Context) -> Any:
+    """Last-resort LLM question (only when enabled). The YAML gives the question and a JSON schema."""
+    from . import llm
+
+    if not llm.enabled():
+        return None
+    value = llm.ask(spec["question"], ctx.text, spec.get("schema", {"type": "string"}))
+    if value is not None and spec.get("value") == "date":
+        value = N.find_date(str(value))
+    return value
+
+
 TYPES: dict[str, Callable[[dict[str, Any], Context], Any]] = {
     "labeled": _labeled,
     "text_after_label": _text_after_label,
@@ -296,6 +308,7 @@ TYPES: dict[str, Callable[[dict[str, Any], Context], Any]] = {
     "exists": _exists,
     "keyword_map": _keyword_map,
     "names": _names,
+    "llm": _llm,
 }
 
 

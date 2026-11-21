@@ -43,10 +43,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--evidence", type=Path, default=ROOT / "evidence",
                     help="folder na pliki evidence (strona + fragment źródła dla każdego pola); domyślnie ./evidence")
     ap.add_argument("--no-evidence", action="store_true", help="nie zapisuj evidence")
+    ap.add_argument("--llm", choices=["on", "off"], help="wymuś włączenie/wyłączenie LLM (domyślnie: config/llm.yaml)")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
 
     _setup_logging(args.verbose)
+    if args.llm:
+        from . import llm
+
+        llm.force(args.llm == "on")
     if not args.input.is_dir():
         print(f"brak folderu wejściowego: {args.input}", file=sys.stderr)
         return 2

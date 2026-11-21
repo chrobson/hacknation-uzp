@@ -1,5 +1,6 @@
 # Klasa dokumentu: pełnomocnictwo (procesowe) do reprezentacji przed KIO.
 name: pelnomocnictwo
+description: pełnomocnictwo procesowe udzielone pełnomocnikowi przez mocodawcę
 
 classify:
   threshold: 4
