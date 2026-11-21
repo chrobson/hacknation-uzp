@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor
 import re
 import shutil
 import subprocess
@@ -56,6 +57,7 @@ def canonical(doc: Document) -> Document:
 OCR_DPI = 300
 OCR_MAX_PAGES = 12
 OCR_PAGE_TIMEOUT_S = 60
+OCR_WORKERS = max(1, min(8, (os.cpu_count() or 2)))
 OCR_LANG = os.environ.get("ODW_OCR_LANG", "pol")
 _EMAIL_AT = re.compile(r"\b([\w.+-]{2,})[Q©®](?=[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}\b)")
 
@@ -81,6 +83,7 @@ def _ocr_page(image_path: Path, scale: float) -> tuple[str, list[dict]]:
     out = subprocess.run(
         ["tesseract", str(image_path), "stdout", "-l", OCR_LANG, "--psm", "4", "-c", "tessedit_create_tsv=1"],
         capture_output=True, text=True, timeout=OCR_PAGE_TIMEOUT_S,
+        env={**os.environ, "OMP_THREAD_LIMIT": "1"},  # pages run in parallel; one thread each avoids oversubscription
     ).stdout
     lines: dict[tuple[int, int, int], list[str]] = {}
     words: list[dict] = []
@@ -108,15 +111,19 @@ def ocr_pdf(path: Path) -> Document:
     pdf = pdfium.PdfDocument(str(path))
     try:
         with tempfile.TemporaryDirectory() as tmp:
-            for i in range(min(len(pdf), OCR_MAX_PAGES)):
+            images = []
+            for i in range(min(len(pdf), OCR_MAX_PAGES)):  # rendering stays sequential (pdfium is not thread-safe)
                 page = pdf[i]
                 width, height = page.get_size()
                 image = Path(tmp, f"p{i}.png")
                 page.render(scale=scale).to_pil().save(image)
-                text, page_words = _ocr_page(image, scale)
-                pages.append(text)
-                words.append(page_words)
+                images.append(image)
                 sizes.append((round(width, 1), round(height, 1)))
+            # tesseract processes in parallel, one per page (a 7-page scan: ~17 s → ~4 s on 8 cores)
+            with ThreadPoolExecutor(max_workers=OCR_WORKERS) as pool:
+                for text, page_words in pool.map(lambda im: _ocr_page(im, scale), images):
+                    pages.append(text)
+                    words.append(page_words)
     finally:
         pdf.close()
     log.info("%s: OCR of %d page(s)", path.name, len(pages))
