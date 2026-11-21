@@ -342,6 +342,7 @@ def _keyword_map(spec: dict[str, Any], ctx: Context) -> Any:
 
 
 NAME = r"[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?"
+_LEGAL_FORM = re.compile(r"\bS\.\s?A\.|\b[Ss]p\.|\b[Ss]półk", re.IGNORECASE)
 
 
 def _names(spec: dict[str, Any], ctx: Context) -> Any:
@@ -351,6 +352,9 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
     after       optional regex; search only after its first match (e.g. the signature block)
     exclude_from  output path of another field whose names are excluded (e.g. representatives)
     stopwords   first/last words that mark a role, not a name (e.g. Prezes, Zarządu)
+    not_in      path inside the current list item (e.g. data.nazwa): a name that is part of that company name
+                (with a legal form: S.A., sp., spółka) is a company word, not a person ("Tervana Systemy")
+    min_word_len  every word of a name at least this long (OCR debris such as "Pawia Il")
     """
     text = ctx.text
     segmented = False
@@ -369,6 +373,10 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
     stop = {w.lower() for w in spec.get("stopwords", [])}
     exclude = set(ctx.cfg.get("_excluded_names", {}).get(spec.get("exclude_from", ""), []))
     field = spec.get("field", "imie_nazwisko")
+    company = _get_path(ctx.item, spec["not_in"]) if spec.get("not_in") and isinstance(ctx.item, dict) else None
+    if not (isinstance(company, str) and _LEGAL_FORM.search(company)):
+        company = None
+    min_len = int(spec.get("min_word_len", 1))
     items: list[dict[str, Any]] = []
     tails: list[str] = []
     matches = sorted((m for rx in rxs for m in rx.finditer(text)), key=lambda m: m.start())
@@ -382,6 +390,8 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
             name = nominative(name)
         words = name.split()
         if any(w.lower() in stop for w in words) or name in exclude or any(i[field] == name for i in items):
+            continue
+        if any(len(w) < min_len for w in words) or (company and " ".join(m.group(1).split()) in company):
             continue
         if "reject_context" in spec:  # e.g. a board member: "Jan Kowalski – Prezes Zarządu" is not a representative
             around = text[max(0, m.start(1) - 40) : m.end(1) + 50]

@@ -38,3 +38,12 @@ def test_receiver_is_public_office():
     text = ("Przelew na rachunek obcy\n11 1111 1111 1111 1111 1111 1111\nUrząd Zamówień Publicznych\n"
             "Nadawca\n22 2222 2222 2222 2222 2222 2222\nFirma Alfa\n")
     assert _assign_accounts(text, cfg) == {"receiver": "1" * 26, "sender": "2" * 26}
+
+
+def test_signers_skip_company_words_and_ocr_debris():
+    from odw.fields import Context, _names
+
+    ctx = Context("……………\nDorota Grabowska\nTervana Systemy Informatyczne sp. k.\nPawia Il", {})
+    ctx.item = {"data": {"nazwa": "Tervana Systemy Informatyczne sp. k."}}
+    spec = {"type": "names", "not_in": "data.nazwa", "min_word_len": 3}
+    assert _names(spec, ctx) == [{"imie_nazwisko": "Dorota Grabowska"}]
