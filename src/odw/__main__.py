@@ -36,6 +36,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--input", type=Path, default=ROOT / "input", help="folder z podfolderami spraw (domyślnie ./input)")
     ap.add_argument("--output", type=Path, default=ROOT / "output", help="folder wynikowy (domyślnie ./output)")
     ap.add_argument("--classes", type=Path, default=CLASSES_DIR, help="folder z definicjami klas dokumentów (YAML)")
+    ap.add_argument(
+        "--classes-dir", type=Path, action="append", default=[], metavar="DIR",
+        help="dodatkowy folder z klasami (YAML), dołączany do klas podstawowych; można podać wiele razy",
+    )
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
 
@@ -43,7 +47,10 @@ def main(argv: list[str] | None = None) -> int:
     if not args.input.is_dir():
         print(f"brak folderu wejściowego: {args.input}", file=sys.stderr)
         return 2
-    results = run(args.input, args.output, load_classes(args.classes))
+    classes = load_classes(args.classes)
+    for extra in args.classes_dir:
+        classes += load_classes(extra)
+    results = run(args.input, args.output, classes)
     rejected = sum(1 for r in results if r.verdict.cls is None)
     print(f"przetworzono {len(results)} PDF, odrzucono {rejected}, wynik: {args.output}")
     return 0

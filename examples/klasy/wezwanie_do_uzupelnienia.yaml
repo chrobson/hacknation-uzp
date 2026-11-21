@@ -1,0 +1,41 @@
+# Przykład rozszerzalności: nowa klasa dokumentu zdefiniowana WYŁĄCZNIE w tym pliku, bez zmian w kodzie.
+# Uruchomienie: python main.py --classes-dir examples/klasy --input examples/klasy/przyklady --output /tmp/wynik
+# (Celowo poza config/classes: klasa spoza zadania UZP nie może być aktywna podczas oceny.)
+name: wezwanie_do_uzupelnienia
+
+classify:
+  threshold: 4
+  required:
+    - {pattern: '^\s*WEZWANIE\b', head_chars: 1500}
+    - 'wzywa\w*\s+(?:\w+\s+){0,3}do\s+uzupełnienia'
+  signals:
+    - {pattern: 'wzywa\w*\s+(?:\w+\s+){0,3}do\s+uzupełnienia', weight: 3}
+    - {pattern: 'braków\s+formalnych', weight: 2}
+    - {pattern: 'w\s+terminie\s+\d+\s+dni', weight: 1}
+    - {pattern: 'Krajow\w+\s+Izb\w+\s+Odwoławcz\w+', weight: 1}
+
+sections:
+  adresat: {start: '^\s*Adresat\s*:', end: ['^\s*WEZWANIE', '^\s*Krajowa\s+Izba', '^\s*Działając']}
+
+fields:
+  WezwanieKIO.sygnatura: {type: pattern, pattern: 'Sygn\.\s*akt\s*:?\s*(KIO\s*\d+\s*/\s*\d{2,4})', clean: true}
+  WezwanieKIO.data:
+    - {type: labeled, value: date, labels: ['^\s*[A-ZŁŚŻŹĆ][^\n,\d:]{1,40},\s*(dnia\s+)?(?=\d)'], window: 40}
+  WezwanieKIO.adresat: {type: first_line, section: adresat}
+  WezwanieKIO.termin_dni: {type: pattern, pattern: 'w\s+terminie\s+(\d+)\s+dni', cast: int}
+  WezwanieKIO.kwota_wpisu:
+    - {type: labeled, value: amount, labels: ['brakując\w*\s+(?:części\s+)?wpisu', 'wpis\w*\s+w\s+kwocie'], window: 80}
+  WezwanieKIO.braki:
+    - type: text_after_label
+      labels: ['do\s+uzupełnienia\s+(?:następujących\s+)?braków\s+formalnych\s+odwołania\s*:?']
+      stop_labels: ['^\s*(Pouczenie|Przewodnicząc|Braki\s+należy|Z\s+up\.|W\s+przypadku)']
+      max_lines: 3
+
+output_template:
+  WezwanieKIO:
+    sygnatura: null
+    data: null
+    adresat: null
+    termin_dni: null
+    kwota_wpisu: null
+    braki: null
