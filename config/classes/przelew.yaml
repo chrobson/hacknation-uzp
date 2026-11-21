@@ -1,0 +1,21 @@
+# Klasa dokumentu: potwierdzenie przelewu bankowego (wpis od odwołania).
+name: przelew
+
+classify:
+  threshold: 4
+  signals:
+    - {pattern: 'potwierdzeni\w*\s+(realizacji\s+|wykonania\s+)?(polecenia\s+)?(przelewu|transakcji|operacji)|dowód\s+wykonania\s+przelewu|polecenie\s+przelewu', weight: 3, head_chars: 800}
+    - {pattern: '(PL)?\s?\d{2}(\s?\d{4}){6}', weight: 1}
+    - {pattern: 'rachun\w+', weight: 1}
+    - {pattern: '\d[\d\s]*[.,]\d{2}\s*(PLN|zł)', weight: 1}
+    - {pattern: 'tytu\w+|opis\s+(operacji|transakcji)|^\s*opis\s*$', weight: 1}
+    - {pattern: 'wnosz[eę]\s+(niniejsze\s+)?odwołani', weight: -4}
+
+output_template:
+  przelew_bankowy:
+    data_operacji: null
+    kwota: null
+    na_rachunek: null
+    numer_transakcji: null
+    tytul: null
+    z_rachunku: null

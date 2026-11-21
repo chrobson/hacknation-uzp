@@ -1,0 +1,47 @@
+# Klasa dokumentu: odwołanie do Krajowej Izby Odwoławczej.
+name: odwolanie
+
+classify:
+  # Suma wag pasujących sygnałów musi osiągnąć próg; wygrywa klasa z najwyższą sumą.
+  threshold: 5
+  signals:
+    - {pattern: '^\s*O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E\b', weight: 3}
+    - {pattern: 'wnosz[eę]\s+(niniejsze\s+)?odwołani', weight: 3}
+    - {pattern: 'Prezes\w*\s+Krajowej\s+Izby\s+Odwoławczej', weight: 2, head_chars: 1500}
+    - {pattern: 'Odwołując[yaey]', weight: 1}
+    - {pattern: 'Zamawiając[yaey]', weight: 1}
+    - {pattern: 'zarzut', weight: 1}
+    # Dokumenty podobne słownictwem, ale nie będące odwołaniem:
+    - {pattern: 'Sygn\.\s*akt', weight: -6, head_chars: 400}                          # orzeczenia KIO
+    - {pattern: '^\s*(WYROK|POSTANOWIENIE|UCHWAŁA)\s*$', weight: -4, head_chars: 1500}
+    - {pattern: 'Ogłoszenie\s+o\s+zamówieniu', weight: -6, head_chars: 1500}  # BZP
+    - {pattern: 'See the notice on TED', weight: -6}                 # TED
+
+output_template:
+  OdwolanieKIO:
+    data: null
+    czynnosc_dzien: null
+    czynnosc_powod_id: null
+    czynnosc_opis: null
+    miejscowosc: null
+  Odwolujacy:
+    - krs: null
+      nazwa: null
+      nip: null
+      regon: null
+      przez-pelnomocnika: null
+      pelnomocnik:
+        imie_nazwisko: null
+        nazwa: null
+        mail: null
+  Zamawiajacy:
+    - krs: null
+      nazwa: null
+      nip: null
+      regon: null
+      prowadzacy_postepowanie: null
+  ZamowieniePubliczne:
+    numer_bzp: null
+    numer_postepowania: null
+    numer_ted: null
+    tytul: null

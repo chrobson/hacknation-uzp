@@ -1,0 +1,28 @@
+# Klasa dokumentu: pełnomocnictwo (procesowe) do reprezentacji przed KIO.
+name: pelnomocnictwo
+
+classify:
+  threshold: 4
+  signals:
+    - {pattern: 'pełnomocnictw', weight: 3, head_chars: 600}
+    - {pattern: 'ustanawia\w*\s+(\w+\s+)?pełnomocnik|udziela\w*\s+(\w+\s+)*?pełnomocnictw|umocowan', weight: 2}
+    - {pattern: 'mocodaw', weight: 2}
+    - {pattern: 'pełnomocnik', weight: 1}
+    - {pattern: 'Pełnomocnictwo\s+przyjmuję|przyjmuję\s+pełnomocnictwo', weight: 1}
+    # Odwołanie też wspomina pełnomocnictwo ("w oparciu o załączone pełnomocnictwo"):
+    - {pattern: 'wnosz[eę]\s+(niniejsze\s+)?odwołani', weight: -4}
+    - {pattern: 'Sygn\.\s*akt', weight: -6, head_chars: 400}
+
+output_template:
+  mocodawca:
+    - data:
+        imie_nazwisko: null
+        krs: null
+        nazwa: null
+        nip: null
+        typ: null
+      podpisujacy:
+        - imie_nazwisko: null
+  pelnomocnicy:
+    - imie_nazwisko: null
+      pesel: null
