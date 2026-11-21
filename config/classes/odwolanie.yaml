@@ -78,7 +78,8 @@ sections:
       - '^\s*(?:Zamawiając\w*|Instytucj\w*\s+zamawiając\w*|Organizator\w*\s+postępowania|Podmiot\w*\s+zamawiając\w*)(?:\s+wspólnie)?\s*(?::|[–-]\s)'
       - '^(?=\s*1\)\s*Zamawiając)'
       # sama etykieta w linii (bez dwukropka): "ZAMAWIAJĄCY", "Dane Zamawiającego", "Instytucja zamawiająca"
-      - '^[ \t]*(?:Zamawiający(?:[ \t]+wspólnie)?|Dane[ \t]+Zamawiającego|Instytucja[ \t]+zamawiająca)[ \t]*:?[ \t]*$'
+      #   tylko gdy w kolejnych ≤5 liniach są dane podmiotu (inaczej zawinięta proza „…\nZamawiający\n…” ucina sekcję czynności)
+      - '^[ \t]*(?:Zamawiający(?:[ \t]+wspólnie)?|Dane[ \t]+Zamawiającego|Instytucja[ \t]+zamawiająca)[ \t]*:?[ \t]*$(?=\n[ \t]*(?-i:[A-ZŁŚŻŹĆŃÓ„])(?:[^\n]*\n){0,4}?[^\n]*\b(?:NIP|REGON|KRS|ul\.|al\.|\d{2}-\d{3})\b)'
       - '^\s*Dane\s+Zamawiającego\s*:'
       - '^(?=[ \t]*Zamawiaj\w*[ \t]+(?:nr[ \t]*)?1\b)'
       - '^\s*(?:\d+\.|[IVX]+\.|[A-Z]\.)\s*(?:Zamawiając\w*|Instytucj\w*\s+zamawiając\w*)\s*$'
@@ -221,7 +222,7 @@ lists:
       nazwa:
         - {type: labeled, value: company, labels: ['^\s*(?:Nazwa|Firma)(?:\s*\([^)\n]*\))?\s*:?(?=[^\n]*(?-i:S\.A\.|sp\.|s\.c\.|[Ss]półka))'], window: 120}
         - {type: pattern, pattern: '^\s*(?:Nazwa|Firma)(?:\s*\([^)\n]*\))?\s*:?[ \t]+([^\n]+)', clean: true}
-        - {type: first_line, skip: [], reject: ['^\d', '^(?-i:[a-ząćęłńóśźż])', '^(?:Członek|Partner|Lider|Uczestnik|Pełnomocni)\b', '^(?:uwzględnienie|zasądzenie|nakazanie)\b'], cut: ['\s+[–-]\s*(?:Lider|lider|prowadząc|\(?zamawiając)', '\s*[–-]\s*$', '\s+z\s+siedzibą', '\s*\((?:lider|prowadząc)', '\s*[,;]\s*(?:ul\.|al\.|pl\.|os\.)', '\s+(?:ul\.|al\.|pl\.|os\.)\s', '\s*,?\s*\d{2}-\d{3}\s', '\s*[,;]?\s*(?:KRS|NIP|REGON)\b'], skip: ['^Konsorcjum\b', ':$']}
+        - {type: first_line, skip: [], reject: ['^\d', '^(?-i:[a-ząćęłńóśźż])', '^(?:Członek|Partner|Lider|Uczestnik|Pełnomocni)\b', '^(?:uwzględnienie|zasądzenie|nakazanie)\b'], cut: ['\s+[–-]\s*(?:Lider|lider|prowadząc|\(?zamawiając)', '\s*[–—-]\s*(?:Zamawiając|Odwołując)\w*', '\s*\(\s*(?:dalej|zwan)', '\s*,?\s+(?:zwan\w*|reprezentowan\w*)\b', '\s*[–-]\s*$', '\s+z\s+siedzibą', '\s*\((?:lider|prowadząc)', '\s*[,;]\s*(?:ul\.|al\.|pl\.|os\.)', '\s+(?:ul\.|al\.|pl\.|os\.)\s', '\s*,?\s*\d{2}-\d{3}\s', '\s*[,;]?\s*(?:KRS|NIP|REGON)\b'], skip: ['^Konsorcjum\b', ':$']}
         # Proza: "Odwołującym jest X z siedzibą w ..." (konsorcjum: lider)
         - {type: pattern, if_no_section: true, clean: true, pattern: 'Odwołującym\s+(?:jest|są)\s+(?:[^\n:]*?:\s*)?(?:lider\w*\s+konsorcjum\s*[–-]\s*)?((?-i:[A-ZŁŚŻŹĆŃÓ„])[^,;()]{2,150}?)\s+z\s+siedzibą'}
         # Brak bloku strony (proza, tabela, układ dwujęzyczny): pierwsza firma po roli Odwołującego.
@@ -260,12 +261,12 @@ lists:
         # macierz stron: druga firma w wierszu "Nazwa"
         - {type: pattern, pattern: '^\s*(?:Nazwa|Firma)\s+.+?(?-i:S\.A\.|sp\.\s*z\s*o\.\s*o\.(?:\s*sp\.\s*k\.)?|sp\.\s*k\.|sp\.\s*j\.)[ \t]+(\S[^\n]+)$', clean: true}
         - {type: pattern, pattern: '^\s*(?:Nazwa|Firma)(?:\s*\([^)\n]*\))?\s*:?[ \t]+([^\n]+)', clean: true}
-        - {type: first_line, reject: ['^\d', '^(?-i:[a-ząćęłńóśźż])', '^(?:Członek|Partner|Lider|Uczestnik|Pełnomocni)\b', '^(?:uwzględnienie|zasądzenie|nakazanie)\b'], cut: ['\s+[–-]\s*(?:Lider|lider|prowadząc|\(?zamawiając)', '\s*[–-]\s*$', '\s+z\s+siedzibą', '\s*\((?:lider|prowadząc)', '\s*[,;]\s*(?:ul\.|al\.|pl\.|os\.)', '\s+(?:ul\.|al\.|pl\.|os\.)\s', '\s*,?\s*\d{2}-\d{3}\s', '\s*[,;]?\s*\(?\s*(?:KRS|NIP|REGON)\b'], skip: [':$']}
+        - {type: first_line, reject: ['^\d', '^(?-i:[a-ząćęłńóśźż])', '^(?:Członek|Partner|Lider|Uczestnik|Pełnomocni)\b', '^(?:uwzględnienie|zasądzenie|nakazanie)\b'], cut: ['\s+[–-]\s*(?:Lider|lider|prowadząc|\(?zamawiając)', '\s*[–—-]\s*(?:Zamawiając|Odwołując)\w*', '\s*\(\s*(?:dalej|zwan)', '\s*,?\s+(?:zwan\w*|reprezentowan\w*)\b', '\s*[–-]\s*$', '\s+z\s+siedzibą', '\s*\((?:lider|prowadząc)', '\s*[,;]\s*(?:ul\.|al\.|pl\.|os\.)', '\s+(?:ul\.|al\.|pl\.|os\.)\s', '\s*,?\s*\d{2}-\d{3}\s', '\s*[,;]?\s*\(?\s*(?:KRS|NIP|REGON)\b'], skip: [':$']}
         - {type: pattern, if_no_section: true, clean: true, pattern: '(?:przeciwko\s+Zamawiającemu,?\s+którym\s+jest|Zamawiającym\s+jest)\s+((?-i:[A-ZŁŚŻŹĆŃÓ„])[^,;()]{2,150}?)\s+z\s+siedzibą'}
         # rola PO danych: "Gmina X, ul. …, NIP … – Zamawiający" / "… (dalej: „Zamawiający”)" — szukamy wstecz w bloku
         - &zam_back {type: near, value: company, if_no_section: true, window: 0, before: 400,
                      anchors: ['[–—-][ \t]*Zamawiając\w*', '(?:dalej|zwan\w*\s+dalej)\s*(?:jako|też)?\s*:?\s*[„"”]?\s*Zamawiając', '\(\s*[„"]?Zamawiając\w*[”"]?\s*\)'],
-                     before_stop: ['Odwołując\w*', 'Wykonawc\w*', '\n[ \t]*\n', '\bprzeciwko\b', '\bwobec\b', 'Izb\w*\s+Odwoławcz\w*', '\bdotyczy\b', '[„"]\s*\)']}
+                     before_stop: ['Odwołując\w*', 'Wykonawc\w*', 'wnosząc\w*', 'Przystępując\w*', 'Uczestnik\w*', 'Pełnomocni\w*', '\n[ \t]*\n', '\bprzeciwko\b', '\bwobec\b', 'Izb\w*\s+Odwoławcz\w*', '\bdotyczy\b', '[„"”]\s*\)']}
         - &zam_near {type: near, value: company, if_no_section: true, window: 300,
                      anchors: ['przeciwko\s+Zamawiającemu', '(?<!Odwołujący[ \t])(?<!ODWOŁUJĄCY[ \t])Zamawiając\w*', 'Instytucj\w*\s+zamawiając\w*', 'Organizator\w*\s+postępowania|Podmiot\w*\s+zamawiając\w*'],
                      stop: ['Odwołując\w*', 'Wykonawc\w*', 'Pełnomocnik', 'Kancelari', 'Przedmiot', 'Postępowani', 'dotyczy']}

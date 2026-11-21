@@ -40,3 +40,13 @@ def test_krs_pod_numerem():
                          "wpisana do rejestru przedsiębiorców KRS pod numerem 0000019193\nNIP 5260302703, REGON 000019193\n") + TAIL
     (zam,) = extract(Document(Path("pkp.pdf"), [text]), CLS)["Zamawiajacy"]
     assert zam["krs"] == "0000019193" and zam["nip"] == "5260302703"
+
+
+def test_wrapped_prose_label_does_not_cut_the_act_section():
+    """A prose line that wraps to just 'Zamawiający' must not open the authority section (it would end 'czynnosc')."""
+    text = HEAD + ODW + "Zamawiający: Gmina Rudnik Wielki, NIP 8161234567\n" + TAIL + (
+        "Zarzucam naruszenie art. 226 ust. 1 pkt 5 ustawy, poprzez zaniechanie odrzucenia oferty, w dniu 3 marca 2025 r.\n"
+        "Zamawiający\npoinformował o wyborze oferty najkorzystniejszej.\n")
+    base = extract(Document(Path("a.pdf"), [text.replace("Zamawiający\npoinformował", "Zamawiający poinformował")]), CLS)
+    wrapped = extract(Document(Path("b.pdf"), [text]), CLS)
+    assert wrapped["OdwolanieKIO"] == base["OdwolanieKIO"]

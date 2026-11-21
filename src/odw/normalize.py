@@ -122,6 +122,12 @@ ID_PATTERNS = {
 }
 
 
+# role labels / descriptions glued after a name: "Gmina X – Zamawiający", "Gmina X (dalej …", "Gmina X reprezentowana przez …"
+_NAME_TAIL = re.compile(r"\s*(?:[–—-]\s*(?:Zamawiając|Odwołując|Wykonawc|Lider|prowadząc)\w*|\(\s*(?:dalej|zwan)\w*|"
+                        r"\b(?:zwan\w*|reprezentowan\w*|działając\w*|w\s+imieniu|z\s+siedzibą|adres\w*|tel\.)\b).*$",
+                        re.IGNORECASE | re.DOTALL)
+
+
 def find_company(text: str) -> str | None:
     m = COMPANY_RE.search(text)
     if m:
@@ -129,8 +135,8 @@ def find_company(text: str) -> str | None:
     m = PUBLIC_BODY_RE.search(text)
     if not m:
         return None
-    head, _, rest = m.group(1).partition(" ")
-    return clean_text(" ".join(filter(None, [_DATIVE_HEAD.get(head, head), rest])))
+    head, _, rest = _NAME_TAIL.sub("", m.group(1)).partition(" ")
+    return clean_text(" ".join(filter(None, [_DATIVE_HEAD.get(head, head), rest]))) or None
 
 
 def find_id(kind: str, text: str) -> str | None:
