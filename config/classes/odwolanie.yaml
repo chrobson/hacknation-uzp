@@ -87,7 +87,8 @@ sections:
       # wiersz tabeli: etykieta roli i nazwa w tym samym wierszu (etykieta zostaje w tekście, zjada ją split)
       - '^(?=[ \t]*Zamawiając\w*[ \t]+(?-i:[A-ZŁŚŻŹĆŃÓ„])\S*[ \t]+\S)'
     end: ['^\s*(?:Pełnomocnik|Przedmiot\s+postępowania|Zamówienie\b)']
-  czynnosc: {start: 'wnosz[eę]', end: ['Zarzut\s+nr\s*2\b', '^\s*Uzasadnienie']}
+  # bloki stron między krótkim „wnoszę odwołanie” a zarzutami są wycinane, sekcja czynności trwa dalej
+  czynnosc: {start: 'wnosz[eę]', end: ['Zarzut\s+nr\s*2\b', '^\s*Uzasadnienie'], resume_after: [zamawiajacy, odwolujacy, dotyczy]}
   # zapas, gdy brak „wnoszę”: 3. osoba, „składam odwołanie”, „odwołanie od/wobec …”, „zarzucam”; isolated = nie ucina innych sekcji
   czynnosc_alt:
     isolated: true

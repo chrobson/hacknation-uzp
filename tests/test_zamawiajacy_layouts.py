@@ -64,3 +64,15 @@ def test_act_without_wnosze(body, powod):
     text = HEAD.replace("\n\n", "\n\n" + ODW, 1) + "Zamawiający:\nGmina Rudnik Wielki, NIP 8161234567\n\nODWOŁANIE\n" + body + "\nUzasadnienie\n"
     o = extract(Document(Path("c.pdf"), [text]), CLS)["OdwolanieKIO"]
     assert (o["czynnosc_powod_id"], o["czynnosc_dzien"]) == (powod, "2025-03-03")
+
+
+def test_party_blocks_after_short_wnosze_do_not_end_the_act_section():
+    """'wnoszę odwołanie' on top, then the party blocks, then the charge: the blocks are cut out, the section resumes."""
+    text = ("Warszawa, 12 marca 2025 r.\nKrajowa Izba Odwoławcza\nODWOŁANIE\nNiniejszym wnoszę odwołanie w postępowaniu:\n"
+            "Zamawiający:\nGmina Rudnik Wielki\nul. Rynek 1, 37-300 Rudnik\nNIP 8161234567\n"
+            "Odwołujący:\nAlfa Budownictwo sp. z o.o.\nNIP 5213456789\n"
+            "Odwołanie dotyczy zaniechania odrzucenia oferty wykonawcy Beta sp. z o.o., o którym poinformowano w dniu 3 marca 2025 r.\n"
+            "Uzasadnienie\nW dniu 1 stycznia 2025 r. wszczęto postępowanie.\n")
+    o = extract(Document(Path("d.pdf"), [text]), CLS)
+    assert (o["OdwolanieKIO"]["czynnosc_powod_id"], o["OdwolanieKIO"]["czynnosc_dzien"]) == (7, "2025-03-03")
+    assert o["Zamawiajacy"][0]["nip"] == "8161234567" and o["Odwolujacy"][0]["nip"] == "5213456789"

@@ -78,6 +78,11 @@ class Context:
 
 
 def _section_text(text: str, name: str, sections: dict[str, Any]) -> str | None:
+    """Text after the section's start label up to the next section start or end label.
+
+    `resume_after: [other, …]`: a block of one of those sections inside this one (e.g. party blocks between a short
+    "wnoszę odwołanie" and the charges) is cut out instead of ending this section, which resumes after the block.
+    """
     spec = sections.get(name)
     if spec is None:
         raise KeyError(f"unknown section: {name}")
@@ -88,18 +93,34 @@ def _section_text(text: str, name: str, sections: dict[str, Any]) -> str | None:
             start = m
     if start is None:
         return None
-    enders: list[re.Pattern[str]] = []
+    resume = set(spec.get("resume_after", []))
+    pieces, pos = [], start.end()
+    for _ in range(8):  # at most a few embedded blocks
+        end, owner, owner_match = _next_ender(text, name, sections, pos)
+        pieces.append(text[pos:end])
+        if owner not in resume or owner_match is None:
+            break
+        pos, _, _ = _next_ender(text, owner, sections, owner_match.end())  # skip the embedded block
+        if pos >= len(text):
+            break
+    return "\n".join(pieces)
+
+
+def _next_ender(text: str, name: str, sections: dict[str, Any], pos: int):
+    """(position, owning section, match) of the first label after `pos` that ends section `name`."""
+    spec = sections[name]
+    enders: list[tuple[re.Pattern[str], str]] = []
     for other, ospec in sections.items():
         if other != name and not ospec.get("isolated"):  # isolated: a fallback section that never ends the others
-            enders += _compile(ospec["start"])
-    enders += _compile(sections.get("_end", {}).get("start", []))
-    enders += _compile(spec.get("end", []))
-    end = len(text)
-    for rx in enders:
-        m = rx.search(text, start.end())
-        if m and m.start() < end:
-            end = m.start()
-    return text[start.end() : end]
+            enders += [(rx, other) for rx in _compile(ospec["start"])]
+    enders += [(rx, "_end") for rx in _compile(sections.get("_end", {}).get("start", []))]
+    enders += [(rx, "_end") for rx in _compile(spec.get("end", []))]
+    best = (len(text), None, None)
+    for rx, owner in enders:
+        m = rx.search(text, pos)
+        if m and m.start() < best[0]:
+            best = (m.start(), owner, m)
+    return best
 
 
 def _assign_accounts(text: str, cfg: dict[str, Any]) -> dict[str, str]:
