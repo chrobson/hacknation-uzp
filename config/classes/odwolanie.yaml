@@ -68,12 +68,17 @@ sections:
       - '^\s*Odwołując\w*\b[^\n:]{0,60}:\s*$'
       - '^\s*(?:\d+\.|[IVX]+\.|Część\s+[A-Z]\.)\s*(?:Odwołując\w*|Wykonawc\w*\s+wnosząc\w*\s+odwołanie)\s*$'
       - '^[^\n]*\bOdwołując\w*[ \t]+Zamawiając\w*[ \t]*\n(?=\s*(?:Nazwa|Firma)\b)'
+      # dwie kolumny "ODWOŁUJĄCY  ZAMAWIAJĄCY": lewa kolumna (pierwsza wartość w wierszu) należy do Odwołującego
+      - '^\s*Odwołując\w*[ \t]+Zamawiając\w*[ \t]*$'
   zamawiajacy:
     start:
       - '^\s*(?:Zamawiając\w*|Instytucj\w*\s+zamawiając\w*)\s*(?::|[–-]\s)'
       - '^(?=\s*1\)\s*Zamawiając)'
       - '^\s*(?:\d+\.|[IVX]+\.|Część\s+[A-Z]\.)\s*(?:Zamawiając\w*|Instytucj\w*\s+zamawiając\w*)\s*$'
       - '^[^\n]*\bOdwołując\w*[ \t]+Zamawiając\w*[ \t]*\n(?=\s*(?:Nazwa|Firma)\b)'
+      # wiersz tabeli: etykieta roli i nazwa w tym samym wierszu (etykieta zostaje w tekście, zjada ją split)
+      - '^(?=[ \t]*(?:Contracting\s+authority\s*/\s*)?Zamawiając\w*[ \t]+(?-i:[A-ZŁŚŻŹĆŃÓ„])\S*[ \t]+\S)'
+    end: ['^\s*(?:Pełnomocnik|Attorney|Contract\s+title|Przedmiot\s+postępowania|Rola\b|Zamówienie\b)']
   czynnosc: {start: 'wnosz[eę]', end: ['Zarzut\s+nr\s*2\b', '^\s*Uzasadnienie']}
   dotyczy: {start: ['^\s*dotyczy\s*:?', '\bdotyczy\s*:'], end: ['^\s*Działając', 'wnosz[eę]']}
   _end:
@@ -193,7 +198,7 @@ fields:
   ZamowieniePubliczne.numer_postepowania:
     - type: labeled
       value: token
-      labels: ['nr\s+referencyjn\w*(\s+sprawy)?', 'numer\s+referencyjn\w*(\s+sprawy)?', 'numer\s+postępowania', 'znak\s+sprawy', 'nr\s+sprawy', 'nr\s+postępowania', 'oznaczenie\s+sprawy', 'postępowanie\s+nr', 'identyfikator\s+postępowania', '\bznak\s*:', 'reference\s+no\.\s*/\s*nr']
+      labels: ['nr\s+referencyjn\w*(\s+sprawy)?', 'numer\s+referencyjn\w*(\s+sprawy)?', 'numer\s+postępowania', 'znak\s+sprawy', 'nr\s+sprawy', 'nr\s+postępowania', 'oznaczenie\s+sprawy', 'postępowanie\s+nr', 'identyfikator\s+postępowania', '(?<!nasz\s)\bznak\s*:', 'reference\s+no\.\s*/\s*nr']
       token_pattern: '[A-Z0-9][A-Za-z0-9./\-]*\d[A-Za-z0-9./\-]*'
       window: 60
     # zwięzły wiersz "Zamówienie – „tytuł”; ZNAK; 2026/BZP..." — znak zaraz po tytule w cudzysłowie
@@ -202,7 +207,7 @@ fields:
     - {type: pattern, pattern: 'pn\.?:?\s*[„"]([^”"]+)[”"]', clean: true}
     - {type: pattern, pattern: '[„"]([^”"]{15,})[”"]', clean: true}
     # formularz bez cudzysłowu: "Nazwa zamówienia <tytuł>" (do następnej etykiety)
-    - {type: text_after_label, labels: ['^\s*(?:Nazwa|Tytuł|Przedmiot)\s+zamówienia\s*:?'], max_lines: 3, stop_labels: ['^\s*(?:Tryb|Numer|Nr|Znak|Ogłoszenie|Oznaczenie|Identyfikator|Wartość|CPV)\b']}
+    - {type: text_after_label, labels: ['^\s*(?:Nazwa|Tytuł|Przedmiot)\s+zamówienia\s*:?', '^\s*Contract\s+title\s*/\s*Tytuł(?:\s+zamówienia)?\s*:?'], max_lines: 3, stop_labels: ['^[^\n/:]{2,40}\s/\s', '^\s*(?:Reference|Tryb|Data|Numer|Nr|Znak|Ogłoszenie|Oznaczenie|Identyfikator|Wartość|CPV)\b']}
     - {type: llm, section: dotyczy, question: 'Podaj pełny tytuł (nazwę) zamówienia publicznego, którego dotyczy odwołanie, dokładnie tak jak w tekście.', schema: {type: string}}
 
 lists:
@@ -212,6 +217,9 @@ lists:
     max_items: 1            # przy konsorcjum: tylko Lider
     fields:
       nazwa:
+        - {type: labeled, value: company, labels: ['^\s*(?:Nazwa|Firma)(?:\s*\([^)\n]*\))?\s*:?(?=[^\n]*(?-i:S\.A\.|sp\.|s\.c\.|[Ss]półka))'], window: 120}
+        # nazwa złamana po spójniku/przyimku na końcu wiersza ("... Nauk Stosowanych w" + "Krzemienicy")
+        - {type: pattern, clean: true, pattern: '\A\s*(?:(?:Nazwa|Firma)(?:\s*\([^)\n]*\))?\s*:?[ \t]+)?((?-i:[A-ZŁŚŻŹĆŃÓ„])[^\n:]*?[ \t](?-i:w|we|i|z|ze|im\.|na|dla|ds\.)[ \t]*\n[^\n,:]+?)(?=\s*(?:,|$|\s+(?:ul\.|al\.|KRS|NIP|REGON)))'}
         - {type: pattern, pattern: '^\s*(?:Nazwa|Firma)(?:\s*\([^)\n]*\))?\s*:?[ \t]+([^\n]+)', clean: true}
         - {type: first_line, cut: ['\s*[,;]\s*(?:ul\.|al\.|pl\.|os\.)', '\s+(?:ul\.|al\.|pl\.|os\.)\s', '\s*,?\s*\d{2}-\d{3}\s', '\s*[,;]?\s*(?:KRS|NIP|REGON)\b'], skip: ['^Konsorcjum\b', ':$']}
         # Proza: "Odwołującym jest X z siedzibą w ..." (konsorcjum: lider)
@@ -237,16 +245,18 @@ lists:
         - {if_no_section: true, type: pattern, scope: document, pattern: 'adres\s+do\s+korespondencji:\s*([\s\S]+?)(?=,\s*(?:ul\.|al\.|pl\.|os\.)|\n\s*(?:ul\.|tel))', clean: true}
         # "Kancelaria Kancelaria X" (etykieta + wartość), potem pierwsza nazwa zaczynająca się od "Kancelaria" (z jedną linią kontynuacji)
         - {if_no_section: true, type: pattern, scope: document, pattern: '^\s*(?:Law\s+firm\s*/\s*)?Kancelaria\s*:?[ \t]+((?-i:Kancelari)[^\n]+?)\s*$', clean: true}
-        - {if_no_section: true, type: pattern, scope: document, clean: true, pattern: '((?-i:Kancelari)\w*[ \t]+[^,;()|\n]*?(?:\n(?!\s*(?:ul\.|al\.|pl\.|tel|e-?mail|adres|[\d+])|[^\n]*:)[^,;()|\n]*?)?)(?=\s*[,;()|]|\s+(?:ul\.|al\.|pl\.)\s|\s*\n|\s*$)'}
+        - {if_no_section: true, type: pattern, scope: document, clean: true, pattern: '((?:^[ \t]*(?:(?-i:[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)[ \t]+){1,2}(?=(?-i:Kancelari)))?(?-i:Kancelari)\w*[ \t]+[^,;()|\n]*?(?:\n(?!\s*(?:ul\.|al\.|pl\.|tel|e-?mail|adres|[\d+])|[^\n]*:)[^,;()|\n]*?)?)(?=\s*[,;()|]|\s+(?:ul\.|al\.|pl\.)\s|\s*\n|\s*$)'}
       pelnomocnik.mail:
         - {if_no_section: true, type: pattern, scope: document, pattern: '(?:reprezentowan|pełnomocnik|Kancelari|Attorney|korespondencji|doręczeń)[\s\S]{0,300}?([\w.+-]+@[\w-]+(?:\.[\w-]+)+)'}
   Zamawiajacy:
     section: zamawiajacy
-    split: '^\s*\d\)\s*Zamawiaj\w*[^\n]*:'
+    split: '^\s*\d\)\s*Zamawiaj\w*[^\n]*:|^[ \t]*(?:Contracting\s+authority\s*/\s*)?Zamawiaj\w*[ \t]+(?=(?-i:[A-ZŁŚŻŹĆŃÓ„])\S*[ \t]+\S)'
     fields:
       nazwa:
         # macierz stron: druga firma w wierszu "Nazwa"
         - {type: pattern, pattern: '^\s*(?:Nazwa|Firma)\s+.+?(?-i:S\.A\.|sp\.\s*z\s*o\.\s*o\.(?:\s*sp\.\s*k\.)?|sp\.\s*k\.|sp\.\s*j\.)[ \t]+(\S[^\n]+)$', clean: true}
+        # nazwa złamana po spójniku/przyimku na końcu wiersza ("... Nauk Stosowanych w" + "Krzemienicy")
+        - {type: pattern, clean: true, pattern: '\A\s*(?:(?:Nazwa|Firma)(?:\s*\([^)\n]*\))?\s*:?[ \t]+)?((?-i:[A-ZŁŚŻŹĆŃÓ„])[^\n:]*?[ \t](?-i:w|we|i|z|ze|im\.|na|dla|ds\.)[ \t]*\n[^\n,:]+?)(?=\s*(?:,|$|\s+(?:ul\.|al\.|KRS|NIP|REGON)))'}
         - {type: pattern, pattern: '^\s*(?:Nazwa|Firma)(?:\s*\([^)\n]*\))?\s*:?[ \t]+([^\n]+)', clean: true}
         - {type: first_line, cut: ['\s*[,;]\s*(?:ul\.|al\.|pl\.|os\.)', '\s+(?:ul\.|al\.|pl\.|os\.)\s', '\s*,?\s*\d{2}-\d{3}\s', '\s*[,;]?\s*(?:KRS|NIP|REGON)\b'], skip: [':$']}
         - {type: pattern, if_no_section: true, clean: true, pattern: '(?:przeciwko\s+Zamawiającemu,?\s+którym\s+jest|Zamawiającym\s+jest)\s+((?-i:[A-ZŁŚŻŹĆŃÓ„])[^,;()]{2,150}?)\s+z\s+siedzibą'}
@@ -265,7 +275,10 @@ lists:
         - {type: pattern, pattern: '^\s*REGON\W{0,3}(?:\d(?:[  ]?\d){13}|\d(?:[  ]?\d){8})[ \t]+(\d(?:[  ]?\d){13}|\d(?:[  ]?\d){8})(?!\d)', digits: true}
         - {type: pattern, pattern: 'REGON\W{0,3}(\d(?:[  ]?\d){13}|\d(?:[\s]?\d){8})(?!\d)', digits: true}
         - {<<: *zam_near, value: regon}
-      prowadzacy_postepowanie: {type: exists, in_label: true, pattern: ['Lider', 'prowadząc\w*\s+postępowanie'], only_if_multiple: true}
+      prowadzacy_postepowanie:
+        - {type: exists, in_label: true, pattern: ['Lider', 'prowadząc\w*\s+postępowanie'], only_if_multiple: true, if_false: null}
+        # znacznik w wierszu tabeli: "(prowadzący)", "(lead / prowadzący)"
+        - {type: exists, pattern: ['\(\s*(?:lead\s*/\s*)?prowadząc\w*\s*\)', 'prowadząc\w*\s+postępowanie'], only_if_multiple: true}
 
 derive:
   OdwolanieKIO.czynnosc_opis: {from: OdwolanieKIO.czynnosc_powod_id, dictionary: czynnosc_powod}
