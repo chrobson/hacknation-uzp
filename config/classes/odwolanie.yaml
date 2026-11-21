@@ -254,7 +254,6 @@ lists:
         - {type: pattern, pattern: '^\s*KRS\W{0,3}\d(?:[  ]?\d){9}[ \t]+(\d(?:[  ]?\d){9})(?!\d)', digits: true}
         - {type: pattern, pattern: 'KRS\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
         - {<<: *zam_near, value: krs}
-        - {<<: *zam_near, value: krs, scope: document, only_if_single: true}
       nip:
         - {type: pattern, pattern: '^\s*NIP\W{0,3}(?:PL[  -]?)?\d(?:[  -]?\d){9}[ \t]+(?:PL[  -]?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
         - {type: pattern, pattern: 'NIP\W{0,3}(?:PL[  -]?)?(\d(?:[\s-]?\d){9})(?!\d)', digits: true}
