@@ -252,7 +252,9 @@ def _exists(spec: dict[str, Any], ctx: Context) -> Any:
     if spec.get("only_if_multiple") and ctx.n_items < 2:
         return None
     hay = ctx.label if spec.get("in_label") else ctx.text
-    hit = any(rx.search(hay) for rx in _compile(spec["pattern"]))
+    pats = spec["pattern"] if isinstance(spec["pattern"], list) else [spec["pattern"]]
+    pats = [p.replace("{n}", str(ctx.index + 1)) for p in pats]  # {n}: 1-based number of the current list item
+    hit = any(rx.search(hay) for rx in _compile(pats))
     yes, no = spec.get("if_true", spec.get(True, 1)), spec.get("if_false", spec.get(False, 0))
     return yes if hit else no
 
@@ -429,6 +431,10 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
         if starts:
             chunks = [text[m.end() : (starts[i + 1].start() if i + 1 < len(starts) else len(text))] for i, m in enumerate(starts)]
             labels = [m.group(0) for m in starts]
+            head = text[: starts[0].start()]
+            if spec.get("keep_head") and len(re.findall(r"[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]", head)) >= 12:
+                chunks.insert(0, head)  # "A …; oraz B …" or "A (lead) … na rzecz: 1) B": text before the first marker is an item
+                labels.insert(0, "")
     chunks = chunks[: int(spec.get("max_items", 50))]
     items = []
     for index, (chunk, label) in enumerate(zip(chunks, labels)):
