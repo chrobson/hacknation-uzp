@@ -1,0 +1,21 @@
+# Poziom 1 rozszerzania: nowa klasa BEZ ani jednego wyrażenia regularnego w polach.
+# Rozpoznanie: jedna kotwica (nagłówek pisma); każde pole to pytanie do małego modelu językowego (type: llm).
+# Odpowiedzi są walidowane: daty jako YYYY-MM-DD, liczby jako liczby, `verbatim` = tylko cytat występujący w tekście.
+# Uruchomienie: bash start.sh --classes-dir examples/klasy_llm --input examples/klasy/przyklady --output /tmp/wynik
+# (wymaga klucza LLM w .env; bez klucza pola zostają null). Celowo poza config/classes.
+name: wezwanie_llm
+
+classify:
+  threshold: 1
+  required: ['^\s*WEZWANIE\b']
+  signals: [{pattern: 'WEZWANIE', weight: 1}]
+
+fields:
+  Wezwanie.sygnatura: {type: llm, question: 'Podaj sygnaturę akt sprawy.', verbatim: true}
+  Wezwanie.data: {type: llm, value: date, question: 'Podaj datę pisma (YYYY-MM-DD).'}
+  Wezwanie.adresat: {type: llm, question: 'Podaj nazwę adresata pisma (bez adresu).', verbatim: true}
+  Wezwanie.termin_dni: {type: llm, question: 'Ile dni ma adresat na uzupełnienie braków?', schema: {type: integer}}
+  Wezwanie.przewodniczacy: {type: llm, question: 'Podaj imię i nazwisko przewodniczącego.', verbatim: true}
+
+output_template:
+  Wezwanie: {sygnatura: null, data: null, adresat: null, termin_dni: null, przewodniczacy: null}

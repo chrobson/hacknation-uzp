@@ -26,10 +26,13 @@ Na końcu przebiegu program wypisuje podsumowanie: liczbę PDF, odrzucone, użyc
 | holdout z danych UZP (15 spraw, nieużywany do strojenia) | 1,000 | 1,000 |
 | synth-dev (120 dokumentów o innych układach, także wielopodmiotowe) | 0,942 | 0,942 |
 | skany UZP przez OCR (30 dokumentów) | 0,953 | 0,953 |
+| **niezależny zbiór kontrolny** (110 dokumentów o nieznanych układach, mierzony bez wglądu w dokumenty, nieużywany do strojenia) | **0,840** | 0,840 |
+
+Wynik 1,000 na danych UZP to dane, na których powstawały reguły; realną jakość na nowych dokumentach lepiej opisuje zbiór kontrolny i skany.
 
 Numery rachunków są zapisywane tak, jak w dokumencie: z prefiksem `PL`, jeśli dokument go podaje (bez spacji, np. `PL61109010140000071219812874`), w przeciwnym razie 26 cyfr. Tak potwierdził UZP (21.11.2026); lokalne dane wzorcowe poprawiono skryptem `eval/gt_account_pl.py`, bo część wzorcowych JSON-ów UZP pomijała `PL`.
 
-Dokumenty obce (ogłoszenia, wyroki KIO, SWZ, faktury, umowy, pisma podobne do klas): 0 przyjętych na 36. Bramka jakości (`make gate`, 9 testów, m.in. brak regresji, 0 fałszywych przyjęć, niezależność od nazw plików, praca bez LLM, < 1 s/dokument) pilnuje każdej zmiany.
+Dokumenty obce (ogłoszenia, wyroki KIO, SWZ, faktury, umowy, pisma podobne do klas): 0 przyjętych na 36 w naszych zbiorach, 2 przyjęte na 20 w zbiorze kontrolnym. Bramka jakości (`make gate`, 9 testów, m.in. brak regresji, 0 fałszywych przyjęć, niezależność od nazw plików, praca bez LLM, < 1 s/dokument) pilnuje każdej zmiany.
 
 ## Jak to działa
 1. **Tekst**: `pdfplumber` (słowa ze współrzędnymi); PDF bez warstwy tekstowej → lokalny OCR (Tesseract `pol`, strony równolegle; przekrzywiony skan jest prostowany i czytany ponownie; typowe błędy OCR, np. „@” czytane jako „(O”, są poprawiane). Dwukolumnowe nagłówki stron są czytane kolumnami.
@@ -38,13 +41,46 @@ Dokumenty obce (ogłoszenia, wyroki KIO, SWZ, faktury, umowy, pisma podobne do k
 4. **LLM (opcjonalnie)**: tylko dla pól, które reguły zostawiły puste, z zamkniętym słownikiem odpowiedzi i walidacją; awaria → reguły.
 5. **Wynik**: JSON zgodny ze schematem UZP + osobno plik dowodów (strona, cytat, ramki) dla każdej wartości.
 
-## Rozszerzalność: nowa klasa = jeden plik YAML
-Kod nie zna nazw klas ani pól: wszystko jest w `config/classes/*.yaml` (klasyfikacja, sekcje, pola, szablon wyniku) i `config/dictionaries/`. Przykład klasy spoza zadania (wezwanie KIO do uzupełnienia braków), bez żadnej zmiany w kodzie:
+## Rozszerzalność: nowa klasa albo nowe pole = plik YAML
+Kod nie zna nazw klas ani pól. Wszystko jest w `config/classes/*.yaml` (rozpoznawanie, sekcje, pola, szablon wyniku), `config/reject.yaml` i `config/dictionaries/`. Dodatkowe klasy dołącza się opcją `--classes-dir DIR`, a cały zestaw klas można podmienić opcją `--classes DIR`.
+
+**Trzy poziomy, ten sam plik YAML:**
+1. **Pytania do modelu językowego**: kilka minut pracy, bez wyrażeń regularnych. `examples/klasy_llm/wezwanie_llm.yaml` (14 linii): jedna kotwica rozpoznania i 5 pól `type: llm`. Na przykładowym piśmie KIO daje 5/5 pól (5 wywołań modelu).
+2. **Reguły**: precyzja bez kosztu i bez sieci. `examples/klasy/wezwanie_do_uzupelnienia.yaml` (~40 linii) daje te same informacje (plus kwotę wpisu i braki) bez modelu.
+3. **Hybryda** (tak działają 3 klasy zadania): reguły najpierw; pole `type: llm` na liście reguł danego pola jest pytane tylko wtedy, gdy reguły nic nie znalazły.
+
+**Nowe pole w istniejącej klasie** to dwie linie YAML: wpis w `output_template` i reguła w `fields`, np.
+```yaml
+output_template:
+  przelew_bankowy:
+    cel: null
+fields:
+  przelew_bankowy.cel: {type: keyword_map, map: {wpis: ['wpis\w*\s+od\s+odwołani'], oplata_skarbowa: ['opłat\w*\s+skarbow']}}
+```
+
+**Demo** (4 kroki: dokument spoza klas → `{}`; klasa z pytań do modelu; ta sama klasa na regułach; nowe pole w przelewie):
 ```bash
 bash scripts/demo_nowa_klasa.sh
-# albo: bash start.sh --classes-dir examples/klasy --input examples/klasy/przyklady --output /tmp/wynik
 ```
-Plik `examples/klasy/wezwanie_do_uzupelnienia.yaml` (~40 linii) definiuje kotwice klasyfikacji, sekcję adresata i 6 pól. Klasa celowo leży poza `config/classes`, żeby nie była aktywna podczas oceny.
+Przykładowe klasy leżą celowo poza `config/classes`, żeby nie były aktywne podczas oceny.
+
+**Co się konfiguruje w YAML:**
+- **Rozpoznawanie** (`classify:`): `required` (choć jedna kotwica musi wystąpić), ważone `signals` (także ujemne, np. nagłówek innej klasy), `threshold`, `head_chars` (szukanie tylko w nagłówku), `fuzzy` (głosowanie słów odpornych na błędy OCR); wspólne reguły odrzucenia dokumentów obcych w `config/reject.yaml`.
+- **Walidacja wartości**: typ wartości (`value: date | amount | nip | krs | regon | pesel | email | account`) normalizuje i odrzuca wartości w złym formacie (np. NIP to 10 cyfr, data jest sprawdzana jako data kalendarzowa); `reject` / `require` (wzorce, które wartość musi spełnić albo których nie może zawierać), `cast: int`; dla modelu: `choices` (zamknięta lista odpowiedzi), `verbatim` (tylko cytat występujący w tekście), `schema` (typ JSON). Suma kontrolna IBAN jest używana w kodzie do rozstrzygania rachunków.
+- **Mapowanie**: ścieżka pola w wyniku (`przelew_bankowy.kwota`, listy `Odwolujacy[]`), `output_template` (kolejność i komplet kluczy, `null` dla braków), słowniki (`config/dictionaries/czynnosc_powod.yaml`: identyfikator → opis, pole pochodne `{from: …, dictionary: …}`), `keyword_map` (słowa → kod).
+
+| typ pola | co robi | przykład |
+|---|---|---|
+| `pattern` | wyrażenie regularne, grupa 1 = wartość | `{type: pattern, pattern: 'Sygn\.\s*akt\s*:?\s*(KIO\s*\d+/\d+)'}` |
+| `labeled` | wartość danego typu tuż po etykiecie | `{type: labeled, value: date, labels: ['data\s+operacji']}` |
+| `text_after_label` | tekst po etykiecie do linii stopu | `{type: text_after_label, labels: ['tytułem'], stop_labels: ['^\s*kwota']}` |
+| `near` | wartość najbliżej słów kotwic (układ nieznany) | `{type: near, value: company, anchors: ['Odwołując\w*']}` |
+| `first_line` | pierwsza linia sekcji | `{type: first_line, section: adresat}` |
+| `names` | lista imion i nazwisk (w mianowniku) | `{type: names, section: pelnomocnicy, nominative: true}` |
+| `account` | rachunek nadawcy / odbiorcy | `{type: account, role: sender}` |
+| `keyword_map` | słowa kluczowe → kod | `{type: keyword_map, map: {wpis: ['wpis\w*']}}` |
+| `exists` | wartość zależna od obecności wzorca | `{type: exists, pattern: ['CEIDG'], if_true: osoba_fizyczna}` |
+| `llm` | pytanie do modelu z walidacją odpowiedzi | `{type: llm, question: 'Podaj datę pisma', value: date}` |
 
 ## Model językowy (opcjonalny dodatek do reguł)
 | | |
