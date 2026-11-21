@@ -61,6 +61,7 @@ class Context:
         self.index = 0  # position of this item in the enclosing list
         self._accounts: dict[str, str] | None = None
         self._sections: dict[str, str | None] = {}
+        self.values: dict[str, Any] = {}  # fields extracted so far (path → value), for cross-field checks
 
     def section(self, name: str) -> str | None:
         """Text after the section's start label up to the next section start or end label."""
@@ -94,13 +95,20 @@ def _section_text(text: str, name: str, sections: dict[str, Any]) -> str | None:
     if start is None:
         return None
     resume = set(spec.get("resume_after", []))
-    pieces, pos = [], start.end()
+    missing = re.compile(spec["restart_if_missing"], FLAGS) if "restart_if_missing" in spec else None
+    restart_at = re.compile(spec["restart_at"], FLAGS) if "restart_at" in spec else None
+    pieces, pos, restarted = [], start.end(), False
     for _ in range(8):  # at most a few embedded blocks
         end, owner, owner_match = _next_ender(text, name, sections, pos)
         pieces.append(text[pos:end])
-        if owner not in resume or owner_match is None:
+        if owner in resume and owner_match is not None:
+            pos, _, _ = _next_ender(text, owner, sections, owner_match.end())  # skip the embedded block
+        elif (missing and restart_at and not restarted and owner is not None
+              and not missing.search("\n".join(pieces)) and (m := restart_at.search(text, end))):
+            # cut off before any content: resume once at the line of the next content keyword
+            restarted, pos = True, text.rfind("\n", 0, m.start()) + 1
+        else:
             break
-        pos, _, _ = _next_ender(text, owner, sections, owner_match.end())  # skip the embedded block
         if pos >= len(text):
             break
     return "\n".join(pieces)
@@ -383,6 +391,10 @@ def _llm(spec: dict[str, Any], ctx: Context) -> Any:
         value = N.find_date(str(value))
         # the date must be written in the passage (any format), not computed or invented
         if value and spec.get("date_in_text") and value not in {d for d in _all_dates(text)}:
+            return None
+        # an act precedes the letter: reject the letter's own date and anything later (before_field: path of that date)
+        limit = ctx.values.get(spec["before_field"]) if "before_field" in spec else None
+        if value and limit and value >= limit:
             return None
     if value is not None and spec.get("verbatim") and _squash(str(value)) not in _squash(text):
         return None  # the model must quote the document, never paraphrase or invent

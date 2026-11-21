@@ -65,6 +65,7 @@ def extract(doc: Document, doc_class: DocClass, out: dict[str, Any] | None = Non
     for path, specs in (doc_class.raw.get("fields") or {}).items():
         try:
             value = extract_field(specs, ctx)
+            ctx.values[path] = value
             if isinstance(value, list):  # names-type field: remember names so other fields can exclude them
                 excluded[path] = [next(iter(v.values())) for v in value if isinstance(v, dict)]
             if value is not None or not isinstance(out.get(path), list):

@@ -144,3 +144,14 @@ def test_gate_and_tests_ignore_dotenv_key(monkeypatch):
     monkeypatch.setattr(llm, "_dotenv", lambda path=None: {"LLM_BASE_URL": "u", "LLM_MODEL": "m", "LLM_API_KEY": "k"})
     llm.force(None)
     assert not llm.enabled()  # conftest sets LLM_ENABLED=0
+
+
+def test_act_date_must_precede_the_letter(fake):
+    from odw.fields import Context, extract_field
+    calls, answers = fake
+    ctx = Context("Pismo z dnia 12.03.2025. Czynność z dnia 03.03.2025.", {})
+    ctx.values["OdwolanieKIO.data"] = "2025-03-12"
+    spec = {"type": "llm", "question": "q", "value": "date", "before_field": "OdwolanieKIO.data"}
+    answers += [{"value": "2025-03-12"}, {"value": "2025-03-03"}]
+    assert extract_field([spec], ctx) is None  # the letter's own date
+    assert extract_field([spec], ctx) == "2025-03-03"
