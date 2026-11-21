@@ -135,7 +135,7 @@ lists:
       krs: {type: pattern, pattern: 'KRS\W{0,3}(\d{10})', digits: true}
       nip: {type: pattern, pattern: 'NIP\W{0,3}(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}|\d{10})', digits: true}
       regon: {type: pattern, pattern: 'REGON\W{0,3}(\d{14}|\d{9})', digits: true}
-      prowadzacy_postepowanie: {type: exists, pattern: ['Lider', 'prowadząc\w*\s+postępowanie'], only_if_multiple: true}
+      prowadzacy_postepowanie: {type: exists, in_label: true, pattern: ['Lider', 'prowadząc\w*\s+postępowanie'], only_if_multiple: true}
 
 derive:
   OdwolanieKIO.czynnosc_opis: {from: OdwolanieKIO.czynnosc_powod_id, dictionary: czynnosc_powod}

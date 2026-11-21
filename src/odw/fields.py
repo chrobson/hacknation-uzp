@@ -51,6 +51,7 @@ class Context:
         self.text = text
         self.cfg = class_cfg
         self.n_items = n_items  # number of items in the enclosing list (for list-relative fields)
+        self.label = ""  # the split label that introduced this list item (e.g. "1) Zamawiający – Lider:")
         self._accounts: dict[str, str] | None = None
         self._sections: dict[str, str | None] = {}
 
@@ -209,7 +210,8 @@ def _first_line(spec: dict[str, Any], ctx: Context) -> Any:
 def _exists(spec: dict[str, Any], ctx: Context) -> Any:
     if spec.get("only_if_multiple") and ctx.n_items < 2:
         return None
-    hit = any(rx.search(ctx.text) for rx in _compile(spec["pattern"]))
+    hay = ctx.label if spec.get("in_label") else ctx.text
+    hit = any(rx.search(hay) for rx in _compile(spec["pattern"]))
     return spec.get("true", 1) if hit else spec.get("false", 0)
 
 
@@ -268,17 +270,19 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
     text = ctx.section(spec["section"]) if "section" in spec else ctx.text
     if text is None:
         return [copy.deepcopy(item_template)]
-    chunks = [text]
+    chunks, labels = [text], [""]
     if "split" in spec:
         rx = _compile(spec["split"])[0]
         starts = [m for m in rx.finditer(text)]
         if starts:
             chunks = [text[m.end() : (starts[i + 1].start() if i + 1 < len(starts) else len(text))] for i, m in enumerate(starts)]
+            labels = [m.group(0) for m in starts]
     chunks = chunks[: int(spec.get("max_items", 50))]
     items = []
-    for chunk in chunks:
+    for chunk, label in zip(chunks, labels):
         item = copy.deepcopy(item_template)
         sub = ctx.sub(chunk, n_items=len(chunks))
+        sub.label = label
         whole = ctx.sub(text, n_items=len(chunks))
         for path, fspecs in spec["fields"].items():
             scoped = fspecs if isinstance(fspecs, list) else [fspecs]
