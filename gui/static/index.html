@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Odwołania2JSON – podgląd</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-mark" src="/static/favicon.svg" alt="">
+      <div>
+        <div class="brand-name">Odwołania2JSON</div>
+        <div class="brand-sub">dokument źródłowy ↔ wyekstrahowane dane</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <label class="btn btn-primary" title="Wybierz jeden lub więcej plików PDF">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 13V3m0 0L6 7m4-4 4 4M4 13v3h12v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Wgraj PDF
+        <input id="file-input" type="file" accept="application/pdf,.pdf" multiple hidden>
+      </label>
+      <div class="sep">lub</div>
+      <select id="case-select" aria-label="Sprawa z folderu"><option value="">Wybierz sprawę…</option></select>
+      <button id="case-run" class="btn" disabled>Przetwórz</button>
+      <select id="history-select" aria-label="Poprzednie przebiegi" title="Poprzednie przebiegi"><option value="">Historia…</option></select>
+    </div>
+  </header>
+
+  <nav id="docbar" class="docbar" hidden>
+    <div id="doc-tabs" class="doc-tabs" role="tablist"></div>
+    <div class="docbar-right">
+      <span id="run-info" class="muted"></span>
+      <a id="zip-link" class="btn btn-ghost btn-sm" href="#" download>Pobierz wszystkie (ZIP)</a>
+    </div>
+  </nav>
+
+  <main id="welcome" class="welcome">
+    <div class="drop-card" id="drop-card">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 6h20l12 12v38a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M38 6v12h12M24 34h16M24 42h16M24 50h10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <h1>Upuść tutaj pliki PDF sprawy</h1>
+      <p>odwołanie, pełnomocnictwo, potwierdzenie przelewu – albo dowolny inny dokument.<br>
+        Pliki zostaną przetworzone lokalnie przez pipeline Odwołania2JSON (nic nie opuszcza komputera).</p>
+      <p class="muted">Możesz też wybrać gotową sprawę z folderu <code>input/</code> w menu u góry.</p>
+    </div>
+  </main>
+
+  <main id="workspace" class="split" hidden>
+    <section class="pane pdf-pane" aria-label="Dokument źródłowy">
+      <div class="pane-head">
+        <div class="pane-title"><span id="pdf-name" class="ellipsis"></span><span id="pdf-pages" class="muted"></span></div>
+        <div class="tools">
+          <label class="toggle" title="Pokaż ramki wszystkich zlokalizowanych pól">
+            <input type="checkbox" id="show-all" checked><span>Wszystkie ramki</span>
+          </label>
+          <button class="icon-btn" id="zoom-out" title="Pomniejsz">−</button>
+          <button class="icon-btn" id="zoom-fit" title="Dopasuj do szerokości">↔</button>
+          <button class="icon-btn" id="zoom-in" title="Powiększ">+</button>
+          <a class="icon-btn" id="pdf-open" target="_blank" title="Otwórz PDF w nowej karcie">↗</a>
+        </div>
+      </div>
+      <div id="pdf-scroll" class="pdf-scroll"><div id="pdf-pages-wrap" class="pdf-pages"></div></div>
+    </section>
+
+    <div class="gutter" id="gutter" title="Przeciągnij, aby zmienić szerokość"></div>
+
+    <section class="pane data-pane" aria-label="Wyekstrahowane dane">
+      <div class="pane-head">
+        <div class="pane-title"><span id="class-badge" class="badge"></span><span id="field-stats" class="muted"></span></div>
+        <div class="tools">
+          <div class="seg" role="tablist">
+            <button class="seg-btn active" data-view="tree">Dane</button>
+            <button class="seg-btn" data-view="json">JSON</button>
+          </div>
+          <a id="json-download" class="btn btn-sm" href="#" download>
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0 4-4m-4 4-4-4M4 14v3h12v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Pobierz JSON
+          </a>
+        </div>
+      </div>
+      <div class="legend" id="legend">
+        <span><i class="dot dot-loc"></i>zlokalizowane w PDF – najedź, aby podświetlić; kliknij, aby przewinąć</span>
+        <span><i class="dot dot-der"></i>wyliczone</span>
+        <span><i class="dot dot-null"></i>brak w dokumencie</span>
+      </div>
+      <div id="data-scroll" class="data-scroll">
+        <div id="tree" class="tree"></div>
+        <pre id="json-view" class="json-view" hidden></pre>
+      </div>
+      <div id="detail" class="detail" hidden></div>
+    </section>
+  </main>
+
+  <div id="busy" class="busy" hidden>
+    <div class="busy-card"><div class="spinner"></div><div id="busy-text">Przetwarzanie…</div><div class="muted" id="busy-sub">pipeline Odwołania2JSON: klasyfikacja → ekstrakcja → lokalizacja w PDF</div></div>
+  </div>
+  <div id="drop-overlay" class="drop-overlay" hidden><div>Upuść pliki PDF, aby je przetworzyć</div></div>
+  <div id="toast" class="toast" hidden></div>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>
