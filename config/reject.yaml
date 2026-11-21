@@ -1,0 +1,6 @@
+# Dokumenty, które na pewno NIE są żadną z klas (wynik: {}), niezależnie od liczby klas.
+# Sprawdzane przed klasyfikacją. head_chars: szukaj tylko w pierwszych N znakach.
+reject:
+  - {name: ogloszenie_bzp, pattern: '\A\s*Ogłoszenie\s+nr\s+\d{4}\s*/\s*BZP', head_chars: 300}
+  - {name: ogloszenie_ted, pattern: 'See the notice on TED', head_chars: 500}
+  - {name: orzeczenie_kio, pattern: 'Sygn\.\s*akt', head_chars: 400}

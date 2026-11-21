@@ -3,19 +3,14 @@ name: odwolanie
 
 classify:
   # Suma wag pasujących sygnałów musi osiągnąć próg; wygrywa klasa z najwyższą sumą.
-  threshold: 5
+  threshold: 6
   signals:
     - {pattern: '^\s*O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E\b', weight: 3}
     - {pattern: 'wnosz[eę]\s+(niniejsze\s+)?odwołani', weight: 3}
-    - {pattern: 'Prezes\w*\s+Krajowej\s+Izby\s+Odwoławczej', weight: 2, head_chars: 1500}
-    - {pattern: 'Odwołując[yaey]', weight: 1}
-    - {pattern: 'Zamawiając[yaey]', weight: 1}
+    - {pattern: 'Krajow\w+\s+Izb\w+\s+Odwoławcz\w+', weight: 2, head_chars: 1500}
+    - {pattern: '^\s*Odwołując\w*\s*:', weight: 2}
+    - {pattern: '^\s*Zamawiając\w*\s*:', weight: 1}
     - {pattern: 'zarzut', weight: 1}
-    # Dokumenty podobne słownictwem, ale nie będące odwołaniem:
-    - {pattern: 'Sygn\.\s*akt', weight: -6, head_chars: 400}                          # orzeczenia KIO
-    - {pattern: '^\s*(WYROK|POSTANOWIENIE|UCHWAŁA)\s*$', weight: -4, head_chars: 1500}
-    - {pattern: 'Ogłoszenie\s+o\s+zamówieniu', weight: -6, head_chars: 1500}  # BZP
-    - {pattern: 'See the notice on TED', weight: -6}                 # TED
 
 output_template:
   OdwolanieKIO:

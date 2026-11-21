@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .config import DocClass
+from functools import cache
+
+from .config import DocClass, Signal, load_reject
 from .textio import Document
 
 
@@ -27,10 +29,25 @@ def score(doc_class: DocClass, text: str) -> float:
     return total
 
 
+@cache
+def _reject_rules() -> tuple[Signal, ...]:
+    return tuple(load_reject())
+
+
+def rejected_by(text: str, rules: tuple[Signal, ...] | None = None) -> bool:
+    for sig in _reject_rules() if rules is None else rules:
+        hay = text[: sig.head_chars] if sig.head_chars else text
+        if sig.pattern.search(hay):
+            return True
+    return False
+
+
 def classify(doc: Document, classes: list[DocClass]) -> Verdict:
     if not doc.has_text:
         return Verdict(None, {})
     text = doc.text
+    if rejected_by(text):
+        return Verdict(None, {})
     scores = {c.name: score(c, text) for c in classes}
     best = max(classes, key=lambda c: scores[c.name])
     if scores[best.name] < best.threshold:

@@ -56,6 +56,15 @@ def load_class(path: Path) -> DocClass:
     )
 
 
+REJECT_FILE = ROOT / "config" / "reject.yaml"
+
+
+def load_reject(path: Path = REJECT_FILE) -> list[Signal]:
+    if not path.exists():
+        return []
+    return _signals(yaml.safe_load(path.read_text(encoding="utf-8")).get("reject"))
+
+
 def load_classes(directory: Path = CLASSES_DIR) -> list[DocClass]:
     classes = [load_class(p) for p in sorted(directory.glob("*.yaml"))]
     if not classes:
