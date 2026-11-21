@@ -5,7 +5,7 @@
 #   bash scripts/clean_clone_llm_test.sh [REF] [ENV_FILE]     (domyślnie REF=HEAD, ENV_FILE=./.env)
 #
 # Klucz z ENV_FILE trafia tylko do kopii roboczej w katalogu tymczasowym (usuwanej na końcu); nigdy nie jest wypisywany.
-# 1. lokalnie: kopia REF + .env, bash start.sh na data/train (PDF-y z warstwą tekstową) -> wynik referencyjny z LLM
+# 1. lokalnie: kopia REF + .env, bash start.sh na data/synth/dev (PDF-y z warstwą tekstową; na data/train reguły wypełniają wszystko i LLM nie jest wołany) -> wynik referencyjny z LLM
 # 2. kontener ubuntu:24.04 (bez Pythona/uv/tesseracta): ta sama kopia + .env, bash start.sh
 #    (a) podsumowanie „LLM: … N wywołań” z N > 0, (b) wynik = lokalny, poza polami uzupełnianymi przez LLM
 # 3. ten sam kontener (docker commit) z --network none: start.sh kończy się kodem 0, podsumowanie „niedostępny” /
@@ -28,10 +28,10 @@ STATUS=0
 
 log "archiwum $REF ($(git -C "$REPO" rev-parse --short "$REF"))"
 git -C "$REPO" archive --format=tar -o "$WORK/repo.tar" "$REF"
-prepare() {  # $1 = katalog: kopia REF + .env + data/train jako input/
+prepare() {  # $1 = katalog: kopia REF + .env + data/synth/dev jako input/
     mkdir -p "$1"; tar -xf "$WORK/repo.tar" -C "$1"
     cp "$ENV_FILE" "$1/.env"; chmod 600 "$1/.env"
-    cp -R "$1/data/train/." "$1/input/"; rm -rf "$1/output"
+    cp -R "$1/data/synth/dev/." "$1/input/"; rm -rf "$1/output"  # synth-dev: rules leave a few fields empty -> LLM calls
 }
 
 # porównanie JSON-ów; pola LLM pomijane (szum modelu), reszta musi być identyczna
