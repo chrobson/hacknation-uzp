@@ -51,10 +51,11 @@ def _male_surname(token: str) -> str:
 
 
 def nominative(name: str) -> str:
-    name = HONORIFIC.sub("", " ".join(name.split()))
+    original = " ".join(name.split())
+    name = HONORIFIC.sub("", original)
     parts = name.split()
     if len(parts) < 2:
-        return name
+        return original  # "Panu Tomaszowi": not a full name; keep the honorific so stopword filters can reject it
     first, rest = parts[0], parts[1:]
     last = rest[-1]
 

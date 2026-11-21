@@ -323,6 +323,10 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
         words = name.split()
         if any(w.lower() in stop for w in words) or name in exclude or any(i[field] == name for i in items):
             continue
+        if "reject_context" in spec:  # e.g. a board member: "Jan Kowalski – Prezes Zarządu" is not a representative
+            around = text[max(0, m.start(1) - 40) : m.end(1) + 50]
+            if any(r.search(around) for r in _compile(spec["reject_context"])):
+                continue
         item: dict[str, Any] = {field: name, **spec.get("extra", {})}
         tail = text[m.end() : m.end() + 60]
         for key, arx in attrs.items():  # e.g. PESEL written right after the name
