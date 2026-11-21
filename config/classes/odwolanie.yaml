@@ -127,7 +127,7 @@ fields:
     - {type: labeled, value: date, labels: ['w\s+dniu', 'z\s+dnia', '\bdnia'], window: 40, section: czynnosc_alt}
     # LLM (jeśli włączony) tylko gdy żadna reguła nie zadziałała; dostaje fragment od "wnoszę" do drugiego zarzutu.
     # pierwszy zarzut (dla LLM): początek wg priorytetu, koniec na drugim zarzucie/uzasadnieniu; brak kotwic → początek pisma
-    - {type: llm, excerpt: &first_charge {start: ['wnosz[eę]', '\bwnos(?:i|imy)\b', '\bzarzuca\w*', 'Zarzut\s+nr\s*1\b', '(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)'], end: ['Zarzut\s+nr\s*2\b', '^\s*(?:2|II)[.)]\s', '§\s*2\b', '^\s*Uzasadnienie', 'W\s+związku\s+z\s+powyższym'], fallback_chars: 2500}, max_chars: 1500, value: date, before_field: OdwolanieKIO.data, question: 'Podaj datę (YYYY-MM-DD) czynności lub zaniechania zamawiającego, której dotyczy PIERWSZY zarzut odwołania.', schema: {type: string, pattern: '\d{4}-\d{2}-\d{2}'}}
+    - {type: llm, excerpt: &first_charge {start: ['wnosz[eę]', '\bwnos(?:i|imy)\b', '\bzarzuca\w*', 'Zarzut\s+nr\s*1\b', '(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)'], end: ['Zarzut\s+nr\s*2\b', '^\s*(?:2|II)[.)]\s', '§\s*2\b', '^\s*Uzasadnienie', 'W\s+związku\s+z\s+powyższym'], fallback_chars: 2500}, max_chars: 1500, value: date, question: 'Podaj datę (YYYY-MM-DD) czynności lub zaniechania zamawiającego, której dotyczy PIERWSZY zarzut odwołania.', schema: {type: string, pattern: '\d{4}-\d{2}-\d{2}'}}
   OdwolanieKIO.czynnosc_powod_id:
     - type: keyword_map
       section: czynnosc
