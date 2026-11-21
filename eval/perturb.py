@@ -54,9 +54,14 @@ def spaced_colons(text: str) -> str:  # "NIP: 123" → "NIP : 123"
     return re.sub(r"(?<=\w):(?= )", " :", text)
 
 
+def no_diacritics(text: str) -> str:  # fonts/extraction that lose Polish letters: "Pełnomocnictwo" → "Pelnomocnictwo"
+    return text.translate(str.maketrans("ąćęłńóśźżĄĆĘŁŃÓŚŹŻ", "acelnoszzACELNOSZZ"))
+
+
 PERTURBATIONS: dict[str, Callable[[str], str]] = {
     "baseline": lambda t: t, "narrow": narrow, "wide": wide, "quotes": quotes,
     "upper_labels": upper_labels, "nbsp": nbsp, "spaced_colons": spaced_colons,
+    "no_diacritics_cls": no_diacritics,
     "combined": lambda t: spaced_colons(nbsp(upper_labels(quotes(narrow(wide(t)))))),
 }
 

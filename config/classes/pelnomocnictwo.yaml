@@ -5,11 +5,17 @@ description: pełnomocnictwo procesowe udzielone pełnomocnikowi przez mocodawc�
 classify:
   threshold: 4
   required:
+    - {pattern: '^\s*(?:UPOWAŻNIENIE|POWER\s+OF\s+ATTORNEY)\b', head_chars: 1500}
+    - 'umocowuj\w*|power\s+of\s+attorney'
     - {pattern: 'pełnomocnictw|pełnomocnik', head_chars: 1500}
     - 'upoważni\w*|udziel\w*\s+(?:\w+\s+){0,3}pełnomocn|ustanaw\w*\s+(?:\w+\s+){0,3}pełnomocn'
     - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', head_chars: 800}
     - 'udziel\w*\s+(\w+\s+)?pełnomocnictw|ustanawia\w*\s+(\w+\s+)?pełnomocnik|upoważniam'
   signals:
+    # „udzielają radcy prawnemu X, PESEL …, oraz … pełnomocnictwa” (dopełnienie między czasownikiem a rzeczownikiem)
+    - {pattern: 'udziel\w*[\s\S]{0,200}?pełnomocnictw', weight: 2}
+    # Dokumenty innego rodzaju (umowa, aneks, oferta, protokół), które tylko zawierają treść klasy:
+    - {pattern: '^\s*(?-i:UMOWA|ANEKS|OFERTA|FORMULARZ\s+OFERTOWY|PROTOKÓŁ|REGULAMIN)\b', weight: -6, head_chars: 400}
     # Jednoznaczny nagłówek INNEJ klasy na górze dokumentu:
     - {pattern: '^\s*(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)\s*$', weight: -6, head_chars: 2500}
     - {pattern: '^\s*(?:potwierdzeni\w*\s+(?:realizacji\s+|wykonania\s+)?(?:polecenia\s+)?przelewu|polecenie\s+przelewu|dowód\s+wykonania\s+przelewu)', weight: -6, head_chars: 600}

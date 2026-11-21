@@ -18,10 +18,12 @@ DOCS = {pdf: load_pdf(pdf) for _, pdf, _, _ in ITEMS}
 
 @pytest.mark.parametrize("name", [n for n in PERTURBATIONS if n != "baseline"])
 def test_perturbation_keeps_every_value(name):
+    classification_only = name.endswith("_cls")  # e.g. lost diacritics: values legitimately differ from GT
     fn = PERTURBATIONS[name]
     for case, pdf, gt, expected in ITEMS:
         doc = DOCS[pdf]
         result = process_pdf(pdf, CLASSES, doc=replace(doc, pages=[fn(p) for p in doc.pages]))
         c = score_doc(gt, result.data)
         assert result.verdict.name == expected, f"{name}: {case}/{pdf.name} classified as {result.verdict.name}"
-        assert (c.fp, c.fn) == (0, 0), f"{name}: {case}/{pdf.name} FP={c.fp} FN={c.fn}"
+        if not classification_only:
+            assert (c.fp, c.fn) == (0, 0), f"{name}: {case}/{pdf.name} FP={c.fp} FN={c.fn}"

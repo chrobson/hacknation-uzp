@@ -13,6 +13,11 @@ ROOT = Path(__file__).resolve().parents[2]
 CLASSES_DIR = ROOT / "config" / "classes"
 
 _FLAGS = re.IGNORECASE | re.MULTILINE
+_FOLD = str.maketrans("ąćęłńóśźżĄĆĘŁŃÓŚŹŻ", "acelnoszzACELNOSZZ")
+
+
+def fold(s: str) -> str:
+    return s.translate(_FOLD)
 
 
 @dataclass(frozen=True)
@@ -22,8 +27,19 @@ class Signal:
     head_chars: int | None  # search only the first N characters of the document; None = whole text
     also: tuple[re.Pattern[str], ...] = ()  # extra patterns that must ALL match too (same head_chars)
     min_count: int = 1  # the main pattern must occur at least this many times (e.g. two account numbers)
+    fold: bool = False  # also match with Polish diacritics folded (used for `required` anchors)
 
     def matches(self, text: str) -> bool:
+        if self._matches(text):
+            return True
+        # Diacritics lost in extraction ("Pelnomocnictwo"): retry on folded text with a folded pattern.
+        return self.fold and self._folded()._matches(fold(text))
+
+    def _folded(self) -> "Signal":
+        return Signal(re.compile(fold(self.pattern.pattern), self.pattern.flags), self.weight, self.head_chars,
+                      tuple(re.compile(fold(p.pattern), p.flags) for p in self.also), self.min_count, False)
+
+    def _matches(self, text: str) -> bool:
         hay = text[: self.head_chars] if self.head_chars else text
         if self.min_count > 1:
             found = len({m.group(0) for m in self.pattern.finditer(hay)}) >= self.min_count
@@ -55,6 +71,7 @@ def _signals(items: list[dict[str, Any]] | None) -> list[Signal]:
                 head_chars=item.get("head_chars"),
                 also=tuple(re.compile(p, _FLAGS) for p in patterns[1:]),
                 min_count=int(item.get("min_count", 1)),
+                fold=bool(item.get("fold", True)),
             )
         )
     return out
@@ -67,7 +84,7 @@ def load_class(path: Path) -> DocClass:
         name=raw["name"],
         signals=_signals(cls.get("signals")),
         threshold=float(cls["threshold"]),
-        required=_signals(cls.get("required")),
+        required=[Signal(r.pattern, r.weight, r.head_chars, r.also, r.min_count, True) for r in _signals(cls.get("required"))],
         output_template=raw["output_template"],
         raw=raw,
     )
