@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    image: odwolania2json:latest
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - ./input:/app/input:ro
+      - ./output:/app/output
