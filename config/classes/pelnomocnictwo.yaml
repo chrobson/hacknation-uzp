@@ -13,6 +13,7 @@ classify:
     - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', weight: 3, head_chars: 600}
     - {pattern: 'ustanawia\w*\s+(\w+\s+)?pełnomocnik|udziela\w*\s+(\w+\s+)*?pełnomocnictw|umocowan', weight: 2}
     - {pattern: 'mocodaw', weight: 2}
+    - {pattern: '(?:upoważnia|ustanawia|udziela)\w*\s+(?:[\w„”.-]+\s+){0,5}?do\s+reprezentowania', weight: 2}
     - {pattern: 'pełnomocnik', weight: 1}
     - {pattern: 'Pełnomocnictwo\s+przyjmuję|przyjmuję\s+pełnomocnictwo', weight: 1}
     # Odwołanie też wspomina pełnomocnictwo ("w oparciu o załączone pełnomocnictwo"):
@@ -90,7 +91,9 @@ lists:
           clean: true
           pattern: '(?-i:(?<![\w])((?:(?!Mocodaw|Działając|Pełnomoc|Dane\b|Zamawiaj|Wykonawc|Konsorcj|Ja\b)[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż][\w\-.&]*|[A-ZŁŚŻŹĆŃÓ0-9][\w]*-[\w\-]+|[A-ZŁŚŻŹĆŃÓ]{2,}(?=[ \t])|„[^”]+”)(?:[ \t\n]+(?:(?!Mocodaw|Działając|Pełnomoc|Dane\b|Zamawiaj|Wykonawc|Konsorcj|Ja\b)[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż][\w\-.&]*|[A-ZŁŚŻŹĆŃÓ0-9][\w]*-[\w\-]+|[A-ZŁŚŻŹĆŃÓ]{2,}(?=[ \t])|„[^”]+”|i|w|z|oraz|im\.))*?[ \t\n]+(?:S\.A\.|sp\.\s*z\s*o\.\s*o\.(?:\s*sp\.\s*k\.)?|sp\.\s*k\.|sp\.\s*j\.|sp\.\s*p\.|s\.c\.|Sp\.\s*z\s*o\.\s*o\.|Spółka\s+[\w ]+?(?=,|\n|\s\()|spółka\s+(?:akcyjna|jawna|komandytowa|partnerska|z\s+ograniczoną\s+odpowiedzialnością))))'
         # Przedsiębiorca bez formy prawnej: pierwsza linia pozycji "MARKA-BUD Jan Kowalski".
-        - {type: pattern, pattern: '(?-i:\A\s*(?:Lider\s+konsorcjum\s*[–-]\s*)?((?:[A-ZŁŚŻŹĆŃÓ0-9]+-)*[A-ZŁŚŻŹĆŃÓ0-9]{2,}(?:-[A-ZŁŚŻŹĆŃÓ0-9]+)*[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?))(?=[ \t]*(?:,|\n))'}
+        - {type: pattern, pattern: '(?-i:^[ \t]*(?:Lider\s+konsorcjum\s*[–-]\s*)?((?:[A-ZŁŚŻŹĆŃÓ0-9]+-)*[A-ZŁŚŻŹĆŃÓ0-9]{2,}(?:-[A-ZŁŚŻŹĆŃÓ0-9]+)*[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?))(?=[ \t]*(?:,|\n))'}
+        # Przedsiębiorca: "Jan Kowalski Usługi Remontowo-Budowlane" (imię i nazwisko + określenie działalności).
+        - {type: pattern, pattern: '(?-i:^[ \t]*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+(?:Usługi|Firma|Przedsiębiorstwo|Zakład|Handel|Transport|Usługowo|Handlowo|Produkcja|Biuro|Pracownia)\b[^\n,;]*?))[ \t]*$'}
         - {type: pattern, pattern: 'Mocodawc\w*[ \t]+(?:jest[ \t]+)?(?!ustanaw|upoważ|udziel)([A-ZŁŚŻŹĆŃÓ0-9„"][^\n,(]+?)(?=,|\n|\s+\()', clean: true, reject: ['^(?-i:[A-ZŁŚŻŹĆŃÓ \t]+)$', 'pełnomoc']}
       data.krs: {type: pattern, pattern: 'KRS\W{0,3}(?:pod\s+(?:nr|numerem)\W{0,3})?(\d(?:[  ]?\d){9})(?!\d)', digits: true}
       data.nip: {type: pattern, pattern: 'NIP\W{0,3}(?:PL\s?-?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
@@ -103,7 +106,7 @@ lists:
         - {type: pattern, pattern: 'niżej\s+podpisan\w*(?:\s*\(a\))?\s+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'}
         - {type: pattern, pattern: '^[ \t]*Imię\s+i\s+nazwisko[ \t:]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'}
         - {type: pattern, pattern: '(?-i:([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)[ \t]*[–-][ \t]*(?:Właściciel|Przedsiębiorca)\b)'}
-        - {type: pattern, pattern: '(?-i:\A\s*(?:Lider\s+konsorcjum\s*[–-]\s*)?(?:[A-ZŁŚŻŹĆŃÓ0-9]+-)*[A-ZŁŚŻŹĆŃÓ0-9]{2,}(?:-[A-ZŁŚŻŹĆŃÓ0-9]+)*[ \t]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?))(?=[ \t]*(?:,|\n))'}
+        - {type: pattern, pattern: '(?-i:^[ \t]*(?:Lider\s+konsorcjum\s*[–-]\s*)?(?:[A-ZŁŚŻŹĆŃÓ0-9]+-)*[A-ZŁŚŻŹĆŃÓ0-9]{2,}(?:-[A-ZŁŚŻŹĆŃÓ0-9]+)*[ \t]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?))(?=[ \t]*(?:,|\n))'}
       # Podpisujący: nazwiska w bloku podpisów (po pierwszej linii kropek), bez pełnomocników i nazw funkcji.
       podpisujacy:
         type: names
