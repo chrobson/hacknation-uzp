@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-04-03",
+    "czynnosc_dzien": "2026-03-27",
+    "czynnosc_powod_id": 7,
+    "czynnosc_opis": "Zaniechanie odrzucenia oferty",
+    "miejscowosc": "Bydgoszcz"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9991877493",
+      "nazwa": "Silvatica Automatyka sp. k.",
+      "nip": "9995501241",
+      "regon": "999302380",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Tadeusz Nowak",
+        "nazwa": "Kancelaria Prawa Zamówień Publicznych Nowak Zielińska s.c.",
+        "mail": "nowak@nowakkancelaria.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9998459407",
+      "nazwa": "Opalit Wyposażenie S.A.",
+      "nip": "9997564636",
+      "regon": null,
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": null,
+      "nazwa": "Ilystera Automatyka sp. k.",
+      "nip": "9992131944",
+      "regon": null,
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999547",
+    "numer_postepowania": "ZP.26.2026",
+    "numer_ted": "999759-2026",
+    "tytul": "Budowa sali gimnastycznej wraz z zapleczem sanitarno-szatniowym i infrastrukturą towarzyszącą przy Szkole Podstawowej nr 3 w Brzozowie Pomorskim"
+  }
+}

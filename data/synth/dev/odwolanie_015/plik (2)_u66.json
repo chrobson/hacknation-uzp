@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-08-14",
+    "czynnosc_dzien": "2026-08-10",
+    "czynnosc_powod_id": 10,
+    "czynnosc_opis": "Zaniechanie unieważnienia postępowania",
+    "miejscowosc": "Łódź"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9994387983",
+      "nazwa": "Xenonix Technologie S.A.",
+      "nip": "9995704079",
+      "regon": "999094645",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Iwona Zawadzka",
+        "nazwa": "Kancelaria Radcy Prawnego Iwona Zawadzka",
+        "mail": "sekretariat@zawadzkakancelaria.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Kadmos Systemy sp. k.",
+      "nip": "9998081160",
+      "regon": "999915958",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999180",
+    "numer_postepowania": "IR.271-35/2026",
+    "numer_ted": null,
+    "tytul": "Sukcesywna dostawa jednorazowych wyrobów medycznych do zabiegów endoskopowych w podziale na 6 pakietów"
+  }
+}

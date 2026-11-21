@@ -1,0 +1,5 @@
+# Dev-only deps for eval/synth/negatywy (not needed by the production app)
+reportlab>=4.0
+pdfplumber>=0.11
+# ships DejaVu TTF fonts with Polish glyphs (font source); alternatively set SYNTH_FONT=regular.ttf:bold.ttf
+matplotlib>=3.8

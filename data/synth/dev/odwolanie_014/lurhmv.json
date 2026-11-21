@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-11-24",
+    "czynnosc_dzien": "2026-11-21",
+    "czynnosc_powod_id": 2,
+    "czynnosc_opis": "Ogłoszenie wyboru oferty",
+    "miejscowosc": "Warszawa"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9995831483",
+      "nazwa": "Rubiconis Technologie S.A.",
+      "nip": "9998174794",
+      "regon": "999481460",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Barbara Włodarczyk",
+        "nazwa": "Kancelaria Radcy Prawnego Barbara Włodarczyk",
+        "mail": "kancelaria@wlodarczyk.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Samodzielny Publiczny Zakład Opieki Zdrowotnej w Kamionnej",
+      "nip": "9994615677",
+      "regon": null,
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": null,
+    "numer_ted": "999137-2026",
+    "tytul": "Kompleksowe usługi utrzymania czystości, ochrony fizycznej i obsługi technicznej obiektów Zamawiających w latach 2026–2029"
+  }
+}

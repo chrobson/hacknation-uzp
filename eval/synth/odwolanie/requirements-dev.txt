@@ -1,0 +1,4 @@
+# dev-only deps for eval/synth/odwolanie (not needed by the production extractor)
+reportlab>=4.0
+pdfplumber>=0.11
+matplotlib>=3.8  # only for its bundled DejaVu TTF fonts (Polish glyphs)

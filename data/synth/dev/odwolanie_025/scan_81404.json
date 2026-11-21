@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-07-07",
+    "czynnosc_dzien": "2026-07-03",
+    "czynnosc_powod_id": 10,
+    "czynnosc_opis": "Zaniechanie unieważnienia postępowania",
+    "miejscowosc": "Kielce"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Corvantis Wyposażenie sp. z o.o.",
+      "nip": "9997553319",
+      "regon": "999630380",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Patrycja Rutkiewicz",
+        "nazwa": "Kancelaria Radców Prawnych i Partnerzy",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Przedsiębiorstwo Energetyki Cieplnej w Olszance Dolnej sp. z o.o.",
+      "nip": "9992187790",
+      "regon": "999947717",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999453",
+    "numer_postepowania": "ZS.377.2026",
+    "numer_ted": null,
+    "tytul": "Dostawa licencji oprogramowania do monitorowania infrastruktury i alarmowej"
+  }
+}

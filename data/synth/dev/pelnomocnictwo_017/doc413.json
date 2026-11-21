@@ -1,0 +1,24 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9994760344",
+        "nazwa": "Brontex Wyposażenie S.A.",
+        "nip": "9997948443",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Sylwia Walczak"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Olga Bąkiewicz",
+      "pesel": null
+    }
+  ]
+}

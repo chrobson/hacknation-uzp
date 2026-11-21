@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-09-01",
+    "czynnosc_dzien": "2026-08-27",
+    "czynnosc_powod_id": 7,
+    "czynnosc_opis": "Zaniechanie odrzucenia oferty",
+    "miejscowosc": "Koszalin"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9995046546",
+      "nazwa": "Ilyrion Sieci sp. j.",
+      "nip": "9997585897",
+      "regon": "999917510",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Iwona Zawadzka",
+        "nazwa": "Kancelaria Radcy Prawnego Iwona Zawadzka",
+        "mail": "sekretariat@zawadzkakancelaria.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9993399776",
+      "nazwa": "Samodzielny Publiczny Zakład Opieki Zdrowotnej w Dębogórze",
+      "nip": "9992054702",
+      "regon": "999803274",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "DI.908.2026",
+    "numer_ted": "999073-2026",
+    "tytul": "Świadczenie usług pocztowych i kurierskich na potrzeby urzędu"
+  }
+}

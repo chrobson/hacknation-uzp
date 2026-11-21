@@ -1,0 +1,35 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9995837244",
+        "nazwa": "Lumerio Drogownictwo Sp. z o.o.",
+        "nip": "9996846203",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Leszek Milewski"
+        },
+        {
+          "imie_nazwisko": "Weronika Mazur"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Ryszard Cieślak",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Bartosz Kowalczyk",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Edyta Mazurkiewicz",
+      "pesel": "85042712003"
+    }
+  ]
+}

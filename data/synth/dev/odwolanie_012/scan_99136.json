@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-08-15",
+    "czynnosc_dzien": "2026-08-12",
+    "czynnosc_powod_id": 5,
+    "czynnosc_opis": "Modyfikacja treści SWZ",
+    "miejscowosc": "Bydgoszcz"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9995891101",
+      "nazwa": "Umbria Serwis S.A.",
+      "nip": "9994524790",
+      "regon": "999556867",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Magdalena Wróblewska",
+        "nazwa": "Kancelaria Radców Prawnych Wróblewska i Wspólnicy sp.k.",
+        "mail": "kancelaria@wroblewska.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Szpital Specjalistyczny im. Mikołaja Kopernika w Miłkowie",
+      "nip": "9995452613",
+      "regon": "999839803",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999180",
+    "numer_postepowania": null,
+    "numer_ted": "999408-2026",
+    "tytul": "Dostawa licencji oprogramowania do monitorowania infrastruktury i alarmowej"
+  }
+}

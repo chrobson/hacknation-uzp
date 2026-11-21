@@ -9,3 +9,8 @@ output/*
 notes/
 logs/
 evidence/
+
+# Ad-hoc text/GT dumps left in the synth dev dir by verifiers (blind_* would leak blind GT into the repo)
+data/synth/dev/blind_*
+data/synth/dev/dev_*.json
+data/synth/dev/dev_*.txt

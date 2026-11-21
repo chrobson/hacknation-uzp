@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-07-05",
+    "czynnosc_dzien": "2026-06-28",
+    "czynnosc_powod_id": 9,
+    "czynnosc_opis": "Decyzja o unieważnieniu postępowania",
+    "miejscowosc": "Zielona Góra"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9999669444",
+      "nazwa": "Hartica Serwis S.A.",
+      "nip": "9990678035",
+      "regon": null,
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Karolina Wiśniewska",
+        "nazwa": "Kancelaria Radcy Prawnego Karolina Wiśniewska",
+        "mail": "kancelaria@wisniewskaprawo.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Państwowa Akademia Nauk Stosowanych w Krzemienicy",
+      "nip": "9996334986",
+      "regon": "999412535",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999497/03",
+    "numer_postepowania": "ZP.388.2026",
+    "numer_ted": "999344-2026",
+    "tytul": "Modernizacja sieci ciepłowniczej wraz z budową węzłów cieplnych w rejonie ulic Hallera i Powstańców Śląskich we Wrocławiu"
+  }
+}

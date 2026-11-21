@@ -1,0 +1,32 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": "Ignacy Jabłoński",
+        "krs": null,
+        "nazwa": "P.H.U. „Belmoria” Ignacy Jabłoński",
+        "nip": "9995848944",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Ignacy Jabłoński"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Ryszard Gajewski",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Cezary Furman",
+      "pesel": "83060314199"
+    },
+    {
+      "imie_nazwisko": "Aleksandra Grabowska",
+      "pesel": "73011374628"
+    }
+  ]
+}

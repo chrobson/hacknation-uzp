@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-04-08",
+    "czynnosc_dzien": "2026-04-03",
+    "czynnosc_powod_id": 1,
+    "czynnosc_opis": "Decyzja o odrzuceniu oferty",
+    "miejscowosc": "Rzeszów"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9992397370",
+      "nazwa": "Gildentia Wyposażenie sp. z o.o.",
+      "nip": "9995126748",
+      "regon": "999165641",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Katarzyna Michalak",
+        "nazwa": "Michalak Legal Kancelaria Radcy Prawnego",
+        "mail": "k.michalak@michalaklegal.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9992327454",
+      "nazwa": "Quantis Sieci sp. j.",
+      "nip": "9997080832",
+      "regon": "999057839",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999112",
+    "numer_postepowania": "ZP.864.2026",
+    "numer_ted": "999583-2026",
+    "tytul": "Modernizacja sieci ciepłowniczej wraz z budową węzłów cieplnych w rejonie ulic Hallera i Powstańców Śląskich we Wrocławiu"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9996325136",
+        "nazwa": "Wexford Systemy sp. z o.o.",
+        "nip": "9991432253",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Joanna Maciejewska"
+        },
+        {
+          "imie_nazwisko": "Krzysztof Milewski"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9995695391",
+        "nazwa": "Rubiconis Automatyka sp. k.",
+        "nip": "9997232058",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Igor Jurgielewicz"
+        },
+        {
+          "imie_nazwisko": "Małgorzata Pietrzak"
+        },
+        {
+          "imie_nazwisko": "Damian Chmielewski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Barbara Marciniak",
+      "pesel": null
+    }
+  ]
+}

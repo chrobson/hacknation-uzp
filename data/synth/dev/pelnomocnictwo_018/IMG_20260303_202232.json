@@ -1,0 +1,24 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9995520705",
+        "nazwa": "Norvia Automatyka S.A.",
+        "nip": "9999790934",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Henryk Adamczyk"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Renata Szulc",
+      "pesel": "62121163345"
+    }
+  ]
+}

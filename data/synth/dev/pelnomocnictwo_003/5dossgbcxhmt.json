@@ -1,0 +1,35 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9995891101",
+        "nazwa": "Umbria Serwis S.A.",
+        "nip": "9994524790",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Marek Jurgielewicz"
+        },
+        {
+          "imie_nazwisko": "Ignacy Głowacz"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Natalia Lis",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Barbara Jabłońska",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Edyta Szulc",
+      "pesel": null
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9998920417",
+        "nazwa": "Altrona Farmacja sp.k.",
+        "nip": "9994895854",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Jolanta Wiśniewska"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Agata Woźniak",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Aleksandra Zalewska",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Krzysztof Borkowski",
+      "pesel": "88082181815"
+    }
+  ]
+}

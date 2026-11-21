@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2025-12-23",
+    "czynnosc_dzien": "2025-12-18",
+    "czynnosc_powod_id": 9,
+    "czynnosc_opis": "Decyzja o unieważnieniu postępowania",
+    "miejscowosc": "Kielce"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "DUDEK-TECH Jarosław Dudek",
+      "nip": "9994150873",
+      "regon": "999603218",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Natalia Górecka",
+        "nazwa": "Kancelaria Adwokacka Górecka Sikora s.c.",
+        "mail": "kancelaria@goreckasikora.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9993122884",
+      "nazwa": "Eurosept Infrastruktura S.A.",
+      "nip": "9996097888",
+      "regon": "999725710",
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": "9998340863",
+      "nazwa": "Ypsilon Usługi sp. k.",
+      "nip": "9998078300",
+      "regon": "999191360",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999412",
+    "numer_postepowania": "ZP.869.2026",
+    "numer_ted": "999211-2026",
+    "tytul": "Całodobowa obsługa techniczna i konserwacja instalacji budynków Zamawiającego"
+  }
+}

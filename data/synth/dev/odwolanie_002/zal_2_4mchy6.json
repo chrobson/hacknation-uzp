@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-10-14",
+    "czynnosc_powod_id": 12,
+    "czynnosc_opis": "Projektowane postanowienia umowy",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "DUDEK-TECH Jarosław Dudek",
+      "nip": "9994150873",
+      "regon": "999603218",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Klaudia Szymanski",
+        "nazwa": "Kancelaria Prawna i Partnerzy",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Zarząd Transportu Miejskiego w Modrzewie",
+      "nip": "9991117247",
+      "regon": "999731997",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999412",
+    "numer_postepowania": null,
+    "numer_ted": "999583-2026",
+    "tytul": "Dostawa, instalacja i konfiguracja zintegrowanego systemu informatycznego klasy HIS wraz ze świadczeniem usług serwisu pogwarancyjnego przez okres 36 miesięcy"
+  }
+}

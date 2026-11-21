@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-09-20",
+    "czynnosc_dzien": "2026-09-15",
+    "czynnosc_powod_id": 9,
+    "czynnosc_opis": "Decyzja o unieważnieniu postępowania",
+    "miejscowosc": "Lublin"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9990430692",
+      "nazwa": "Prestal Dystrybucja Medyczna S.A.",
+      "nip": "9990396494",
+      "regon": "999666290",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Dorota Zawadzki",
+        "nazwa": "Kancelaria Radców Prawnych Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@biuro.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Eurosept Infrastruktura S.A.",
+      "nip": "9996097888",
+      "regon": "999725710",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999976",
+    "numer_postepowania": "ZP.447.2026",
+    "numer_ted": "999000-2026",
+    "tytul": "Świadczenie usług sprzątania pomieszczeń biurowych"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9996858325",
+        "nazwa": "Vellum Facility sp. z o.o. sp.k.",
+        "nip": "9999762610",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Paweł Lewicki"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Aleksander Jastrzębski",
+      "pesel": null
+    }
+  ]
+}

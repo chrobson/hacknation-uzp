@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-10-17",
+    "czynnosc_dzien": "2026-10-08",
+    "czynnosc_powod_id": 10,
+    "czynnosc_opis": "Zaniechanie unieważnienia postępowania",
+    "miejscowosc": "Bydgoszcz"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9999233530",
+      "nazwa": "Helvix Eko-Serwis sp.k.",
+      "nip": "9995558958",
+      "regon": "999054443",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Halina Walczak",
+        "nazwa": "Kancelaria Adwokacka i Partnerzy",
+        "mail": "biuro@poczta.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9992446832",
+      "nazwa": "Kadmos Systemy sp. k.",
+      "nip": "9998081160",
+      "regon": "999915958",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999997",
+    "numer_postepowania": "DI.529.2026",
+    "numer_ted": "999759-2026",
+    "tytul": "Świadczenie usług utrzymania infrastruktury sieciowej w budynkach administracyjnych"
+  }
+}

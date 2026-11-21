@@ -1,0 +1,28 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": "Maciej Jaworski",
+        "krs": null,
+        "nazwa": "BRONTEX-BUD Maciej Jaworski",
+        "nip": "9993140838",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Maciej Jaworski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Grzegorz Furman",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Ignacy Zieliński",
+      "pesel": "82020756558"
+    }
+  ]
+}

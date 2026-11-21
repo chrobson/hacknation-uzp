@@ -1,0 +1,20 @@
+{"pdf": "case_001/dokument (4).pdf", "template": "wezwanie_kio_braki", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_002/20261002_940.pdf", "template": "wyrok_kio", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_003/20250324_226.pdf", "template": "przystapienie", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_004/scan_30577.pdf", "template": "odpowiedz_na_odwolanie", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_005/zal_7_ftoxw.pdf", "template": "wyciag_swz", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_006/IMG1940_153450.pdf", "template": "wezwanie_zamawiajacego", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_007/przelew_84.pdf", "template": "pismo_procesowe", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_008/zal_13_xlkdt.pdf", "template": "ogloszenie_bzp", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_009/pelnomocnictwo_73.pdf", "template": "umowa_pomoc_prawna", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_010/zal_3_cdcaw.pdf", "template": "odpis_krs", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_011/scan_41352.pdf", "template": "faktura", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_012/scan_98879.pdf", "template": "umowa_zamowienie", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_013/odwolanie_58.pdf", "template": "postanowienie_kio", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_014/20250322_648.pdf", "template": "postanowienie_kio", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_015/zal_13_dgbrp.pdf", "template": "wyciag_swz", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_016/odwolanie_20.pdf", "template": "odpowiedz_na_odwolanie", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_017/e1db586480fe.pdf", "template": "umowa_pomoc_prawna", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_018/IMG2468_430439.pdf", "template": "wezwanie_zamawiajacego", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_019/c55b8662e90e.pdf", "template": "przystapienie", "split": "dev", "seed": 1, "expected": {}}
+{"pdf": "case_020/zal_4_vnmyk.pdf", "template": "wyrok_kio", "split": "dev", "seed": 1, "expected": {}}

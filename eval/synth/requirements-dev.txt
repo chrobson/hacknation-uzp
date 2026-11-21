@@ -1,0 +1,7 @@
+# Dev-only deps for eval/synth (synthetic PDF generators + selfchecks); not needed by the production app.
+# Merged from eval/synth/{odwolanie,pelnomocnictwo,przelew,negatywy}/requirements-dev.txt.
+# Scoring (eval/synth/run.py) additionally needs the app deps: pip install -r requirements.txt
+reportlab>=4.0
+pdfplumber>=0.11
+# only for its bundled DejaVu TTF fonts (Polish glyphs); alternatively set SYNTH_FONT=regular.ttf:bold.ttf
+matplotlib>=3.8

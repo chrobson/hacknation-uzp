@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-10-03",
+    "czynnosc_dzien": "2026-10-01",
+    "czynnosc_powod_id": 5,
+    "czynnosc_opis": "Modyfikacja treści SWZ",
+    "miejscowosc": "Wrocław"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9992671408",
+      "nazwa": "Elmontex Energetyka sp. z o.o.",
+      "nip": "9996380214",
+      "regon": "999528307",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Patrycja Furman",
+        "nazwa": "Kancelaria Radców Prawnych i Partnerzy",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9994890373",
+      "nazwa": "Szpital Specjalistyczny im. Jana Pawła II w Brzozówce",
+      "nip": "9994537600",
+      "regon": "999255628",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999242",
+    "numer_postepowania": "SZP-46/2026",
+    "numer_ted": null,
+    "tytul": "Dostawa sprzętu do sterylizacji wraz z serwisem gwarancyjnym"
+  }
+}
