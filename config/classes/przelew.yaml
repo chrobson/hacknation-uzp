@@ -7,15 +7,26 @@ classify:
   required:
     - {pattern: 'potwierdzeni\w*\s+(realizacji\s+|wykonania\s+)?(polecenia\s+)?(przelewu|transakcji|operacji)|dowód\s+wykonania\s+przelewu|polecenie\s+przelewu|potwierdzenie\s+przelewu', head_chars: 1200}
     - {pattern: 'przelew\w*', head_chars: 1500}
+    # Nagłówki wydruków bankowych bez słowa "przelew" (szczegóły transakcji, historia, wyciąg, wersja angielska):
+    - {pattern: 'szczegóły\s+(transakcji|operacji)|historia\s+(operacji|rachunku|transakcji)|wyciąg\s+z\s+rachunku|potwierdzenie\s+(zlecenia|wpłaty|płatności|obciążenia)|dowód\s+(wpłaty|obciążenia)|zlecenie\s+płatnicze|payment\s+confirmation|confirmation\s+of\s+(payment|transfer)|transfer\s*[–-]\s*confirmation|transfer\s+confirmation', head_chars: 400}
+    # Para ról rachunków (obciążany i uznawany) w tabeli potwierdzenia:
+    - all: ['rachunek\s+obciążony|rachunek\s+(nadawcy|zleceniodawcy|płatnika)|\bz\s+rachunku|debit\s+account|from\s+account|sender.{0,10}account|payer.{0,10}account', 'rachunek\s+uznany|rachunek\s+(odbiorcy|beneficjenta)|\bna\s+rachunek|beneficiary.{0,10}account|to\s+account|recipient.{0,10}account|payee.{0,10}account']
+      head_chars: 2000
   signals:
     # Pisma KIO i zamawiającego innych rodzajów (nagłówek):
     - {pattern: '^\s*(?-i:WEZWANIE|ZAWIADOMIENIE|INFORMACJA\s+O\s+WYNIKU)\b', weight: -6, head_chars: 1500}
     - {pattern: 'potwierdzeni\w*\s+(realizacji\s+|wykonania\s+)?(polecenia\s+)?(przelewu|transakcji|operacji)|dowód\s+wykonania\s+przelewu|polecenie\s+przelewu', weight: 3, head_chars: 800}
+    # Inne nagłówki wydruków bankowych:
+    - {pattern: 'szczegóły\s+(przelewu|transakcji|operacji)|historia\s+(operacji|rachunku|transakcji)|wyciąg\s+z\s+rachunku|dyspozycj\w+\s+przelewu|potwierdzenie\s+(zlecenia|wpłaty|płatności|obciążenia)|dowód\s+(wpłaty|obciążenia)|zlecenie\s+płatnicze|payment\s+confirmation|confirmation\s+of\s+(payment|transfer)|transfer\s*[–-]\s*confirmation|transfer\s+confirmation', weight: 3, head_chars: 400}
     - {pattern: '(PL)?\s?\d{2}(\s?\d{4}){6}', weight: 1}
     - {pattern: 'rachun\w+', weight: 1}
-    - {pattern: '\d[\d\s]*[.,]\d{2}\s*(PLN|zł)', weight: 1}
-    - {pattern: 'tytu\w+|opis\s+(operacji|transakcji)|^\s*opis\s*$', weight: 1}
+    - {pattern: '\d[\d\s]*[.,]\d{2}\s*(PLN|zł)|(PLN|zł)\s*\d[\d\s]*[.,]\d{2}', weight: 1}
+    - {pattern: 'tytu\w+|opis\s+(operacji|transakcji)|^\s*opis\s*$|payment\s+details|reference\s*/\s*title', weight: 1}
+    - all: ['rachunek\s+obciążony|rachunek\s+(nadawcy|zleceniodawcy|płatnika)|\bz\s+rachunku|debit\s+account|from\s+account|sender.{0,10}account|payer.{0,10}account', 'rachunek\s+uznany|rachunek\s+(odbiorcy|beneficjenta)|\bna\s+rachunek|beneficiary.{0,10}account|to\s+account|recipient.{0,10}account|payee.{0,10}account']
+      weight: 1
     - {pattern: 'wnosz[eę]\s+(niniejsze\s+)?odwołani', weight: -4}
+    # Faktury, umowy, SWZ też mają rachunek, kwotę i "tytuł" — słownictwo, którego potwierdzenie przelewu nie używa:
+    - {pattern: 'sprzedawc\w*|nabywc\w*|termin\w*\s+płatności|specyfikacj\w+|\bumow\w*|zleceniobiorc\w*', weight: -1}
 
 output_template:
   przelew_bankowy:
@@ -29,22 +40,38 @@ output_template:
 # Rachunki: rola (nadawca/odbiorca) z najbliższego słowa kluczowego przed numerem.
 accounts:
   lookback_chars: 150
-  sender_keywords: ['obciąż\w*', 'nadawc\w*', 'zleceniodawc\w*', 'płatnik\w*', '\bz\s+rachunku', 'rachunek\s+źródłowy', 'z\s+konta']
-  receiver_keywords: ['odbiorc\w*', 'beneficjent\w*', 'uznaw\w*', 'adresat\w*', '\bna\s+rachunek', 'rachunek\s+docelowy', 'na\s+konto', 'uznan\w*']
+  sender_keywords: ['obciąż\w*', 'nadawc\w*', 'zleceniodawc\w*', 'płatnik\w*', '\bz\s+rachunku', 'rachunek\s+źródłowy', 'z\s+konta', '\bdebit\w*', 'ordering\s+party', '\bsender\b', '\bpayer\b', 'from\s+account']
+  receiver_keywords: ['odbiorc\w*', 'beneficjent\w*', 'uznaw\w*', 'adresat\w*', '\bna\s+rachunek', 'rachunek\s+docelowy', 'na\s+konto', 'uznan\w*', 'beneficiary', '\brecipient\b', '\bpayee\b', 'to\s+account']
 
 fields:
   przelew_bankowy.z_rachunku: {type: account, role: sender}
   przelew_bankowy.na_rachunek: {type: account, role: receiver}
   przelew_bankowy.kwota:
-    - {type: labeled, value: amount, labels: ['kwot\w*', 'wartoś\w*', 'w\s+kwocie', 'suma'], window: 120}
-    - {type: pattern, pattern: '(\d[\d  .]*[,.]\d{2})\s*(?:PLN|zł)'}
+    # Wyciąg / historia rachunku: kwota w wierszu operacji (przed saldem):
+    - {type: labeled, value: amount, labels: ['przelew\w*\s+wychodząc\w*'], window: 120}
+    - {type: labeled, value: amount, labels: ['kwot\w*', '\bwartoś\w*', 'w\s+kwocie', '\bsuma\b'], window: 120}
+    - {type: labeled, value: amount, labels: ['\bamount\b'], window: 25}
+    # Kwota z walutą przed liczbą ("PLN 34,00", "zł 17,00"):
+    - {type: labeled, value: amount, labels: ['(?:PLN|zł)(?=\s*\d)'], window: 20}
+    # Układ nieznany: pierwsza niezerowa kwota z walutą za liczbą, gdziekolwiek:
+    - {type: near, value: amount, anchors: ['(?<![\w.,])(?=(?!0+[,.]00)\d[\d  .]*(?:[,.]\d{2})?[ \t]*(?:PLN|zł)(?!\w))'], window: 30}
   przelew_bankowy.data_operacji:
-    - {type: labeled, value: date, labels: ['data\s+(operacji|transakcji|realizacji|wykonania|księgowania|przelewu|obciążenia)', 'w\s+dniu', 'zrealizowan\w*\s+dnia'], window: 120}
+    - {type: labeled, value: date, labels: ['data\s+(operacji|transakcji|realizacji|wykonania|księgowania|przelewu|obciążenia|waluty)', 'w\s+dniu', 'zrealizowan\w*\s+dnia', 'zrealizowano', 'value\s+date', 'execution\s+date', '(booking|transaction|payment|transfer)\s+date', '\bdata\s*:'], window: 120}
+    # Kolumna "Data" w tabeli (karta, wyciąg, historia) — bez dat wydruku/wygenerowania:
+    - {type: labeled, value: date, labels: ['\bdata\b(?!\s+(i\s+godzina|wydruku|wygenerowania|sporządzenia|zlecenia|utworzenia|generowania))'], window: 120}
+    # Układ nieznany: data w pobliżu słów o wykonaniu/dniu operacji (nie wydruku):
+    - {type: near, value: date, anchors: ['\bdat[ay]\b(?!\s+(i\s+godzina|wydruku|wygenerowania|sporządzenia|zlecenia|utworzenia|generowania|eksportu))', '(?<!z )\bdnia\b', 'zrealizowan\w*', 'zaksięgowan\w*', 'wykonan\w*', '\bdate\b'], stop: ['wydruk\w*', 'wygenerowan\w*', 'sporządz\w*', 'eksport\w*', 'printed', 'generated'], window: 60}
   przelew_bankowy.numer_transakcji:
     - {type: labeled, value: token, labels: ['nr\.?\s*ref\w*\.?', 'numer\s+referencyjny', 'numer\s+transakcji(\s+operacji)?', '(id|identyfikator)\s+transakcji', 'nr\s+transakcji', 'referencj\w+'], token_pattern: '[A-Z]{2,}[0-9]{6,}|[0-9]{8,}', window: 80}
+    # Układ nieznany: identyfikator w pobliżu "ref / transakcja / identyfikator / ID" (bez 26-cyfrowych rachunków):
+    - {type: near, value: token, anchors: ['\bref\w*', 'transakcj\w*', 'identyfikator\w*', '\bID\b', 'numer\s+operacji', 'transaction'], token_pattern: '\b(?!PL\d{26}\b)[A-Z]{2,}[0-9]{6,}\b|(?<![\d\s])[0-9]{8,20}(?!\d)', window: 120}
     - {type: pattern, pattern: '\b([A-Z]{3}\d{10,})\b'}
   przelew_bankowy.tytul:
+    # Tabela dwukolumnowa: etykieta w środkowym wierszu zawiniętej wartości ("…\nTytuł przelewu …\n…"):
+    - type: pattern
+      pattern: '^(?![ \t]*(?:data|kwota|rachun|numer|nr\b|nazwa|status|rodzaj|dane|odbiorc|nadawc|zleceniod|tytu|identyfikator|id\b|ref|kanał|typ\b|tryb|waluta|bank|adres|saldo|opis|potwierdz|wydruk|wygenerowan|zrealizowan|beneficjent|płatnik|transaction|amount|value|execution))(?![^\n]*(?:\d[,.]\d{2}(?!\d)|\d{1,2}[./-]\d{1,2}[./-]\d{4}|\d{4}-\d{2}-\d{2}|\d{8,}|\d\s+[a-ząćęłńóśźż]+\s+\d{4}|\d{1,2}[\s.]+[IVX]+[\s.]+\d{4}|\d\s*(?:zł|PLN)|(?:zł|PLN)\s*\d))(?=[^\n]*(?-i:[a-ząćęłńóśźż]){3})([^\n]+)\n[ \t]*(?:Tytuł\s+przelewu|Tytułem|Tytuł)[ \t]+(?!(?:przelewu|operacji|płatności|transakcji)\b|:)([^\n]+)(?:\n(?![ \t]*(?:kwota|numer|nr\b|data|rachun|status|rodzaj|dane|nazwa|saldo|ref|id\b|odbiorc|nadawc|zleceniod))([^\n]+))?'
+      format: '{1} {2} {3}'
     - type: text_after_label
-      labels: ['^\s*tytuł\s+przelewu', '^\s*tytułem', '^\s*tytuł', '^\s*opis\s+(operacji|transakcji|przelewu)', '^\s*opis', '^\s*treść', 'tytuł\w*\s+przelewu']
-      stop_labels: ['^\s*(nr\.?\s*ref|numer|data|kwota|status|rachun|nadawc|odbiorc|zleceniod|kanał|potwierdz|bank|zrealizowan|strona|dane|identyfikator|id\s|saldo|wartoś|waluta|typ|rodzaj)']
+      labels: ['^\s*tytuł\s+przelewu', '^\s*tytułem', '^\s*tytuł\s+(operacji|płatności|transakcji)', '^\s*tytuł', '^\s*opis\s+(operacji|transakcji|przelewu|płatności)', '^\s*opis', '^\s*treść', '^\s*cel\s+(płatności|przelewu)', 'tytuł\w*\s+przelewu', '^\s*payment\s+details', '^\s*reference\s*/\s*title', '^\s*(transfer\s+|payment\s+)?(title|description)\b', 'tytułem', '\btytuł\w*\s*:']
+      stop_labels: ['^\s*(nr\.?\s*ref|numer|data|kwota|status|rachun|nadawc|odbiorc|zleceniod|kanał|potwierdz|bank|zrealizowan|strona|dane|identyfikator|id\b|saldo|wartoś|waluta|typ|rodzaj|nr\.?\s+(transakcji|operacji)|ref\b|wygenerowan|wydruk|dokument\s+(nr|elektroniczny|wygenerowany)|transaction|fee\b|amount|value\s+date|execution|[¹²³]|\d{1,2}[./-]\d{1,2}[./-]\d{4}|(PLN|zł)\s*\d)']
       max_lines: 4
