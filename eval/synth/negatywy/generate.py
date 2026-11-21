@@ -1,6 +1,7 @@
 """Generate NEGATIVE documents (classified as none, expected output {}).
 
     python -m eval.synth.negatywy.generate --split dev   --n 20 --seed 1
+    python -m eval.synth.negatywy.generate --split sprawa --n 20 --seed 1   (case-folder documents, templates_sprawa)
     python -m eval.synth.negatywy.generate --split blind --n 20 --seed 2
 
 dev   -> data/synth/negatives-dev/case_XXX/<random>.pdf + <random>.json ({})
@@ -25,6 +26,10 @@ from eval.synth.common_negatywy import BLIND_ROOT, ROOT, make_ctx, write_case
 
 
 def load_templates(split: str) -> dict:
+    if split == "sprawa":  # documents from a KIO case folder next to the appeal (harder, class-specific vocabulary)
+        from eval.synth.negatywy.templates_sprawa import TEMPLATES
+
+        return dict(TEMPLATES)
     if split == "dev":
         from eval.synth.negatywy.templates_dev import TEMPLATES
 
@@ -44,14 +49,15 @@ def load_templates(split: str) -> dict:
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--class", dest="cls", default="none", choices=["none", "negatywy", "negative"])
-    ap.add_argument("--split", choices=["dev", "blind"], default="dev")
+    ap.add_argument("--split", choices=["dev", "sprawa", "blind"], default="dev")
     ap.add_argument("--n", type=int, default=20)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--clean", action="store_true", help="remove existing case_* dirs in the output first")
     a = ap.parse_args(argv)
 
-    out = a.out or (ROOT / "data" / "synth" / "negatives-dev" if a.split == "dev" else BLIND_ROOT / "negatives")
+    out = a.out or {"dev": ROOT / "data" / "synth" / "negatives-dev",
+                    "sprawa": ROOT / "data" / "synth" / "negatives-sprawa"}.get(a.split, BLIND_ROOT / "negatives")
     out.mkdir(parents=True, exist_ok=True)
     if a.clean:
         for d in out.glob("case_*"):

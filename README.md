@@ -32,7 +32,7 @@ Wynik 1,000 na danych UZP to dane, na których powstawały reguły; realną jako
 
 Numery rachunków są zapisywane tak, jak w dokumencie: z prefiksem `PL`, jeśli dokument go podaje (bez spacji, np. `PL61109010140000071219812874`), w przeciwnym razie 26 cyfr. Tak potwierdził UZP (21.11.2026); lokalne dane wzorcowe poprawiono skryptem `eval/gt_account_pl.py`, bo część wzorcowych JSON-ów UZP pomijała `PL`.
 
-Dokumenty obce (ogłoszenia, wyroki KIO, SWZ, faktury, umowy, pisma podobne do klas): 0 przyjętych na 36 w naszych zbiorach, 2 przyjęte na 20 w zbiorze kontrolnym. Bramka jakości (`make gate`, 9 testów, m.in. brak regresji, 0 fałszywych przyjęć, niezależność od nazw plików, praca bez LLM, < 1 s/dokument) pilnuje każdej zmiany.
+Dokumenty obce (ogłoszenia, wyroki KIO, SWZ, faktury, umowy, pisma podobne do klas): 0 przyjętych na 56 w naszych zbiorach (w tym 20 typowych pism z folderu sprawy KIO: nota obciążeniowa, zestawienie kosztów, uzupełnienie braków, cofnięcie odwołania, skarga, UPO), 2 przyjęte na 20 w zbiorze kontrolnym. Bramka jakości (`make gate`, 9 testów, m.in. brak regresji, 0 fałszywych przyjęć, niezależność od nazw plików, praca bez LLM, < 1 s/dokument) pilnuje każdej zmiany.
 
 ## Jak to działa
 1. **Tekst**: `pdfplumber` (słowa ze współrzędnymi); PDF bez warstwy tekstowej → lokalny OCR (Tesseract `pol`, strony równolegle; przekrzywiony skan jest prostowany i czytany ponownie; typowe błędy OCR, np. „@” czytane jako „(O”, są poprawiane). Dwukolumnowe nagłówki stron są czytane kolumnami.

@@ -39,6 +39,9 @@ classify:
     - {pattern: 'wnosz[eę]\s+(niniejsze\s+)?odwołani', weight: -4}
     # Faktury, umowy, SWZ też mają rachunek, kwotę i "tytuł" — słownictwo, którego potwierdzenie przelewu nie używa:
     - {pattern: 'sprzedawc\w*|nabywc\w*|termin\w*\s+płatności|specyfikacj\w+|\bumow\w*|zleceniobiorc\w*', weight: -1}
+    # Pisma, które tylko wspominają przelew (nota, zestawienie kosztów, uzupełnienie braków, wezwanie do zapłaty):
+    - {pattern: '^\s*(?-i:NOTA|ZESTAWIENIE|ROZLICZENIE|UZUPEŁNIENIE|SKARGA|PISMO|OŚWIADCZENIE|WNIOSEK|Nota\s+(?:obciążeniowa|księgowa)|Zestawienie|Uzupełnienie|Pismo)\b', weight: -6, head_chars: 1200}
+    - {pattern: 'prosimy\s+o\s+(?:przelew|wpłat|zapłat|uregulowani)|wzywa\w*\s+do\s+zapłaty|w\s+załączeniu\s+przedkładam|w\s+odpowiedzi\s+na\s+wezwanie|\bwnosz[eę]\s+o\b|podlegają\s+zwrotowi', weight: -3}
 
 output_template:
   przelew_bankowy:

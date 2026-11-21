@@ -3,7 +3,7 @@
  1 pytest green (incl. crash/fuzz and adversarial regressions)
  2 train = holdout = 1.000 F1
  3 synth-dev F1 does not drop by more than 0.005 vs eval/baselines/synth_dev.json (skipped if no synth-dev)
- 4 0 negatives accepted (train negatives + data/synth/negatives-dev)
+ 4 0 negatives accepted (train negatives + data/synth/negatives-dev + data/synth/negatives-sprawa)
  5 strict F1 = lenient F1 on train
  6 output schema: one JSON per PDF, nothing else in output/, no keys or types outside the class template
  7 random file names do not change any output
@@ -32,6 +32,7 @@ from eval.run import collect, evaluate  # noqa: E402
 
 SYNTH_DEV = ROOT / "data" / "synth" / "dev"
 SYNTH_NEG = ROOT / "data" / "synth" / "negatives-dev"
+SYNTH_NEG_CASE = ROOT / "data" / "synth" / "negatives-sprawa"  # documents from a KIO case folder (templates_sprawa)
 BASELINE = ROOT / "eval" / "baselines" / "synth_dev.json"
 MAX_SYNTH_DROP = 0.005
 MAX_S_PER_DOC = 1.0
@@ -102,6 +103,10 @@ def main(argv: list[str] | None = None) -> int:
         neg = evaluate([(c, p, {}, None) for c, p, _, _ in collect(root=SYNTH_NEG)])
         neg_fp += neg["negatives_accepted"]
         detail += f", synth negatives accepted={neg['negatives_accepted']}/{neg['docs']}"
+    if SYNTH_NEG_CASE.is_dir() and any(SYNTH_NEG_CASE.rglob("*.pdf")):
+        neg = evaluate([(c, p, {}, None) for c, p, _, _ in collect(root=SYNTH_NEG_CASE)])
+        neg_fp += neg["negatives_accepted"]
+        detail += f", case-folder negatives accepted={neg['negatives_accepted']}/{neg['docs']}"
     check("4 0 FP on negatives", neg_fp == 0, detail)
 
     # 5

@@ -1,0 +1,20 @@
+{"pdf": "case_001/e883858aa0b7.pdf", "template": "nota_koszty", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_002/dokument (9).pdf", "template": "wniosek_uchylenie_zakazu", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_003/51d0965b6bc7.pdf", "template": "informacja_o_wyborze", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_004/20251126_840.pdf", "template": "zawiadomienie_o_odwolaniu", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_005/b47637fd3f68.pdf", "template": "skarga_do_sadu", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_006/odwolanie_76.pdf", "template": "cofniecie_odwolania", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_007/d3ccd570e426.pdf", "template": "protokol_posiedzenia", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_008/dd00a841aeb8.pdf", "template": "zestawienie_oplat", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_009/zal_14_zyiih.pdf", "template": "upo_wniesienia", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_010/d242f44e6e3e.pdf", "template": "uzupelnienie_brakow", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_011/potwierdzenie_przelewu_75.pdf", "template": "zestawienie_oplat", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_012/dokument (6).pdf", "template": "protokol_posiedzenia", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_013/zal_14_iymxb.pdf", "template": "zawiadomienie_o_odwolaniu", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_014/odwolanie_KIO_final_81.pdf", "template": "cofniecie_odwolania", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_015/potwierdzenie_przelewu_85.pdf", "template": "informacja_o_wyborze", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_016/IMG3645_492494.pdf", "template": "skarga_do_sadu", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_017/zal_15_tzccb.pdf", "template": "wniosek_uchylenie_zakazu", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_018/odwolanie_KIO_final_41.pdf", "template": "uzupelnienie_brakow", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_019/dokument (8).pdf", "template": "nota_koszty", "split": "sprawa", "seed": 1, "expected": {}}
+{"pdf": "case_020/przelew_88.pdf", "template": "upo_wniesienia", "split": "sprawa", "seed": 1, "expected": {}}
