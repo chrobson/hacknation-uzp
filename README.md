@@ -37,7 +37,7 @@ Dokumenty obce (ogłoszenia, wyroki KIO, SWZ, faktury, umowy, pisma podobne do k
 ## Jak to działa
 1. **Tekst**: `pdfplumber` (słowa ze współrzędnymi); PDF bez warstwy tekstowej → lokalny OCR (Tesseract `pol`, strony równolegle; przekrzywiony skan jest prostowany i czytany ponownie; typowe błędy OCR, np. „@” czytane jako „(O”, są poprawiane). Dwukolumnowe nagłówki stron są czytane kolumnami.
 2. **Klasyfikacja**: każda klasa w YAML ma kotwice wymagane, ważone sygnały i próg; wspólne reguły odrzucenia (`config/reject.yaml`) wyłapują dokumenty obce. Dla skanów z błędami OCR działa dodatkowo rozmyte głosowanie słów kluczowych.
-3. **Ekstrakcja**: pola opisane w YAML typami wielokrotnego użytku (`labeled`, `pattern`, `near`, `names`, `account`, `keyword_map`, `first_line`, `exists`, …), z sekcjami dokumentu, listami (np. kilku zamawiających / mocodawców) i normalizacją (daty, kwoty, NIP/KRS/REGON, mianownik imion i nazwisk).
+3. **Ekstrakcja**: pola opisane w YAML typami wielokrotnego użytku (`labeled`, `pattern`, `near`, `names`, `account`, `keyword_map`, `first_line`, `exists`, …), z sekcjami dokumentu, listami (np. kilku zamawiających / mocodawców) i normalizacją (daty, kwoty, NIP/KRS/REGON, mianownik imion i nazwisk: słownik SGJP przez Morfeusz2, a gdy pakietu brak, reguły końcówek).
 4. **LLM (opcjonalnie)**: tylko dla pól, które reguły zostawiły puste, z zamkniętym słownikiem odpowiedzi i walidacją; awaria → reguły.
 5. **Wynik**: JSON zgodny ze schematem UZP + osobno plik dowodów (strona, cytat, ramki) dla każdej wartości.
 

@@ -7,7 +7,9 @@ requires-python = ">=3.13,<3.14"
 dependencies = [
     "pdfplumber==0.11.11",
     "PyYAML==6.0.4",
-    "tesserocr==2.13.0",  # OCR fallback when the tesseract program is missing (wheel bundles libtesseract)
+    "tesserocr==2.13.0",
+    # SGJP dictionary for person names in the nominative (optional at runtime: missing package = rules only)
+    "morfeusz2==1.99.15; (sys_platform == 'linux' and platform_machine == 'x86_64') or sys_platform == 'darwin' or sys_platform == 'win32'",  # OCR fallback when the tesseract program is missing (wheel bundles libtesseract)
 ]
 
 [dependency-groups]

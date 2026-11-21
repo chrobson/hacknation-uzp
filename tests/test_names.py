@@ -37,3 +37,16 @@ def test_every_nominative_name_in_train_ground_truth_is_unchanged():
 def test_titlecase_upper():
     assert titlecase_upper("Halina ZIELIŃSKA") == "Halina Zielińska"
     assert titlecase_upper("Jan KOWALSKI-NOWAK") == "Jan Kowalski-Nowak"
+
+
+def test_dictionary_nominative_and_rules_fallback(monkeypatch):
+    """Morfeusz2 (SGJP), when installed, handles forms the rules miss; ODW_MORFEUSZ=0 / no package = rules only."""
+    from odw import names
+
+    assert names.nominative("Iwonę Zawadzką") == "Iwona Zawadzka"  # both paths
+    assert names.nominative("Aleksandra Marciniak") == "Aleksandra Marciniak"  # a woman's name stays
+    assert names.nominative("Panu Tomaszowi") == "Panu Tomaszowi"  # not a full name
+    if names._morfeusz() is not None:
+        assert names.nominative("Pawłem Wróblem") == "Paweł Wróbel"
+    monkeypatch.setattr(names, "_morfeusz", lambda: None)
+    assert names.nominative("Iwonę Zawadzką") == "Iwona Zawadzka"
