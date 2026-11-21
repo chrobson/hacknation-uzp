@@ -6,7 +6,7 @@
 (--class pelnomocnictwo is accepted for compatibility with the shared
 ``eval.synth.generate`` dispatcher, which can call ``generate()`` directly.)
 
-Output per case: <out>/pelnomocnictwo_XXX/<random_name>.pdf + <random_name>.gt.json
+Output per case: <out>/pelnomocnictwo_XXX/<random_name>.pdf + <random_name>.json
 (+ meta.json with template id / seed). Dev goes to data/synth/dev/, blind to
 <BLIND_ROOT>/cases/. Existing pelnomocnictwo_* case dirs in the target are replaced.
 """
@@ -56,7 +56,7 @@ def generate(split: str = "dev", n: int = 30, seed: int = 0, out_dir: Path | Non
         pdf = cdir / f"{stem}.pdf"
         info = lib.render_pdf(tpl.build, case, crng, pdf)
         gt = case.ground_truth()
-        (cdir / f"{stem}.gt.json").write_text(json.dumps(gt, ensure_ascii=False, indent=2), encoding="utf-8")
+        (cdir / f"{stem}.json").write_text(json.dumps(gt, ensure_ascii=False, indent=2), encoding="utf-8")
         (cdir / "meta.json").write_text(json.dumps({"class": lib.CLASS_NAME, "split": split, "template": tpl.ID,
                                                     "case_seed": case_seed, "font": info["font"], "pdf": pdf.name},
                                                    ensure_ascii=False, indent=2), encoding="utf-8")

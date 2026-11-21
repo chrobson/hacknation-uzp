@@ -111,7 +111,7 @@ def main(argv=None) -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("-v", action="store_true")
     a = ap.parse_args(argv)
-    pairs = sorted((p, p.with_name(p.stem + ".gt.json")) for p in a.root.glob("odwolanie_*/*.pdf"))
+    pairs = sorted((p, p.with_name(p.stem + ".json")) for p in a.root.glob("odwolanie_*/*.pdf"))
     if a.sample:
         pairs = random.Random(a.seed).sample(pairs, min(a.sample, len(pairs)))
     n_bad = 0

@@ -3,7 +3,7 @@
     python -m eval.synth.negatywy.generate --split dev   --n 20 --seed 1
     python -m eval.synth.negatywy.generate --split blind --n 20 --seed 2
 
-dev   -> data/synth/negatives-dev/case_XXX/<random>.pdf + <random>.gt.json ({})
+dev   -> data/synth/negatives-dev/case_XXX/<random>.pdf + <random>.json ({})
 blind -> $SYNTH_BLIND_ROOT/negatives/case_XXX/...   (templates loaded from $SYNTH_BLIND_ROOT/templates/negatywy/*.py,
          which are kept OUTSIDE the repo; default SYNTH_BLIND_ROOT=/Users/mat2/orca/projects/hacknation/synth-blind)
 

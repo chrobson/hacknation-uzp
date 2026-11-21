@@ -2,7 +2,7 @@
 
     python -m eval.synth.negatywy.selfcheck [DIR ...]   (default: data/synth/negatives-dev)
 
-For every <stem>.pdf: the sibling <stem>.gt.json must be exactly {}, the PDF must have a text layer
+For every <stem>.pdf: the sibling <stem>.json must be exactly {}, the PDF must have a text layer
 (pdfplumber), Polish diacritics must survive extraction (font check), and the text should contain several
 "confuser" terms shared with the positive classes. Optionally reports how the production classifier
 (src/odw) labels each document (any non-None label = false positive to look at).
@@ -40,9 +40,9 @@ def main(argv=None):
     for d in dirs:
         for pdf in sorted(d.rglob("*.pdf")):
             n += 1
-            gt = pdf.with_name(pdf.stem + ".gt.json")
-            if not gt.exists() or json.loads(gt.read_text(encoding="utf-8")) != {}:
-                problems.append(f"{pdf}: gt missing or not {{}}")
+            gt = pdf.with_name(pdf.stem + ".json")
+            if gt.exists() and json.loads(gt.read_text(encoding="utf-8")) != {}:
+                problems.append(f"{pdf}: negative must have no JSON (or exactly {{}})")
             with pdfplumber.open(pdf) as p:
                 text = "\n".join((pg.extract_text() or "") for pg in p.pages)
                 npages = len(p.pages)

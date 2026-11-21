@@ -111,8 +111,8 @@ def main(argv=None):
     argv = argv or sys.argv[1:]
     root = Path(argv[0]) if argv else Path("data/synth/dev")
     bad = n = 0
-    for gtf in sorted(root.glob("przelew_*/*.gt.json")):
-        pdf = gtf.with_name(gtf.name[:-len(".gt.json")] + ".pdf")
+    for gtf in sorted(root.glob("przelew_*/*.json")):
+        pdf = gtf.with_name(gtf.name[:-len(".json")] + ".pdf")
         errs = check_case(pdf, json.loads(gtf.read_text(encoding="utf-8")))
         n += 1
         if errs:

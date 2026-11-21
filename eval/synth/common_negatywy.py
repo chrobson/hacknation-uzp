@@ -408,12 +408,11 @@ def company_block(c: Ctx, comp: Company, with_ids: bool = True) -> list[str]:
 
 
 def write_case(out_dir: Path, case_name: str, rng: random.Random, render) -> tuple[Path, Path]:
-    """render(path) draws a PDF; writes <random>.pdf and <random>.gt.json ({}) into out_dir/case_name."""
+    """render(path) draws a PDF; writes <random>.pdf (no JSON = expected {}) into out_dir/case_name."""
     case = out_dir / case_name
     case.mkdir(parents=True, exist_ok=True)
     stem = random_stem(rng)
     pdf = case / f"{stem}.pdf"
     render(pdf)
-    gt = case / f"{stem}.gt.json"
-    gt.write_text("{}\n", encoding="utf-8")
-    return pdf, gt
+    # Negatives carry no JSON: the gate treats a PDF without <stem>.json as expected {}.
+    return pdf, case / f"{stem}.json"

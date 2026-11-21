@@ -4,7 +4,7 @@
     python -m eval.synth.run --fields                         # + per-field table per class
     python -m eval.synth.run --root "$SYNTH_BLIND_ROOT/cases" --root "$SYNTH_BLIND_ROOT/negatives"
 
-A case is any directory holding exactly one ``<stem>.pdf`` with its ``<stem>.gt.json``.
+A case is any directory holding ``<stem>.pdf`` files; ``<stem>.json`` next to a PDF is its ground truth, no JSON means the expected output is ``{}`` (negative).
 The expected class comes from the directory prefix (odwolanie_/pelnomocnictwo_/przelew_);
 anything else (e.g. negatives' case_XXX) expects ``{}``. meta.json and manifests are never
 shown to the pipeline: only the PDF is copied, under a random name.
@@ -46,11 +46,9 @@ def collect(roots: list[Path]) -> list[tuple[str, Path, dict, str | None]]:
     items = []
     for root in roots:
         for case in sorted(p for p in root.iterdir() if p.is_dir()):
-            for gt_file in sorted(case.glob("*.gt.json")):
-                pdf = gt_file.with_name(gt_file.name[: -len(".gt.json")] + ".pdf")
-                if not pdf.exists():
-                    raise SystemExit(f"missing PDF for {gt_file}")
-                gt = json.loads(gt_file.read_text(encoding="utf-8"))
+            for pdf in sorted(case.glob("*.pdf")):
+                gt_file = pdf.with_suffix(".json")  # no JSON next to a PDF = expected {}
+                gt = json.loads(gt_file.read_text(encoding="utf-8")) if gt_file.exists() else {}
                 items.append((f"{root.name}/{case.name}", pdf, gt, expected_class(case)))
     return items
 

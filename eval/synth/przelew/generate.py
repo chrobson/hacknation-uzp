@@ -3,7 +3,7 @@
     python -m eval.synth.przelew.generate --split dev   --n 30 --seed 1
     python -m eval.synth.przelew.generate --split blind --n 30 --seed 2
 
-dev   -> data/synth/dev/przelew_XXX/<random>.pdf + <random>.gt.json
+dev   -> data/synth/dev/przelew_XXX/<random>.pdf + <random>.json
 blind -> $SYNTH_BLIND_ROOT/cases/przelew_XXX/...  (templates loaded from
          $SYNTH_BLIND_ROOT/templates/przelew/*.py, kept OUTSIDE the repo;
          default SYNTH_BLIND_ROOT=/Users/mat2/orca/projects/hacknation/synth-blind)
@@ -86,7 +86,7 @@ def generate(split: str, n: int, seed: int, out: Path | None = None, clean: bool
         stem = random_stem(rng)
         pdf = cdir / f"{stem}.pdf"
         tpl.render(case, rng, pdf)
-        write_gt(cdir / f"{stem}.gt.json", case)
+        write_gt(cdir / f"{stem}.json", case)
         rec = {"case": cdir.name, "file": pdf.name, "template": tpl.NAME, "split": split, "seed": seed}
         records.append(rec)
     with manifest.open("a", encoding="utf-8") as fh:

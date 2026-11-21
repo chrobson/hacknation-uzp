@@ -33,7 +33,7 @@ def name_ok(name: str, text: str) -> bool:
 
 def check_case(pdf: Path) -> list[str]:
     gt = \
-        json.loads((pdf.parent / (pdf.stem + ".gt.json")).read_text())
+        json.loads((pdf.parent / (pdf.stem + ".json")).read_text())
     with pdfplumber.open(pdf) as d:
         text = "\n".join(p.extract_text() or "" for p in d.pages)
     digits = re.sub(r"\D", "", text)

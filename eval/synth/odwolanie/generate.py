@@ -7,7 +7,7 @@ dev   templates: eval/synth/odwolanie/templates_dev/*.py -> data/synth/dev/odwol
 blind templates: $SYNTH_BLIND_ROOT/templates/odwolanie/*.py -> $SYNTH_BLIND_ROOT/cases/odwolanie_XXX/
 (SYNTH_BLIND_ROOT defaults to /Users/mat2/orca/projects/hacknation/synth-blind)
 
-Each case dir holds <random>.pdf and <random>.gt.json (official odwolanie schema).
+Each case dir holds <random>.pdf and <random>.json (official odwolanie schema).
 A manifest (template per case) is written next to the case dirs as manifest_odwolanie.jsonl.
 The shared dispatcher can call generate(split, n, seed, out_root).
 """
@@ -99,7 +99,7 @@ def generate(split: str, n: int, seed: int, out_root: Path | None = None, clean:
         pdf = cdir / f"{stem}.pdf"
         tpl.render(case, ctx, pdf)
         gt = case.gt()
-        (cdir / f"{stem}.gt.json").write_text(json.dumps(gt, ensure_ascii=False, indent=2), encoding="utf-8")
+        (cdir / f"{stem}.json").write_text(json.dumps(gt, ensure_ascii=False, indent=2), encoding="utf-8")
         manifest.append({"case": cdir.name, "file": pdf.name, "template": tpl.name, "split": split,
                          "font": ctx.font, "consortium": case.consortium, "n_zam": len(case.zams),
                          "n_att": len(case.attorneys)})

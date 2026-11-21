@@ -30,7 +30,7 @@ extractor generalises to unseen layouts. Rules:
 
 ## Generate
 
-Each case dir holds one `<random>.pdf` and its `<random>.gt.json` (official schema; `{}`
+Each case dir holds one `<random>.pdf` and its `<random>.json` (official schema; `{}`
 for negatives). Pełnomocnictwo cases also carry `meta.json` (template id); manifests sit
 at the output root. None of these is shown to the pipeline.
 
@@ -67,7 +67,7 @@ every GT value is present in the rendered text:
 ```
 
 The runner copies each PDF under a random name, runs `odw.pipeline.run`, and scores the
-output against `.gt.json` with `eval.score.score_fields`. The expected class comes from the
+output against `.json` with `eval.score.score_fields`. The expected class comes from the
 case dir prefix; any other dir expects `{}`. It prints classification accuracy, negatives
 accepted as a class, F1 per class and, with `--fields`, F1 per field per class.
 
