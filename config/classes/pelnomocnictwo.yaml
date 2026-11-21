@@ -153,9 +153,14 @@ lists:
         titlecase: true
         scope: document
         # Blok podpisów zaczyna się od pierwszej linii kropek/podkreśleń/kresek lub znacznika podpisu.
-        after: '\.{8,}|…{2,}|_{5,}|-{8,}|\(podpis\)|/podpis/|/-/|(?-i:^[ \t]*Podpis(?:y\b|[ \t]+Mocodaw|:))'
+        # skany: OCR gubi kropki → także „Za Mocodawcę:”, pieczęć podpisu elektronicznego („Dokument podpisany przez …”)
+        after: '\.{8,}|…{2,}|_{5,}|-{8,}|\(podpis\)|/podpis/|/-/|(?-i:^[ \t]*Podpis(?:y\b|[ \t]+Mocodaw|:))|^[ \t]*Za[ \t]+Mocodaw\w*[ \t]*:|Dokument[ \t]+podp\w*|Signature[ \t]+(?:Not[ \t]+)?Verified|Podpisano[ \t]+elektronicznie'
         # Dwa wyrazy z wielkiej litery, ale nie nazwa firmy (po nich forma prawna).
-        pattern: '(?<![\w-])([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)(?![\w-]|[ \t]+(?:S\.\s?A\.|[Ss]p\.|[Ss]półk))'
+        pattern:
+          # nie ulica / patron („ul. Jana Pawła”, OCR „u! Jara Panta”, „im. Jana …”)
+          - '(?<![\w-])(?<!ul\.[ \t])(?<!al\.[ \t])(?<!im\.[ \t])(?<!pl\.[ \t])(?<!u![ \t])(?<!ul[ \t])([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)(?![\w-]|[ \t]+(?:S\.\s?A\.|[Ss]p\.|[Ss]półk))'
+          # pieczęć e-podpisu, imię często WIELKIMI literami: "Dokument podpisany przez JAN Kowalski" (OCR: "podpinany przeż")
+          - '(?i:dokument[ \t]+podp\S*[ \t]+\S+)[ \t]+([A-ZŁŚŻŹĆŃÓ][A-ZŁŚŻŹĆŃÓ]+[ \t]+[A-ZŁŚŻŹĆŃÓ][A-Za-ząćęłńóśźżŁŚŻŹĆŃÓ]+)'
         segment_by: '^\s*(?:W\s+imieniu|Za)\s[^\n]*:\s*$'
         exclude_from: pelnomocnicy
-        stopwords: [Za, W, Imieniu, Prezes, Wiceprezes, Członek, Zarządu, Prokurent, Dyrektor, Właściciel, Wspólnik, Pełnomocnik, Pełnomocnictwo, Mocodawca, Mocodawcy, Zarząd, Generalny, Finansowy, Komplementariusz, Partner, Kierownik, Imię, Nazwisko, Podpis, Data, Miejsce, Strona, Sp, Spółka, Prezesa, Członka, Upoważniony, Upoważniona, Główny, Księgowy, Handlowy, Przedsiębiorca, Samoistny, Management, Board, President, Member, Principal, Attorney, Przyjęcie, Wykonawca, Wykonawcy, Lider, Konsorcjum]
+        stopwords: [Za, W, Imieniu, Prezes, Wiceprezes, Członek, Zarządu, Prokurent, Dyrektor, Właściciel, Wspólnik, Pełnomocnik, Pełnomocnictwo, Mocodawca, Mocodawcy, Zarząd, Generalny, Finansowy, Komplementariusz, Partner, Kierownik, Imię, Nazwisko, Podpis, Data, Miejsce, Strona, Sp, Spółka, Prezesa, Członka, Upoważniony, Upoważniona, Główny, Księgowy, Handlowy, Przedsiębiorca, Samoistny, Management, Board, President, Member, Principal, Attorney, Przyjęcie, Wykonawca, Wykonawcy, Lider, Konsorcjum, Kancelaria, Radcy, Radca, Prawnego, Prawny, Adwokacka, Adwokat, Dokument, Signature, Verified, Podpisany, Podpisano]

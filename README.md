@@ -24,7 +24,7 @@ Rdzeniem są reguły z `config/classes/*.yaml`. Model językowy uzupełnia tylko
 | Wejście | wycinek pierwszego zarzutu odwołania (≤1500 znaków), a nie cały dokument |
 | Klasyfikacja | wyłącznie reguły (`classify_tiebreak: false`) |
 
-Konfiguracja: `config/llm.yaml` oraz zmienne `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` w środowisku lub w `.env` (wzór: `.env.example`).
+**Klucz w pliku `.env` (wzór: `.env.example`); bez klucza działa tryb regułowy.** Konfiguracja: `config/llm.yaml` oraz zmienne `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` (środowisko albo `.env`).
 Bez klucza, bez sieci, z `LLM_ENABLED=0` albo z `--llm off` program działa w trybie samych reguł. Po nieudanym wywołaniu (timeout, 401/429, brak sieci) model jest wyłączany do końca przebiegu.
 
 ## OCR i wydajność
