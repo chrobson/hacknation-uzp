@@ -13,6 +13,7 @@ classify:
     # Para ról rachunków (obciążany i uznawany) w tabeli potwierdzenia:
     - all: ['rachunek\s+obciążony|rachunek\s+(nadawcy|zleceniodawcy|płatnika)|\bz\s+rachunku|debit\s+account|from\s+account|sender.{0,10}account|payer.{0,10}account', 'rachunek\s+uznany|rachunek\s+(odbiorcy|beneficjenta)|\bna\s+rachunek|beneficiary.{0,10}account|to\s+account|recipient.{0,10}account|payee.{0,10}account']
       head_chars: 2000
+  fuzzy: {head: [przelew, przelewu, potwierdzenie, transakcji, payment], min_hits: 4, words: [przelew, przelewu, rachunek, rachunku, odbiorca, nadawca, tytułem, transakcji, operacji, zleceniodawca, beneficjent, księgowania]}
   signals:
     # Opłata skarbowa od pełnomocnictwa / wpis: typowy tytuł przelewu (86/90 przelewów, 6/100 pełnomocnictw)
     - {pattern: 'opłat\w*\s+skarbow', weight: 2}

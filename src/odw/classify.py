@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from dataclasses import dataclass
 
 from functools import cache
@@ -48,8 +50,40 @@ def classify(doc: Document, classes: list[DocClass]) -> Verdict:
         if decided is not _UNDECIDED:
             return Verdict(decided, scores)
     if scores[best.name] < best.threshold:
+        if doc.ocr:  # OCR errors break exact anchors ("0DWOŁANlE"): fuzzy keyword vote as a safety net,
+            # but never for a class the rules actively voted against (one of its negative signals fired)
+            open_ = [c for c in classes if scores[c.name] == float("-inf")
+                     or not any(sig.weight < 0 and sig.matches(text) for sig in c.signals)]
+            voted = _fuzzy_vote(text, classes)
+            return Verdict(voted if voted in open_ else None, scores)
         return Verdict(None, scores)
     return Verdict(best, scores)
+
+
+def _fuzzy_vote(text: str, classes: list[DocClass]) -> DocClass | None:
+    """Count each class's `classify.fuzzy.words` that occur in the text up to OCR errors (similarity ≥ 0.8).
+    The class wins only with ≥ min_hits distinct words and a margin of ≥ 2 over the runner-up."""
+    from difflib import SequenceMatcher
+
+    tokens = {t for t in re.findall(r"\w{5,}", text.lower()[:20000])}
+    head_tokens = {t for t in re.findall(r"\w{5,}", text.lower()[:600])}
+    close = lambda w, toks: w in toks or any(abs(len(t) - len(w)) <= 2 and SequenceMatcher(None, w, t).ratio() >= 0.8 for t in toks)
+    hits: dict[str, int] = {}
+    for c in classes:
+        fz = (c.raw.get("classify") or {}).get("fuzzy") or {}
+        if fz.get("head") and not any(close(h.lower(), head_tokens) for h in fz["head"]):
+            hits[c.name] = 0  # the document's heading must name the class (e.g. "ODWOŁANIE" at the top)
+            continue
+        n = 0
+        for word in fz.get("words", []):
+            w = word.lower()
+            if w in tokens or any(abs(len(t) - len(w)) <= 2 and SequenceMatcher(None, w, t).ratio() >= 0.8 for t in tokens):
+                n += 1
+        hits[c.name] = n if n >= int(fz.get("min_hits", 99)) else 0
+    ranked = sorted(hits.items(), key=lambda kv: -kv[1])
+    if not ranked or ranked[0][1] == 0 or (len(ranked) > 1 and ranked[0][1] - ranked[1][1] < 2):
+        return None
+    return next(c for c in classes if c.name == ranked[0][0])
 
 
 GREY_BELOW, GREY_ABOVE = 2.0, 1.0  # grey zone [threshold-2, threshold+1): rules are unsure

@@ -11,6 +11,8 @@ classify:
     - 'wnosz\w*\s.{0,40}odwołani'
     # pismo kierowane do KIO (rodzaj pisma rozstrzygają sygnały poniżej, w tym ujemne dla innych pism KIO)
     - 'Krajow\w+\s+Izb\w+\s+Odwoławcz\w+'
+  # skany: głosowanie rozmyte (tylko OCR, gdy reguły odrzuciły) — słowa charakterystyczne, ≥min_hits różnych
+  fuzzy: {head: [odwołanie], min_hits: 5, words: [odwołanie, odwołujący, zamawiający, zarzucam, wnoszę, odwoławczej, uzasadnienie, naruszenie, postępowania, zaniechania, zarzuty, uwzględnienie]}
   signals:
     # Dokumenty innego rodzaju (umowa, aneks, oferta, protokół), które tylko zawierają treść klasy:
     - {pattern: '^\s*(?-i:UMOWA|ANEKS|OFERTA|FORMULARZ\s+OFERTOWY|PROTOKÓŁ|REGULAMIN)\b', weight: -6, head_chars: 400}

@@ -11,6 +11,7 @@ classify:
     - {pattern: 'upoważni\w*|udziel\w*\s+(?:\w+\s+){0,3}pełnomocn|ustanaw\w*\s+(?:\w+\s+){0,3}pełnomocn', head_chars: 1500}
     - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', head_chars: 800}
     - 'udziel\w*\s+(\w+\s+)?pełnomocnictw|ustanawia\w*\s+(\w+\s+)?pełnomocnik|upoważniam'
+  fuzzy: {head: [pełnomocnictwo, pełnomocnictwa], min_hits: 4, words: [pełnomocnictwo, pełnomocnik, pełnomocnikiem, mocodawca, mocodawcy, udzielam, umocowanie, reprezentowania, substytucyjnych, pełnomocnictwa]}
   signals:
     # Pełnomocnictwo po angielsku
     - {pattern: 'power\s+of\s+attorney|attorney[- ]in[- ]fact', weight: 3, head_chars: 800}
