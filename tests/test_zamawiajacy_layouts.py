@@ -50,3 +50,17 @@ def test_wrapped_prose_label_does_not_cut_the_act_section():
     base = extract(Document(Path("a.pdf"), [text.replace("Zamawiający\npoinformował", "Zamawiający poinformował")]), CLS)
     wrapped = extract(Document(Path("b.pdf"), [text]), CLS)
     assert wrapped["OdwolanieKIO"] == base["OdwolanieKIO"]
+
+
+@pytest.mark.parametrize("body,powod", [
+    ("Odwołujący wnosi odwołanie od czynności Zamawiającego polegającej na odrzuceniu oferty Odwołującego, "
+     "o czym Zamawiający poinformował w dniu 3 marca 2025 r.", 1),
+    ("Działając w imieniu Odwołującego składam odwołanie wobec zaniechania wykluczenia wykonawcy Beta sp. z o.o., "
+     "czynności z dnia 03.03.2025 r.", 8),
+    ("Niniejszym Odwołujący składa odwołanie od czynności unieważnienia postępowania, o której poinformowano pismem "
+     "z dnia 3 marca 2025 r.", 9),
+])
+def test_act_without_wnosze(body, powod):
+    text = HEAD.replace("\n\n", "\n\n" + ODW, 1) + "Zamawiający:\nGmina Rudnik Wielki, NIP 8161234567\n\nODWOŁANIE\n" + body + "\nUzasadnienie\n"
+    o = extract(Document(Path("c.pdf"), [text]), CLS)["OdwolanieKIO"]
+    assert (o["czynnosc_powod_id"], o["czynnosc_dzien"]) == (powod, "2025-03-03")

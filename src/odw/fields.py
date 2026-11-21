@@ -90,7 +90,7 @@ def _section_text(text: str, name: str, sections: dict[str, Any]) -> str | None:
         return None
     enders: list[re.Pattern[str]] = []
     for other, ospec in sections.items():
-        if other != name:
+        if other != name and not ospec.get("isolated"):  # isolated: a fallback section that never ends the others
             enders += _compile(ospec["start"])
     enders += _compile(sections.get("_end", {}).get("start", []))
     enders += _compile(spec.get("end", []))
