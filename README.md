@@ -8,6 +8,11 @@ cp .env.example .env      # potem wklej do .env LLM_API_KEY z formularza zgłosz
 bash start.sh             # czyta ./input/<sprawa>/*.pdf, zapisuje ./output/<sprawa>/<nazwa_pdf>.json
 ```
 Bez klucza działa tryb regułowy: pełna funkcjonalność, niższa jakość pól czynności (powód, data).
+
+**Windows**: potrzebny WSL z Ubuntu (jednorazowo w PowerShell jako administrator: `wsl --install -d Ubuntu`). Potem w terminalu Ubuntu, w katalogu projektu, te same dwie komendy, albo dwuklik / `start.bat` w katalogu projektu (uruchamia `start.sh` w WSL).
+Skany wymagają Tesseracta z językiem polskim. W WSL zwykły użytkownik ma hasło do sudo, więc jeśli `start.sh` wypisze ostrzeżenie „OCR NIEDOSTĘPNY”, uruchom raz:
+`sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-pol` i ponownie `bash start.sh`.
+
 `start.sh` sam przygotowuje środowisko: uv + Python 3.13 z zależnościami przypiętymi w `uv.lock` (zapasowo: python3.13 + venv + `requirements.txt`), a do skanów Tesseract z językiem polskim (instalacja przez apt albo pobranie samego modelu `pol`).
 Dokument spoza trzech klas daje plik `{}` o tej samej nazwie.
 
@@ -57,7 +62,7 @@ Plik `examples/klasy/wezwanie_do_uzupelnienia.yaml` (~40 linii) definiuje kotwic
 - Najgorszy przypadek: OCR maks. 12 stron na dokument i 60 s na stronę, limit 180 s na dokument (wtedy zapisywany jest wynik częściowy), model językowy po pierwszej awarii (15 s × 2 próby) wyłączony do końca przebiegu. Limit konkursowy (150 PDF w 45 min) jest spełniony z dużym zapasem.
 
 ## Interfejs WWW (podgląd wyników)
-`python -m gui` (szczegóły: `gui/README.md`): po lewej PDF, po prawej JSON; najechanie na pole podświetla jego miejsce w dokumencie. Działa offline, pliki nie opuszczają komputera.
+`pip install -r gui/requirements.txt`, potem `python -m gui` i http://localhost:8000 (szczegóły, także WSL: `gui/README.md`): po lewej PDF, po prawej JSON; najechanie na pole podświetla jego miejsce w dokumencie. Działa offline, pliki nie opuszczają komputera.
 
 ## Struktura
 ```
