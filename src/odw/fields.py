@@ -362,13 +362,23 @@ def _near(spec: dict[str, Any], ctx: Context) -> Any:
     stops = _compile(spec.get("stop", []))
     hits = sorted((m for rx in _compile(spec["anchors"]) for m in rx.finditer(ctx.text)), key=lambda m: m.start())
     before = int(spec.get("before", 0))  # also look this many characters before the anchor (nearest value wins)
+    # the backward scan ends at its own stops (default: `stop`), e.g. a blank line closing the other party's block
+    back_stops = _compile(spec["before_stop"]) if "before_stop" in spec else stops
     for m in hits:
         if before:
             prev = ctx.text[max(0, m.start() - before) : m.start()]
-            cut = max((sm.end() for rx in stops for sm in rx.finditer(prev)), default=0)
-            found = [f for f in (find(prev[i:]) for i in range(cut, len(prev), 40)) if f]
-            if found:
-                return found[-1]
+            cut = max((sm.end() for rx in back_stops for sm in rx.finditer(prev)), default=0)
+            if spec.get("value") == "company":  # a name starts the block: earliest match, never a truncated tail
+                value = find(prev[cut:])
+                if value not in (None, ""):
+                    return value
+            else:  # identifiers: the value nearest to the anchor (token boundaries backwards, first hit wins)
+                for i in range(len(prev) - 1, cut - 1, -1):
+                    if i > cut and not (prev[i - 1].isspace() or prev[i - 1] in ",;:(") or prev[i].isspace():
+                        continue
+                    value = find(prev[i:])
+                    if value not in (None, ""):
+                        return value
         end = m.end() + window
         while end < len(ctx.text) and not ctx.text[end].isspace():  # never cut a token at the window edge
             end += 1

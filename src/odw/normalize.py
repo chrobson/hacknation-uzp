@@ -101,21 +101,36 @@ COMPANY_RE = re.compile(rf"(?<![\w])({_WORD}(?:[ \t\n]+(?:{_WORD}|i|w|z|oraz|im\
 PUBLIC_BODY_RE = re.compile(
     r"(?<![\w])((?:Gmina|Miasto|Powiat|Województwo|Skarb\s+Państwa|Szpital|Samodzielny|Uniwersytet|Politechnika|Akademia|"
     r"Zarząd|Urząd|Ministerstwo|Instytut|Państwowe|Regionaln\w+|Wojewódzk\w+|Miejsk\w+|Powiatow\w+|Centrum|Agencja|"
-    r"Generalna|Komenda|Narodow\w+|Zakład|Przedsiębiorstwo)[^\n,;:()]{2,120}?)(?=\s*(?:,|\n|\(|;|$|\s+(?:ul\.|al\.|KRS|NIP|REGON)))"
+    r"Generalna|Komenda|Narodow\w+|Zakład|Przedsiębiorstwo|"
+    r"Gminie|Miastu|Powiatowi|Województwu|Skarbowi\s+Państwa|Szpitalowi|Uniwersytetowi|Politechnice|Akademii|Zarządowi|"
+    r"Urzędowi|Ministerstwu|Instytutowi|Agencji|Komendzie|Zakładowi|Przedsiębiorstwu)"
+    r"[^\n,;:()]{2,120}?)(?=\s*(?:,|\n|\(|;|$|\s+(?:ul\.|al\.|KRS|NIP|REGON|z\s+siedzibą)))"
 )
+# "przeciwko Gminie X" → the head word back to the nominative ("Gmina X"); fuzzy scoring tolerates the rest
+_DATIVE_HEAD = {"Gminie": "Gmina", "Miastu": "Miasto", "Powiatowi": "Powiat", "Województwu": "Województwo",
+                "Skarbowi": "Skarb", "Szpitalowi": "Szpital", "Uniwersytetowi": "Uniwersytet", "Politechnice": "Politechnika",
+                "Akademii": "Akademia", "Zarządowi": "Zarząd", "Urzędowi": "Urząd", "Ministerstwu": "Ministerstwo",
+                "Instytutowi": "Instytut", "Agencji": "Agencja", "Komendzie": "Komenda", "Zakładowi": "Zakład",
+                "Przedsiębiorstwu": "Przedsiębiorstwo"}
 
 ID_PATTERNS = {
-    "nip": re.compile(r"NIP\W{0,3}(?:PL[ \u00a0-]?)?(\d(?:[ \u00a0-]?\d){9})(?!\d)", re.IGNORECASE),
-    "krs": re.compile(r"KRS\W{0,3}(\d(?:[ \u00a0]?\d){9})(?!\d)", re.IGNORECASE),
-    "regon": re.compile(r"REGON\W{0,3}(\d(?:[ \u00a0]?\d){13}|\d(?:[ \u00a0]?\d){8})(?!\d)", re.IGNORECASE),
+    "nip": re.compile(r"NIP(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(?:PL[ \u00a0-]?)?(\d(?:[ \u00a0-]?\d){9})(?!\d)", re.IGNORECASE),
+    "krs": re.compile(r"KRS(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(\d(?:[ \u00a0]?\d){9})(?!\d)", re.IGNORECASE),
+    "regon": re.compile(r"REGON(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(\d(?:[ \u00a0]?\d){13}|\d(?:[ \u00a0]?\d){8})(?!\d)", re.IGNORECASE),
     "pesel": re.compile(r"PESEL\W{0,3}(\d{11})(?!\d)", re.IGNORECASE),
     "email": re.compile(r"([\w.+-]+@[\w-]+(?:\.[\w-]+)+)"),
 }
 
 
 def find_company(text: str) -> str | None:
-    m = COMPANY_RE.search(text) or PUBLIC_BODY_RE.search(text)
-    return clean_text(m.group(1)) if m else None
+    m = COMPANY_RE.search(text)
+    if m:
+        return clean_text(m.group(1))
+    m = PUBLIC_BODY_RE.search(text)
+    if not m:
+        return None
+    head, _, rest = m.group(1).partition(" ")
+    return clean_text(" ".join(filter(None, [_DATIVE_HEAD.get(head, head), rest])))
 
 
 def find_id(kind: str, text: str) -> str | None:

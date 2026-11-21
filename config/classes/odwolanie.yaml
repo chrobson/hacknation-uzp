@@ -77,6 +77,9 @@ sections:
     start:
       - '^\s*(?:Zamawiając\w*|Instytucj\w*\s+zamawiając\w*|Organizator\w*\s+postępowania|Podmiot\w*\s+zamawiając\w*)(?:\s+wspólnie)?\s*(?::|[–-]\s)'
       - '^(?=\s*1\)\s*Zamawiając)'
+      # sama etykieta w linii (bez dwukropka): "ZAMAWIAJĄCY", "Dane Zamawiającego", "Instytucja zamawiająca"
+      - '^[ \t]*(?:Zamawiający(?:[ \t]+wspólnie)?|Dane[ \t]+Zamawiającego|Instytucja[ \t]+zamawiająca)[ \t]*:?[ \t]*$'
+      - '^\s*Dane\s+Zamawiającego\s*:'
       - '^(?=[ \t]*Zamawiaj\w*[ \t]+(?:nr[ \t]*)?1\b)'
       - '^\s*(?:\d+\.|[IVX]+\.|[A-Z]\.)\s*(?:Zamawiając\w*|Instytucj\w*\s+zamawiając\w*)\s*$'
       - '^[^\n]*\bOdwołując\w*[ \t]+Zamawiając\w*[ \t]*\n(?=\s*(?:Nazwa|Firma)\b)'
@@ -226,13 +229,13 @@ lists:
                      anchors: ['Odwołując\w*(?![ \t]+Zamawiając)', 'Wykonawc\w*\s+wnosząc\w*\s+odwołanie', 'lider\w*\s+konsorcjum', 'Działając\s+w\s+imieniu'],
                      stop: ['Zamawiając\w*', 'Instytucj\w*\s+zamawiając\w*', '\bpartner\w*\s*[–-]', 'Członek\s+konsorcjum', 'reprezentowan', 'Pełnomocnik', 'Kancelari']}
       krs:
-        - {type: pattern, pattern: 'KRS\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
+        - {type: pattern, pattern: 'KRS(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
         - {<<: *odw_near, value: krs}
       nip:
-        - {type: pattern, pattern: 'NIP\W{0,3}(?:PL[  -]?)?(\d(?:[\s-]?\d){9})(?!\d)', digits: true}
+        - {type: pattern, pattern: 'NIP(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(?:PL[  -]?)?(\d(?:[\s-]?\d){9})(?!\d)', digits: true}
         - {<<: *odw_near, value: nip}
       regon:
-        - {type: pattern, pattern: 'REGON\W{0,3}(\d(?:[  ]?\d){13}|\d(?:[\s]?\d){8})(?!\d)', digits: true}
+        - {type: pattern, pattern: 'REGON(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(\d(?:[  ]?\d){13}|\d(?:[\s]?\d){8})(?!\d)', digits: true}
         - {<<: *odw_near, value: regon}
       przez-pelnomocnika:
         - {if_no_section: true, type: exists, scope: document, pattern: ['reprezentowan\w*\s+(?:jest\s+)?przez', 'pełnomocnik(?!\w*\s+Odwołującego\s*$)']}
@@ -257,24 +260,31 @@ lists:
         # macierz stron: druga firma w wierszu "Nazwa"
         - {type: pattern, pattern: '^\s*(?:Nazwa|Firma)\s+.+?(?-i:S\.A\.|sp\.\s*z\s*o\.\s*o\.(?:\s*sp\.\s*k\.)?|sp\.\s*k\.|sp\.\s*j\.)[ \t]+(\S[^\n]+)$', clean: true}
         - {type: pattern, pattern: '^\s*(?:Nazwa|Firma)(?:\s*\([^)\n]*\))?\s*:?[ \t]+([^\n]+)', clean: true}
-        - {type: first_line, reject: ['^\d', '^(?-i:[a-ząćęłńóśźż])', '^(?:Członek|Partner|Lider|Uczestnik|Pełnomocni)\b', '^(?:uwzględnienie|zasądzenie|nakazanie)\b'], cut: ['\s+[–-]\s*(?:Lider|lider|prowadząc|\(?zamawiając)', '\s*[–-]\s*$', '\s+z\s+siedzibą', '\s*\((?:lider|prowadząc)', '\s*[,;]\s*(?:ul\.|al\.|pl\.|os\.)', '\s+(?:ul\.|al\.|pl\.|os\.)\s', '\s*,?\s*\d{2}-\d{3}\s', '\s*[,;]?\s*(?:KRS|NIP|REGON)\b'], skip: [':$']}
+        - {type: first_line, reject: ['^\d', '^(?-i:[a-ząćęłńóśźż])', '^(?:Członek|Partner|Lider|Uczestnik|Pełnomocni)\b', '^(?:uwzględnienie|zasądzenie|nakazanie)\b'], cut: ['\s+[–-]\s*(?:Lider|lider|prowadząc|\(?zamawiając)', '\s*[–-]\s*$', '\s+z\s+siedzibą', '\s*\((?:lider|prowadząc)', '\s*[,;]\s*(?:ul\.|al\.|pl\.|os\.)', '\s+(?:ul\.|al\.|pl\.|os\.)\s', '\s*,?\s*\d{2}-\d{3}\s', '\s*[,;]?\s*\(?\s*(?:KRS|NIP|REGON)\b'], skip: [':$']}
         - {type: pattern, if_no_section: true, clean: true, pattern: '(?:przeciwko\s+Zamawiającemu,?\s+którym\s+jest|Zamawiającym\s+jest)\s+((?-i:[A-ZŁŚŻŹĆŃÓ„])[^,;()]{2,150}?)\s+z\s+siedzibą'}
+        # rola PO danych: "Gmina X, ul. …, NIP … – Zamawiający" / "… (dalej: „Zamawiający”)" — szukamy wstecz w bloku
+        - &zam_back {type: near, value: company, if_no_section: true, window: 0, before: 400,
+                     anchors: ['[–—-][ \t]*Zamawiając\w*', '(?:dalej|zwan\w*\s+dalej)\s*(?:jako|też)?\s*:?\s*[„"”]?\s*Zamawiając', '\(\s*[„"]?Zamawiając\w*[”"]?\s*\)'],
+                     before_stop: ['Odwołując\w*', 'Wykonawc\w*', '\n[ \t]*\n', '\bprzeciwko\b', '\bwobec\b', 'Izb\w*\s+Odwoławcz\w*', '\bdotyczy\b', '[„"]\s*\)']}
         - &zam_near {type: near, value: company, if_no_section: true, window: 300,
                      anchors: ['przeciwko\s+Zamawiającemu', '(?<!Odwołujący[ \t])(?<!ODWOŁUJĄCY[ \t])Zamawiając\w*', 'Instytucj\w*\s+zamawiając\w*', 'Organizator\w*\s+postępowania|Podmiot\w*\s+zamawiając\w*'],
                      stop: ['Odwołując\w*', 'Wykonawc\w*', 'Pełnomocnik', 'Kancelari', 'Przedmiot', 'Postępowani', 'dotyczy']}
         - {<<: *zam_near, scope: document, only_if_single: true}
       krs:
         - {type: pattern, pattern: '^\s*KRS\W{0,3}\d(?:[  ]?\d){9}[ \t]+(\d(?:[  ]?\d){9})(?!\d)', digits: true}
-        - {type: pattern, pattern: 'KRS\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
+        - {type: pattern, pattern: 'KRS(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
+        - {<<: *zam_back, value: krs}
         - {<<: *zam_near, value: krs}
       nip:
         - {type: pattern, pattern: '^\s*NIP\W{0,3}(?:PL[  -]?)?\d(?:[  -]?\d){9}[ \t]+(?:PL[  -]?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
-        - {type: pattern, pattern: 'NIP\W{0,3}(?:PL[  -]?)?(\d(?:[\s-]?\d){9})(?!\d)', digits: true}
+        - {type: pattern, pattern: 'NIP(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(?:PL[  -]?)?(\d(?:[\s-]?\d){9})(?!\d)', digits: true}
+        - {<<: *zam_back, value: nip}
         - {<<: *zam_near, value: nip}
         - {<<: *zam_near, value: nip, scope: document, only_if_single: true}
       regon:
         - {type: pattern, pattern: '^\s*REGON\W{0,3}(?:\d(?:[  ]?\d){13}|\d(?:[  ]?\d){8})[ \t]+(\d(?:[  ]?\d){13}|\d(?:[  ]?\d){8})(?!\d)', digits: true}
-        - {type: pattern, pattern: 'REGON\W{0,3}(\d(?:[  ]?\d){13}|\d(?:[\s]?\d){8})(?!\d)', digits: true}
+        - {type: pattern, pattern: 'REGON(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(\d(?:[  ]?\d){13}|\d(?:[\s]?\d){8})(?!\d)', digits: true}
+        - {<<: *zam_back, value: regon}
         - {<<: *zam_near, value: regon}
         - {<<: *zam_near, value: regon, scope: document, only_if_single: true}
       prowadzacy_postepowanie:
