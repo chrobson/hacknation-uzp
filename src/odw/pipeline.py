@@ -5,6 +5,8 @@ from __future__ import annotations
 import contextlib
 import copy
 import json
+import os
+import time
 import sys
 import logging
 import signal
@@ -107,13 +109,14 @@ def _derive(out: dict[str, Any], spec: dict[str, Any]) -> Any:
     return table.get(source)
 
 
-def process_pdf(path: Path, classes: list[DocClass], timeout: float = DOC_TIMEOUT_S, doc: Document | None = None) -> Result:
+def process_pdf(path: Path, classes: list[DocClass], timeout: float = DOC_TIMEOUT_S, doc: Document | None = None,
+                ocr: bool | str = True) -> Result:
     """Never raises. Unreadable/unclassifiable → {}; extraction failure → partial result.
     `doc` lets callers (e.g. perturbation tests) pass already-loaded text instead of reading the PDF."""
     verdict = Verdict(None, {})
     try:
         with deadline(timeout):
-            doc = canonical(doc if doc is not None else load_pdf(path))
+            doc = canonical(doc if doc is not None else load_pdf(path, ocr=ocr))
             verdict = classify(doc, classes)
             if verdict.cls is None:
                 return Result(path, verdict, {}, doc)
@@ -145,25 +148,67 @@ def _partial_or_template(doc_class: DocClass) -> dict[str, Any]:
     return copy.deepcopy(doc_class.output_template)
 
 
+def _budget_s() -> float:
+    """Whole-run time budget (ODW_BUDGET_S, default 38 min: the contest limit is 45 min for the batch)."""
+    try:
+        return float(os.environ.get("ODW_BUDGET_S", 38 * 60))
+    except ValueError:
+        return 38 * 60.0
+
+
 def run(input_dir: Path, output_dir: Path, classes: list[DocClass] | None = None,
         evidence_dir: Path | None = None) -> list[Result]:
+    """Text PDFs first (fast); every scan gets "{}" at once, then OCR overwrites it within the time budget.
+    When the remaining scans would not fit, OCR switches to a reduced mode (first 3 pages + last, one pass, no LLM);
+    past the budget the remaining scans keep "{}"."""
+    from . import llm
+
     classes = classes or load_classes()
-    results = []
-    for pdf in sorted(p for p in input_dir.rglob("*") if p.suffix.lower() == ".pdf"):
-        rel = pdf.relative_to(input_dir).with_suffix(".json")
-        result = process_pdf(pdf, classes)
-        target = output_dir / rel
-        try:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(json.dumps(result.data, ensure_ascii=False, indent=2), encoding="utf-8")
-        except OSError:
-            log.exception("cannot write %s", target)
-        if evidence_dir is not None and result.doc is not None:
-            _write_evidence(evidence_dir / rel.with_suffix(".evidence.json"), result)
-        log.info("%s -> %s", rel.with_suffix(".pdf"), result.verdict.name or "{} (rejected)")
-        results.append(result)
-    _warn_unread_scans(results)
-    return results
+    start, budget = time.monotonic(), _budget_s()
+    pdfs = sorted(p for p in input_dir.rglob("*") if p.suffix.lower() == ".pdf" and p.is_file())
+    results: dict[Path, Result] = {}
+    scans: list[Path] = []
+    for pdf in pdfs:
+        result = process_pdf(pdf, classes, ocr=False)
+        if result.doc is not None and not result.doc.has_text and result.doc.pages:
+            scans.append(pdf)  # no text layer: placeholder now, OCR in the second pass
+        _store(pdf, input_dir, output_dir, evidence_dir, result)
+        results[pdf] = result
+    fast, ocr_times = False, []
+    for i, pdf in enumerate(scans):
+        elapsed = time.monotonic() - start
+        if elapsed > budget:
+            log.error("time budget %.0fs exhausted: %d scan(s) left as {}", budget, len(scans) - i)
+            print(f"!!! BUDŻET CZASU ({budget:.0f} s) WYCZERPANY: {len(scans) - i} skan(ów) zostaje jako {{}} !!!",
+                  file=sys.stderr)
+            break
+        per_scan = (sum(ocr_times) / len(ocr_times)) if ocr_times else 6.0
+        if not fast and elapsed + per_scan * (len(scans) - i) > budget:
+            fast = True
+            llm.disable("budżet czasu")
+            log.warning("time budget at risk: reduced OCR for the remaining %d scan(s)", len(scans) - i)
+            print(f"Uwaga: budżet czasu zagrożony, tryb okrojony OCR dla {len(scans) - i} skan(ów)", file=sys.stderr)
+        t0 = time.monotonic()
+        result = process_pdf(pdf, classes, ocr="fast" if fast else True)
+        ocr_times.append(time.monotonic() - t0)
+        _store(pdf, input_dir, output_dir, evidence_dir, result)
+        results[pdf] = result
+    out = [results[p] for p in pdfs]
+    _warn_unread_scans(out)
+    return out
+
+
+def _store(pdf: Path, input_dir: Path, output_dir: Path, evidence_dir: Path | None, result: Result) -> None:
+    rel = pdf.relative_to(input_dir).with_suffix(".json")
+    target = output_dir / rel
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result.data, ensure_ascii=False, indent=2), encoding="utf-8")
+    except OSError:
+        log.exception("cannot write %s", target)
+    if evidence_dir is not None and result.doc is not None and result.doc.has_text:
+        _write_evidence(evidence_dir / rel.with_suffix(".evidence.json"), result)
+    log.info("%s -> %s", rel.with_suffix(".pdf"), result.verdict.name or "{} (rejected)")
 
 
 def _warn_unread_scans(results: list[Result]) -> None:

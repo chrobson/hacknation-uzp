@@ -180,13 +180,17 @@ def _assign_accounts(text: str, cfg: dict[str, Any]) -> dict[str, str]:
         return {role: ("PL" + a if a in prefixed else a) for role, a in r.items()}
 
     # Domain prior (config): the payee of a KIO fee / stamp duty is a public office. If exactly one of the first
-    # two accounts is a configured payee account or has an owner line naming such an office, it is the receiver.
+    # two accounts is a configured payee account (always) or, when the role keywords left the roles undecided,
+    # has an owner line naming such an office, it is the receiver.
     hints = _compile(cfg.get("receiver_hints", []))
     known = {N.digits(str(k)) for k in cfg.get("known_receivers", [])}
+    decided = len(roles) == 2 and roles.get("sender") != roles.get("receiver")
     if len(accts) >= 2 and (hints or known):
         def hinted(i: int) -> bool:
             if accts[i] in known:
                 return True
+            if decided:  # owner-line hints only break ties; role keywords that already decided both roles win
+                return False
             nxt = spans[i + 1][0] if i + 1 < len(spans) else len(text)
             after = "\n".join(text[spans[i][1] : min(nxt, spans[i][1] + 200)].split("\n")[:3])
             return any(h.search(after) for h in hints)

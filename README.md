@@ -59,9 +59,16 @@ Plik `examples/klasy/wezwanie_do_uzupelnienia.yaml` (~40 linii) definiuje kotwic
 **Klucz w pliku `.env` (wzór: `.env.example`); bez klucza działa tryb regułowy.** Bez sieci, z `LLM_ENABLED=0` albo z `--llm off` również działają same reguły. Po nieudanym wywołaniu (timeout, 401/429, brak sieci) model jest wyłączany do końca przebiegu.
 
 ## OCR i wydajność
-- **OCR jest lokalny**: Tesseract (`tesseract -l pol`) uruchamiany jako proces na tym samym komputerze, bez modelu językowego i bez żadnego API.
+- **OCR jest lokalny**: Tesseract (`tesseract -l pol`) uruchamiany jako proces na tym samym komputerze, bez modelu językowego i bez żadnego API. Bez programu `tesseract` i bez uprawnień administratora (brak sudo) skany czyta biblioteka `tesserocr` (wbudowany Tesseract, instalowana z zależnościami Pythona) z modelem `pol` pobranym przez `start.sh` do `~/.local/share/tessdata`; wynik na skanach UZP jest identyczny (sprawdzone w kontenerze Ubuntu 24.04 bez sudo, `--cpus=2`).
+- **Budżet czasu**: najpierw przetwarzane są wszystkie PDF-y z warstwą tekstową, każdy skan od razu dostaje plik `{}`, a OCR nadpisuje go po kolei. Gdy prognoza przekracza budżet (`ODW_BUDGET_S`, domyślnie 38 min), OCR przechodzi w tryb okrojony (3 pierwsze strony i ostatnia, jeden przebieg, bez LLM); po budżecie pozostałe skany zostają jako `{}`. Liczba wątków OCR wynika z rdzeni faktycznie dostępnych procesowi (także limitu `--cpus` w kontenerze).
 - Czas zmierzony na laptopie (Apple M2 Pro, LLM włączony): **226 PDF (dane treningowe + 30 skanów) w ok. 2,5 min**: 196 PDF z warstwą tekstową w 31 s (0,16 s/PDF), 30 skanów w 123 s (ok. 4 s/skan, z prostowaniem i drugim przebiegiem OCR).
-- Najgorszy przypadek: OCR maks. 12 stron na dokument i 60 s na stronę, limit 180 s na dokument (wtedy zapisywany jest wynik częściowy), model językowy po pierwszej awarii (15 s × 2 próby) wyłączony do końca przebiegu. Limit konkursowy (150 PDF w 45 min) jest spełniony z dużym zapasem.
+- Najgorszy przypadek: OCR maks. 12 stron na dokument i 60 s na stronę, limit 180 s na dokument (wtedy zapisywany jest wynik częściowy), model językowy po awarii sieci (15 s × 2 próby) lub odrzuconym kluczu wyłączony do końca przebiegu; przy limicie zapytań (HTTP 429/503) program czeka zgodnie z `Retry-After` (łącznie maks. 5 min). Limit konkursowy (150 PDF w 45 min) jest spełniony z dużym zapasem.
+
+## Uruchomienie w Dockerze (alternatywa)
+```bash
+docker build -t odw . && docker run --rm --env-file .env -v "$PWD/input:/app/input" -v "$PWD/output:/app/output" odw
+```
+Obraz zawiera Tesseracta z językiem polskim; `--env-file .env` przekazuje klucz modelu językowego (bez pliku `.env` pomiń tę opcję: działają same reguły).
 
 ## Interfejs WWW (podgląd wyników)
 `pip install -r gui/requirements.txt`, potem `python -m gui` i http://localhost:8000 (szczegóły, także WSL: `gui/README.md`): po lewej PDF, po prawej JSON; najechanie na pole podświetla jego miejsce w dokumencie. Działa offline, pliki nie opuszczają komputera.

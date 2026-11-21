@@ -148,6 +148,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "pdfplumber" },
     { name = "pyyaml" },
+    { name = "tesserocr" },
 ]
 
 [package.dev-dependencies]
@@ -160,6 +161,7 @@ dev = [
 requires-dist = [
     { name = "pdfplumber", specifier = "==0.11.11" },
     { name = "pyyaml", specifier = "==6.0.4" },
+    { name = "tesserocr", specifier = "==2.13.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -336,4 +338,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/b3/d4/5845698661cb23bc7935536c28f5b86b2b3606de1f54722c1cfac39f170a/rapidfuzz-3.14.6-cp313-cp313-win32.whl", hash = "sha256:4406b2517b85febcf9419f8fbcdfbd534872ea32608050f9562224933ca49a4c", size = 1886313, upload-time = "2026-08-30T21:43:20.173Z" },
     { url = "https://files.pythonhosted.org/packages/67/f1/5b7c56737b9e5af7523ea79e90df732e9e4b2fa66fe2b333ee013ea6e541/rapidfuzz-3.14.6-cp313-cp313-win_amd64.whl", hash = "sha256:c69fb0e064d10c79908dcda76d7ca8ecdf8393a39acbb74dbad3f709f2c60e95", size = 1728638, upload-time = "2026-08-30T21:43:22.169Z" },
     { url = "https://files.pythonhosted.org/packages/05/5e/fc1da16b7f5245a7cc61dc08f70391ddaa1c538be1cf92681e7c763b77a4/rapidfuzz-3.14.6-cp313-cp313-win_arm64.whl", hash = "sha256:a0c8bef04f6b1d9fdbb319576350af53151a64692d477db7d4844c220bc8e212", size = 1185777, upload-time = "2026-08-30T21:43:24.27Z" },
+]
+
+[[package]]
+name = "tesserocr"
+version = "2.13.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/c5/be11a18c29f43369a3db8f418de81f98ca467783ddf8affadfacc16459fd/tesserocr-2.13.0.tar.gz", hash = "sha256:475460f736e5ac23dfcfbd414435581fa6eb0e849e80c816da2ff1b4af7d88ed", size = 80098, upload-time = "2026-11-12T09:45:24.88Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/ca/2108ae8a173048080bf0e282d72c94faa58e81466320757b3988b1272981/tesserocr-2.13.0-cp313-cp313-macosx_15_0_arm64.whl", hash = "sha256:99ab3cca8197b15a5bea31bd1bcabf60577f7ec5252c20b0a7eb7ffbcd72a1c3", size = 3632270, upload-time = "2026-11-12T09:44:07.697Z" },
+    { url = "https://files.pythonhosted.org/packages/db/39/019c44fd7f5ee8a2f6121194b8df5bf8ead92491fbe13b28706a8849f779/tesserocr-2.13.0-cp313-cp313-macosx_15_0_x86_64.whl", hash = "sha256:6366443c03acff0d7b63eb4ff6408f2e5c302b1884db769fb8a9f04bed9c3777", size = 4103593, upload-time = "2026-11-12T09:44:09.785Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/42/dc2c78073d5558b527ad4bddf1bd30479fa237f2f60fa9cd6e4b7b127ae9/tesserocr-2.13.0-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:62932dd61c0822611fc983580f074eeb8f962be07b166f1abfd01f7c9b4349c9", size = 5275855, upload-time = "2026-11-12T09:44:12.141Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/fe/9d2ac05a141c5d154620aa58214ba93e95a7eaeb39116c8d1235447e1406/tesserocr-2.13.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2c9dbfe7332bf2e9dc20256f776ad8235a5a20f3de69396fe9f0981e6c6a8d14", size = 5605145, upload-time = "2026-11-12T09:44:14.562Z" },
+    { url = "https://files.pythonhosted.org/packages/34/5c/ceba6326f135b33f184fcedb49377ffaf00be00c08dfcb80d7a980de233a/tesserocr-2.13.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:8745d5c4401b82627188a2e00fe83980b1a0a67eb34e1dfddf8bf1f532c314b2", size = 6964499, upload-time = "2026-11-12T09:44:16.912Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/92/69b37fd0be24f65fa0699a0c84b98093cc6061b71fd5175b9e748b6e3ac4/tesserocr-2.13.0-cp313-cp313-win_amd64.whl", hash = "sha256:980236d904b58f10b4251a015d0262968e1cb51aeb00e47c608e666c32ab4027", size = 23167947, upload-time = "2026-11-12T09:44:20.29Z" },
 ]

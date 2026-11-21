@@ -15,6 +15,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import threading
 from functools import cache
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -59,7 +60,24 @@ def canonical(doc: Document) -> Document:
 OCR_DPI = 300
 OCR_MAX_PAGES = 12
 OCR_PAGE_TIMEOUT_S = 60
-OCR_WORKERS = max(1, min(8, (os.cpu_count() or 2)))
+
+
+def usable_cpus() -> int:
+    """CPUs this process may really use: affinity mask and a cgroup v2 quota (docker --cpus), not the host's count."""
+    try:
+        n = len(os.sched_getaffinity(0))
+    except (AttributeError, OSError):
+        n = os.cpu_count() or 2
+    try:
+        quota, period = Path("/sys/fs/cgroup/cpu.max").read_text().split()[:2]
+        if quota != "max":
+            n = min(n, max(1, int(int(quota) / int(period))))
+    except (OSError, ValueError):
+        pass
+    return max(1, n)
+
+
+OCR_WORKERS = max(1, min(8, usable_cpus()))
 OCR_LANG = os.environ.get("ODW_OCR_LANG", "pol")
 _OCR_ZOO = re.compile(r"(?i)(\bsp\.?\s*z\s*)(?:0\.\s?[0o]|o\.\s?0)\.")  # at least one zero: real "o.o." untouched
 # "@" read as "(O", "(Q", "(d", "(a", "(" (then the domain) or with a stray letter before it ("biuroQ@")
@@ -69,9 +87,31 @@ _EMAIL_AT = re.compile(r"\b([\w.+-]{2,})[Q©®](?=[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}
 
 
 @cache
+def _tessdata_dir() -> Path | None:
+    """Directory with the Polish model for the tesserocr fallback (TESSDATA_PREFIX, else where start.sh puts it)."""
+    for d in (os.environ.get("TESSDATA_PREFIX"), str(Path.home() / ".local/share/tessdata")):
+        if d and Path(d, f"{OCR_LANG}.traineddata").is_file():
+            return Path(d)
+    return None
+
+
+@cache
+def _lib_ocr() -> bool:
+    """Fallback without the tesseract program (e.g. no sudo): the tesserocr wheel bundles libtesseract."""
+    if _tessdata_dir() is None:
+        return False
+    try:
+        import tesserocr  # noqa: F401
+    except Exception:  # missing wheel or a broken native library: no fallback
+        return False
+    return True
+
+
 def ocr_available() -> bool:
     exe = shutil.which("tesseract")
     if not exe:
+        if _lib_ocr():
+            return True
         log.warning("tesseract not found: scanned PDFs cannot be read (install tesseract-ocr tesseract-ocr-pol)")
         return False
     try:
@@ -79,20 +119,61 @@ def ocr_available() -> bool:
     except (OSError, subprocess.SubprocessError):
         return False
     if OCR_LANG not in langs:
+        if _lib_ocr():
+            return True
         log.warning("tesseract has no '%s' model: scanned PDFs cannot be read (install tesseract-ocr-pol)", OCR_LANG)
         return False
     return True
 
 
+@cache
+def _use_lib() -> bool:
+    """tesserocr only when the tesseract program (with the Polish model) is not usable (ODW_OCR_ENGINE=lib forces it)."""
+    if os.environ.get("ODW_OCR_ENGINE") == "lib":
+        return _lib_ocr()
+    exe = shutil.which("tesseract")
+    if exe:
+        try:
+            if OCR_LANG in subprocess.run([exe, "--list-langs"], capture_output=True, text=True, timeout=20).stdout.split():
+                return False
+        except (OSError, subprocess.SubprocessError):
+            pass
+    return _lib_ocr()
+
+
 OCR_PSM = os.environ.get("ODW_OCR_PSM", "3")  # 3 = automatic page segmentation (better than 4 on real scans)
 
 
+_TSV_HEADER = "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext"
+_LIB = threading.local()  # one tesserocr API per OCR worker thread (an API object is not thread-safe)
+
+
+def _lib_tsv(image_path: Path) -> str:
+    from tesserocr import PyTessBaseAPI
+
+    api = getattr(_LIB, "api", None)
+    if api is None:
+        api = _LIB.api = PyTessBaseAPI(path=str(_tessdata_dir()), lang=OCR_LANG, psm=int(OCR_PSM))
+    api.SetImageFile(str(image_path))
+    return _TSV_HEADER + "\n" + api.GetTSVText(0)
+
+
 def _tesseract_tsv(image_path: Path) -> str:
-    return subprocess.run(
-        ["tesseract", str(image_path), "stdout", "-l", OCR_LANG, "--psm", OCR_PSM, "-c", "tessedit_create_tsv=1"],
-        capture_output=True, text=True, timeout=OCR_PAGE_TIMEOUT_S,
-        env={**os.environ, "OMP_THREAD_LIMIT": "1"},  # pages run in parallel; one thread each avoids oversubscription
-    ).stdout
+    if _use_lib():
+        try:
+            return _lib_tsv(image_path)
+        except Exception as exc:
+            log.warning("%s: tesserocr failed: %s", image_path.name, exc)
+            return ""
+    try:
+        return subprocess.run(
+            ["tesseract", str(image_path), "stdout", "-l", OCR_LANG, "--psm", OCR_PSM, "-c", "tessedit_create_tsv=1"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=OCR_PAGE_TIMEOUT_S,
+            env={**os.environ, "OMP_THREAD_LIMIT": "1"},  # pages run in parallel; one thread each avoids oversubscription
+        ).stdout
+    except subprocess.TimeoutExpired:  # one stuck page must not lose the rest of the document
+        log.warning("%s: OCR page timed out after %ss", image_path.name, OCR_PAGE_TIMEOUT_S)
+        return ""
 
 
 def _skew_deg(tsv: str) -> float:
@@ -116,11 +197,11 @@ def _skew_deg(tsv: str) -> float:
     return math.degrees(math.atan(median(slopes))) if len(slopes) >= 3 else 0.0
 
 
-def _ocr_page(image_path: Path, scale: float) -> tuple[str, list[dict]]:
+def _ocr_page(image_path: Path, scale: float, deskew: bool = True) -> tuple[str, list[dict]]:
     """Tesseract TSV → page text (one line per OCR line) and word boxes in PDF points (origin top-left).
     A skewed scan (0.15°–10°, estimated from the first pass) is straightened and read again."""
     out = _tesseract_tsv(image_path)
-    angle = _skew_deg(out)
+    angle = _skew_deg(out) if deskew else 0.0
     if 0.15 < abs(angle) < 10:
         from PIL import Image
 
@@ -145,7 +226,8 @@ def _ocr_page(image_path: Path, scale: float) -> tuple[str, list[dict]]:
     return _EMAIL_AT.sub(r"\1@", page_text), words
 
 
-def ocr_pdf(path: Path) -> Document:
+def ocr_pdf(path: Path, fast: bool = False) -> Document:
+    """`fast` (time budget at risk): only the first 3 pages and the last one, single OCR pass (no deskew)."""
     import pypdfium2 as pdfium
 
     pages: list[str] = []
@@ -155,17 +237,25 @@ def ocr_pdf(path: Path) -> Document:
     pdf = pdfium.PdfDocument(str(path))
     try:
         with tempfile.TemporaryDirectory() as tmp:
-            images = []
-            for i in range(min(len(pdf), OCR_MAX_PAGES)):  # rendering stays sequential (pdfium is not thread-safe)
+            images: list[Path | None] = []
+            n = min(len(pdf), OCR_MAX_PAGES)
+            for i in range(n):  # rendering stays sequential (pdfium is not thread-safe)
                 page = pdf[i]
                 width, height = page.get_size()
-                image = Path(tmp, f"p{i}.png")
-                page.render(scale=scale).to_pil().save(image)
-                images.append(image)
                 sizes.append((round(width, 1), round(height, 1)))
+                if fast and 3 <= i < n - 1:
+                    images.append(None)  # skipped page keeps its index (evidence page numbers stay right)
+                    continue
+                image = Path(tmp, f"p{i}.png")
+                page.render(scale=scale).to_pil().save(image, compress_level=1)
+                images.append(image)
+
+            def read(im: Path | None) -> tuple[str, list[dict]]:
+                return ("", []) if im is None else _ocr_page(im, scale, deskew=not fast)
+
             # tesseract processes in parallel, one per page (a 7-page scan: ~17 s → ~4 s on 8 cores)
             with ThreadPoolExecutor(max_workers=OCR_WORKERS) as pool:
-                for text, page_words in pool.map(lambda im: _ocr_page(im, scale), images):
+                for text, page_words in pool.map(read, images):
                     pages.append(text)
                     words.append(page_words)
     finally:
@@ -207,7 +297,8 @@ def _page_text(page) -> str:
         return text
 
 
-def load_pdf(path: Path) -> Document:
+def load_pdf(path: Path, ocr: bool | str = True) -> Document:
+    """Text layer; a PDF without one goes to OCR unless `ocr` is False ("fast" = reduced OCR, see ocr_pdf)."""
     pages: list[str] = []
     words: list[list[dict]] = []
     sizes: list[tuple[float, float]] = []
@@ -224,9 +315,9 @@ def load_pdf(path: Path) -> Document:
         log.warning("cannot read %s: %s", path, exc)
         return Document(path=path, pages=pages, words=words, sizes=sizes)
     doc = Document(path=path, pages=pages, words=words, sizes=sizes)
-    if not doc.has_text and pages and ocr_available():
+    if ocr and not doc.has_text and pages and ocr_available():
         try:
-            return ocr_pdf(path)
+            return ocr_pdf(path, fast=ocr == "fast")
         except Exception as exc:  # OCR failure must not break the batch
             log.warning("OCR failed for %s: %s", path, exc)
     return doc

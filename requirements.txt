@@ -16,3 +16,5 @@ pypdfium2==5.15.2
     # via pdfplumber
 pyyaml==6.0.4
     # via odwolania2json
+tesserocr==2.13.0
+    # via odwolania2json

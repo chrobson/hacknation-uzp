@@ -155,3 +155,36 @@ def test_act_date_must_precede_the_letter(fake):
     answers += [{"value": "2025-03-12"}, {"value": "2025-03-03"}]
     assert extract_field([spec], ctx) is None  # the letter's own date
     assert extract_field([spec], ctx) == "2025-03-03"
+
+
+def _http(code, retry_after=None):
+    import email.message
+    import urllib.error
+
+    headers = email.message.Message()
+    if retry_after is not None:
+        headers["Retry-After"] = str(retry_after)
+    return urllib.error.HTTPError("https://example.invalid", code, "x", headers, None)
+
+
+def test_rate_limit_is_waited_out(fake, monkeypatch):
+    slept = []
+    monkeypatch.setattr(llm.time, "sleep", slept.append)
+    _, answers = fake
+    answers += [_http(429, 3), _http(503), {"value": "ok"}]
+    assert llm.ask("q", "t", {"type": "string"}) == "ok"
+    assert slept == [3.0, 4.0] and llm.enabled()
+
+
+def test_bad_key_trips_breaker_at_once(fake):
+    calls, answers = fake
+    answers += [_http(401)]
+    assert llm.ask("q", "t", {"type": "string"}) is None
+    assert len(calls) == 1 and not llm.enabled()
+
+
+@pytest.mark.parametrize("encoding", ["utf-8-sig", "utf-16"])
+def test_dotenv_saved_on_windows(tmp_path, encoding):
+    env = tmp_path / ".env"
+    env.write_bytes("LLM_API_KEY=abc\r\nLLM_MODEL=m\r\n".encode(encoding))
+    assert llm._dotenv(env) == {"LLM_API_KEY": "abc", "LLM_MODEL": "m"}

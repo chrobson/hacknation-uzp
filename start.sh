@@ -47,9 +47,8 @@ ocr_banner() {
     log "=================================================================================="
 }
 
-# tesseract jest, brakuje tylko pol: pobierz model do ~/.local/share/tessdata (bez roota, każdy system)
-fetch_pol_model() {
-    command -v tesseract >/dev/null 2>&1 || return 1
+# model pol do ~/.local/share/tessdata (bez roota, każdy system); używa go tesseract albo zapasowo tesserocr
+download_pol_model() {
     [ "${ODW_NO_OCR_INSTALL:-0}" = 1 ] && return 1
     local dir="$HOME/.local/share/tessdata" url="https://github.com/tesseract-ocr/tessdata_fast/raw/main/pol.traineddata"
     mkdir -p "$dir" || return 1
@@ -61,7 +60,12 @@ fetch_pol_model() {
         mv "$dir/pol.traineddata.part" "$dir/pol.traineddata"
     fi
     export TESSDATA_PREFIX="$dir"
-    have_tesseract_pol
+}
+
+# tesseract jest, brakuje tylko pol: pobierz sam model
+fetch_pol_model() {
+    command -v tesseract >/dev/null 2>&1 || return 1
+    download_pol_model && have_tesseract_pol
 }
 
 ensure_tesseract() {
@@ -116,7 +120,15 @@ ensure_tesseract() {
 }
 
 ensure_tesseract || true
-have_tesseract_pol || ocr_banner
+# Bez programu tesseract (np. brak sudo): OCR zapasowo przez bibliotekę tesserocr (wbudowany Tesseract, instalowana
+# z zależnościami Pythona) z modelem pol pobranym bez roota. Program sam wypisze ostrzeżenie, jeśli skany zostaną nieodczytane.
+if ! have_tesseract_pol; then
+    if download_pol_model; then
+        log "OCR: brak programu tesseract; skany przeczyta biblioteka tesserocr z modelem pol ($TESSDATA_PREFIX)"
+    else
+        ocr_banner
+    fi
+fi
 
 STATE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/odwolania2json"
 # Repozytorium na dysku Windows (/mnt/c/...) w WSL: venv trzymamy w systemie plików Linuksa (szybciej, bez problemów z symlinkami).
