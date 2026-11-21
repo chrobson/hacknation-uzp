@@ -7,6 +7,7 @@ Configuration (environment or ./.env):
     LLM_BASE_URL   e.g. https://api.eu.mistral.ai/v1
     LLM_MODEL      e.g. ministral-3b-2512
     LLM_API_KEY    secret, never committed
+    LLM_ENABLED    0 → rules only, whatever config/llm.yaml says
 """
 
 from __future__ import annotations
@@ -61,7 +62,11 @@ def settings() -> dict[str, Any]:
         "max_chars": int(file_cfg.get("max_chars", 6000)),
         "classify_tiebreak": bool(file_cfg.get("classify_tiebreak", False)),
     }
-    wanted = bool(file_cfg.get("enabled", False)) if _FORCED is None else _FORCED
+    wanted = bool(file_cfg.get("enabled", False))
+    if env.get("LLM_ENABLED", "").strip().lower() in ("0", "false", "off", "no"):
+        wanted = False  # LLM_ENABLED=0: rules only (gate, tests, offline runs)
+    if _FORCED is not None:
+        wanted = _FORCED
     cfg["enabled"] = wanted and bool(cfg["api_key"] and cfg["base_url"] and cfg["model"])
     if wanted and not cfg["enabled"]:
         log.warning("LLM requested but LLM_BASE_URL / LLM_MODEL / LLM_API_KEY are not all set: rules only")

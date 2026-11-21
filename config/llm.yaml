@@ -1,9 +1,10 @@
-# LLM jest opcjonalny i domyślnie WYŁĄCZONY: reguły z config/classes dają wynik bez modelu.
-# Włączenie: enabled: true (albo flaga --llm on) oraz zmienne LLM_BASE_URL, LLM_MODEL, LLM_API_KEY
-# w środowisku lub w pliku .env (nie commitujemy go). Brak klucza → tryb wyłącznie regułowy.
-enabled: false
+# LLM jest opcjonalny: reguły z config/classes dają wynik bez modelu; model uzupełnia tylko pola,
+# których reguły nie znalazły (czynność: powód i data; tytuł — tylko cytat dosłowny).
+# Działa, gdy enabled: true (albo flaga --llm on) ORAZ ustawione zmienne LLM_BASE_URL, LLM_MODEL, LLM_API_KEY
+# w środowisku lub w pliku .env (nie commitujemy go). Brak klucza / sieci / LLM_ENABLED=0 → tylko reguły.
+enabled: true
 base_url: https://api.eu.mistral.ai/v1   # Mistral AI (FR), region UE
-model: ministral-3b-2512                 # open-weight, Apache-2.0, 3.85B parametrów
+model: ministral-8b-2512                 # open-weight, Apache-2.0, ok. 8B parametrów (próg ≤8B = 20 pkt)
 timeout_s: 15
 max_chars: 6000
 # Klasyfikacja: reguły mają 1.0 na wszystkich zbiorach; LLM w szarej strefie pogarszał wynik (ablacja blind),

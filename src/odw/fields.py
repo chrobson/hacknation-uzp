@@ -370,13 +370,33 @@ def _llm(spec: dict[str, Any], ctx: Context) -> Any:
     choices = spec.get("choices")  # {"word key": output value}: small models pick word labels far better than numbers
     if choices:
         value = llm.ask(spec["question"], text, {"type": "string", "enum": list(choices)})
-        return None if value is None else choices[value]
+        if value is None:
+            return None
+        value = choices[value]
+        # evidence: {value: [patterns]} — reject a label none of whose keywords occurs in the passage (a guess)
+        need = (spec.get("evidence") or {}).get(value)
+        if need and not any(rx.search(text) for rx in _compile(need)):
+            return None
+        return value
     value = llm.ask(spec["question"], text, spec.get("schema", {"type": "string"}))
     if value is not None and spec.get("value") == "date":
         value = N.find_date(str(value))
+        # the date must be written in the passage (any format), not computed or invented
+        if value and spec.get("date_in_text") and value not in {d for d in _all_dates(text)}:
+            return None
     if value is not None and spec.get("verbatim") and _squash(str(value)) not in _squash(text):
         return None  # the model must quote the document, never paraphrase or invent
     return value
+
+
+def _all_dates(text: str) -> list[str]:
+    out, pos = [], 0
+    while (m := N.DATE_RE.search(text, pos)):
+        d = N.find_date(m.group(0))
+        if d:
+            out.append(d)
+        pos = m.end()
+    return out
 
 
 def _squash(s: str) -> str:

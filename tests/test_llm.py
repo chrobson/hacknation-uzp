@@ -70,7 +70,7 @@ Gmina Beta
 dotyczy: postępowania pn. „Dostawa sprzętu biurowego dla urzędu”, nr referencyjny: ZP.1.2026
 ODWOŁANIE
 Działając w imieniu Odwołującego wnoszę odwołanie wobec czynności, o której mowa poniżej.
-Zarzut nr 1 – naruszenia art. 16 Pzp."""
+Zarzut nr 1 – naruszenia art. 16 Pzp w zakresie postanowień umowy, termin 27.02.2026."""
 
 
 def test_llm_fills_only_fields_rules_could_not(fake):
@@ -97,9 +97,9 @@ def test_rules_only_mode_makes_no_calls(monkeypatch):
 def test_reason_asks_with_word_labels_on_first_charge_only(fake):
     """Small models pick word labels, not numbers; the model sees at most 1500 characters of the first charge."""
     calls, answers = fake
-    answers += [{"value": None}, {"value": "zaniechanie wykluczenia wykonawcy"}]
+    answers += [{"value": None}, {"value": "projektowane postanowienia umowy"}]
     out = extract(Document(Path("x.pdf"), [APPEAL_WITHOUT_KNOWN_ACTION]), CLS["odwolanie"])
-    assert out["OdwolanieKIO"]["czynnosc_powod_id"] == 8
+    assert out["OdwolanieKIO"]["czynnosc_powod_id"] == 12
     q = calls[1]
     enum = q["response_format"]["json_schema"]["schema"]["properties"]["value"]["enum"]
     assert "zaniechanie wykluczenia wykonawcy" in enum and all(isinstance(e, str) for e in enum)
@@ -123,3 +123,24 @@ def test_title_must_be_quoted_verbatim(fake):
     ctx = Context("Zamówienie pn. „Budowa  drogi” w gminie.", {})
     assert extract_field([spec], ctx) == "Budowa drogi"
     assert extract_field([spec], ctx) is None
+
+
+def test_reason_without_evidence_and_date_not_in_text_are_rejected(fake):
+    from odw.fields import Context, extract_field
+    calls, answers = fake
+    reason = {"type": "llm", "question": "q", "choices": {"wykluczenie wykonawcy": 3, "odrzucenie oferty": 1},
+              "evidence": {3: ["wyklucz"], 1: ["odrzuc"]}}
+    ctx = Context("Zarzucam zaniechanie odrzucenia oferty z dnia 3 marca 2025 r.", {})
+    answers += [{"value": "wykluczenie wykonawcy"}, {"value": "odrzucenie oferty"}]
+    assert extract_field([reason], ctx) is None  # nothing about exclusion in the passage
+    assert extract_field([reason], ctx) == 1
+    date = {"type": "llm", "question": "q", "value": "date", "date_in_text": True}
+    answers += [{"value": "2025-03-04"}, {"value": "2025-03-03"}]
+    assert extract_field([date], ctx) is None
+    assert extract_field([date], ctx) == "2025-03-03"
+
+
+def test_gate_and_tests_ignore_dotenv_key(monkeypatch):
+    monkeypatch.setattr(llm, "_dotenv", lambda path=None: {"LLM_BASE_URL": "u", "LLM_MODEL": "m", "LLM_API_KEY": "k"})
+    llm.force(None)
+    assert not llm.enabled()  # conftest sets LLM_ENABLED=0

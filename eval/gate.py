@@ -64,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
 
     for key in [k for k in os.environ if k.startswith("LLM_")]:  # check 8: everything below runs without an LLM
         del os.environ[key]
+    os.environ["LLM_ENABLED"] = "0"  # also ignore a key in ./.env: the gate measures the rules (inherited by pytest)
     checks: list[tuple[str, bool, str]] = []
 
     def check(name: str, ok: bool, detail: str = "") -> None:
