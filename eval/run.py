@@ -31,7 +31,7 @@ from eval import score as scoring  # noqa: E402
 from eval.score import Counts, score_fields  # noqa: E402
 
 DATA = ROOT / "data" / "train"
-GT_BY_PDF = {"odwolanie.pdf": "odwolanie.json", "pelnomocnictwo.pdf": "pelnomocnictwo.json", "potwierdzenie_przelewu.pdf": "przelew.json"}
+GT_BY_PDF = {"odwolanie.pdf": "odwolanie.json", "pelnomocnictwo.pdf": "pelnomocnictwo.json", "potwierdzenie_przelewu.pdf": "przelew.json", "przelew.pdf": "przelew.json"}
 CLASS_BY_KEY = {"OdwolanieKIO": "odwolanie", "mocodawca": "pelnomocnictwo", "przelew_bankowy": "przelew"}
 HOLDOUT_SEED, HOLDOUT_SIZE = 2026, 15
 
