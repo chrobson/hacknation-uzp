@@ -74,7 +74,7 @@ accepted as a class, F1 per class and, with `--fields`, F1 per field per class.
 ## Ground-truth conventions worth knowing
 
 * PESEL is a string in GT (as in train `przyklad_43`); `_equal` treats str and int as different.
-* `czynnosc_opis` for id 6 is "Odpowiedzi i wyjaśnienia do SWZ" (train GT), not the dictionary
+* `czynnosc_opis` for id 6 is "Odpowiedzi/wyjaśnienia do SWZ" (train GT), not the dictionary
   spelling "Odpowiedzi/wyjaśnienia do SWZ".
 * No-attorney odwołanie: `przez-pelnomocnika = 0` and `pelnomocnik` with all fields null
   (train has no such example).
