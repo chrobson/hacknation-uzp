@@ -208,6 +208,8 @@ def _pattern(spec: dict[str, Any], ctx: Context) -> Any:
                 return "".join(value.split()) if spec.get("nospace") else value
             value = m.group(1) if m.groups() else m.group(0)
             value = N.digits(value) if spec.get("digits") else N.clean_text(value) if spec.get("clean") else value
+            if "require" in spec and not any(r.search(value) for r in _compile(spec["require"])):
+                continue  # implausible value (e.g. a law-firm field without any law-firm word): try next pattern
             if spec.get("titlecase") or spec.get("nominative"):
                 from .names import nominative, titlecase_upper
 
@@ -232,7 +234,8 @@ def _first_line(spec: dict[str, Any], ctx: Context) -> Any:
                 line = line[: m.start()]
         line = N.clean_text(line)
         if line and not any(rx.search(line) for rx in skips):
-            return line
+            # `reject`: the first real line is not a plausible value (e.g. "1. uwzględnienie odwołania") → null
+            return None if any(rx.search(line) for rx in _compile(spec.get("reject", []))) else line
     return None
 
 
@@ -367,16 +370,24 @@ TYPES: dict[str, Callable[[dict[str, Any], Context], Any]] = {
 }
 
 
-def extract_field(specs: dict[str, Any] | list[dict[str, Any]], ctx: Context) -> Any:
-    for spec in specs if isinstance(specs, list) else [specs]:
-        c = ctx
-        if "unless_section" in spec and ctx.section(spec["unless_section"]) is not None:
+def extract_field(specs: dict[str, Any] | list[dict[str, Any]], ctx: Context,
+                  scopes: dict[str, Context] | None = None) -> Any:
+    spec_list = specs if isinstance(specs, list) else [specs]
+    # a spec without its own `scope` inherits the scope of the field's first spec
+    field_scope = spec_list[0].get("scope") if spec_list else None
+    for spec in spec_list:
+        if spec.get("only_if_single") and ctx.n_items > 1:
+            continue  # document-wide fallbacks would give every list item the same value
+        c = (scopes or {}).get(spec.get("scope", field_scope), ctx)
+        ctx_for_sections = c
+        if "unless_section" in spec and ctx_for_sections.section(spec["unless_section"]) is not None:
             continue  # fallback used only when the document has no such section
         if "section" in spec:
-            text = ctx.section(spec["section"])
+            text = ctx_for_sections.section(spec["section"])
             if text is None:
                 continue
-            c = ctx.sub(text)
+            c = ctx_for_sections.sub(text)
+            c.index, c.n_items, c.label = ctx_for_sections.index, ctx_for_sections.n_items, ctx_for_sections.label
         value = TYPES[spec["type"]](spec, c)
         if value not in (None, ""):
             if spec.get("cast") == "int":
@@ -419,10 +430,9 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
         doc = ctx.sub(ctx.text, n_items=len(chunks))
         for c in (sub, whole, doc):
             c.index = index
+        scopes = {"section": whole, "document": doc}
         for path, fspecs in spec["fields"].items():
-            scope = next((f.get("scope") for f in (fspecs if isinstance(fspecs, list) else [fspecs]) if f.get("scope")), None)
-            c = {"section": whole, "document": doc}.get(scope, sub)
-            value = extract_field(fspecs, c)
+            value = extract_field(fspecs, sub, scopes)  # each spec may pick its own scope (item/section/document)
             if value is not None or not isinstance(_get_path(item, path), list):
                 set_path(item, path, value)
         items.append(item)
