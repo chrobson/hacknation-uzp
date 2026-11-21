@@ -40,3 +40,100 @@ output_template:
     numer_postepowania: null
     numer_ted: null
     tytul: null
+
+# Sekcje: tekst od etykiety do początku następnej sekcji (lub etykiety z _end).
+sections:
+  odwolujacy: {start: '^\s*Odwołując\w*\s*:'}
+  zamawiajacy: {start: ['^\s*Zamawiając\w*\s*:', '^(?=\s*1\)\s*Zamawiając)']}
+  czynnosc: {start: 'wnosz[eę]', end: ['Zarzut\s+nr\s*2\b', '^\s*Uzasadnienie']}
+  _end:
+    start: ['^\s*(dotyczy|O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E|Prezes\b|Krajowa\s+Izba|Wykonawc\w*\s+wybran|Uczestnik|Przystępując|Działając|Wartość\s+zamówienia|Wpis\s+od|W\s+imieniu)']
+
+fields:
+  OdwolanieKIO.data:
+    - {type: labeled, value: date, labels: ['^\s*[A-ZŁŚŻŹĆ][^\n,\d:]{1,40},\s*(dnia\s+)?(?=\d)'], window: 40}
+    - {type: labeled, value: date, labels: ['^\s*[A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+(?:[\s-][A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+)*\s+(dnia\s+)?(?=\d{1,2}[.\-/]\d{1,2}[.\-/]\d{4})'], window: 20}
+  OdwolanieKIO.miejscowosc:
+    - {type: pattern, pattern: '^\s*([A-ZŁŚŻŹĆ][^\n,\d:]{1,40}),\s*(?:dnia\s+)?\d', clean: true}
+    - {type: pattern, pattern: '^\s*([A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+(?:[\s-][A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+)*)\s+(?:dnia\s+)?\d{1,2}[.\-/]\d{1,2}[.\-/]\d{4}', clean: true}
+  OdwolanieKIO.czynnosc_dzien:
+    - {type: labeled, value: date, labels: ['w\s+dniu'], window: 40, section: czynnosc}
+  OdwolanieKIO.czynnosc_powod_id:
+    # 1) konkretny nagłówek pierwszego zarzutu; 2) zdanie o czynności po "wnoszę". Wygrywa najwcześniejsze dopasowanie.
+    - type: keyword_map
+      after: 'Zarzut\s+nr\s*1\b'
+      window: 220
+      cast: int
+      map:
+        12: ['projektowan\w*\s+postanowie\w*\s+umowy']
+        10: ['zaniechani\w*\s+unieważnienia']
+        9: ['bezpodstawn\w*\s+unieważnienia', 'unieważnienia\s+postępowania']
+        8: ['zaniechani\w*\s+wykluczenia']
+        7: ['zaniechani\w*\s+odrzucenia']
+        3: ['bezpodstawn\w*\s+wykluczenia', 'wykluczenia\s+Odwołując']
+        1: ['bezpodstawn\w*\s+odrzucenia', 'odrzucenia\s+oferty\s+Odwołując']
+        2: ['wyboru\s+oferty', 'wybor\w*\s+najkorzystniejsz']
+        5: ['modyfikacji\s+treści\s+SWZ', 'zmian\w*\s+treści\s+SWZ']
+        6: ['wyjaśnień\s+treści\s+SWZ', 'odpowiedzi\s+na\s+pytania']
+        11: ['opis\w*\s+przedmiotu\s+zamówienia']
+        4: ['postanowień\s+SWZ', 'specyfikacji\s+warunków']
+    - type: keyword_map
+      section: czynnosc
+      cast: int
+      map:
+        12: ['projektowan\w*\s+postanowie\w*\s+umowy']
+        10: ['zaniechał\w*\s+unieważnienia', 'nie\s+unieważnił']
+        9: ['unieważni\w*\s+postępowanie', 'o\s+unieważnieniu']
+        8: ['nie\s+wykluczył', 'zaniechał\w*\s+wykluczenia']
+        3: ['wykluczy\w*', 'o\s+wykluczeniu']
+        7: ['nie\s+odrzucił', 'zaniechał\w*\s+odrzucenia']
+        1: ['odrzucił\w*\s+ofert', 'o\s+odrzuceniu']
+        2: ['wyb[oó]r\w*\s+oferty', 'dokonał\w*\s+wyboru']
+        5: ['zmodyfikował', 'modyfikacj\w*', 'zmienił\w*\s+treść']
+        6: ['odpowiedzi', 'wyjaśnie\w*']
+        11: ['Opis\w*\s+Przedmiotu\s+Zamówienia']
+        4: ['Specyfikacj\w*\s+Warunków\s+Zamówienia', '\bSWZ\b']
+  ZamowieniePubliczne.numer_bzp:
+    - {type: pattern, pattern: '(\d{4})\s*/\s*BZP\s*(\d{8})((?:\s*/\s*\d{2})?)', format: '{1}/BZP{2}{3}', nospace: true}
+  ZamowieniePubliczne.numer_ted:
+    - {type: pattern, pattern: '(\d{4})\s*/\s*S\s*\d{1,3}\s*-\s*(\d{6})', format: '{2}-{1}'}
+    - {type: pattern, pattern: '(?<![\d/])(\d{6})\s*-\s*(\d{4})(?!\d)', format: '{1}-{2}'}
+  ZamowieniePubliczne.numer_postepowania:
+    - type: labeled
+      value: token
+      labels: ['nr\s+referencyjn\w*(\s+sprawy)?', 'numer\s+referencyjn\w*(\s+sprawy)?', 'numer\s+postępowania', 'znak\s+sprawy', 'nr\s+sprawy', 'nr\s+postępowania', 'oznaczenie\s+sprawy', 'postępowanie\s+nr']
+      token_pattern: '[A-Z0-9][A-Za-z0-9./\-]*\d[A-Za-z0-9./\-]*'
+      window: 60
+  ZamowieniePubliczne.tytul:
+    - {type: pattern, pattern: 'pn\.?:?\s*„([^”]+)”', clean: true}
+    - {type: pattern, pattern: '„([^”]{15,})”', clean: true}
+
+lists:
+  Odwolujacy:
+    section: odwolujacy
+    split: '^\s*\d\)\s*(Lider|Partner)\w*[^\n]*:'
+    max_items: 1            # przy konsorcjum: tylko Lider
+    fields: &party
+      nazwa: {type: first_line}
+      krs: {type: pattern, pattern: 'KRS\W{0,3}(\d{10})', digits: true}
+      nip: {type: pattern, pattern: 'NIP\W{0,3}(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}|\d{10})', digits: true}
+      regon: {type: pattern, pattern: 'REGON\W{0,3}(\d{14}|\d{9})', digits: true}
+      przez-pelnomocnika: {type: exists, pattern: ['reprezentowan\w*\s+przez', 'pełnomocnik']}
+      pelnomocnik.imie_nazwisko:
+        - {type: pattern, pattern: 'reprezentowan\w*\s+przez:?\s*(?:(?:adw\.|r\.\s*pr\.|apl\.\s*adw\.|radc\w*\s+prawn\w*|adwokat\w*)\s*)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'}
+      pelnomocnik.nazwa:
+        - {type: pattern, pattern: 'adres\s+do\s+korespondencji:\s*([\s\S]+?)(?=,\s*(?:ul\.|al\.|pl\.|os\.)|\n\s*(?:ul\.|tel))', clean: true}
+      pelnomocnik.mail:
+        - {type: pattern, pattern: '([\w.+-]+@[\w-]+(?:\.[\w-]+)+)'}
+  Zamawiajacy:
+    section: zamawiajacy
+    split: '^\s*\d\)\s*Zamawiaj\w*[^\n]*:'
+    fields:
+      nazwa: {type: first_line}
+      krs: {type: pattern, pattern: 'KRS\W{0,3}(\d{10})', digits: true}
+      nip: {type: pattern, pattern: 'NIP\W{0,3}(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}|\d{10})', digits: true}
+      regon: {type: pattern, pattern: 'REGON\W{0,3}(\d{14}|\d{9})', digits: true}
+      prowadzacy_postepowanie: {type: exists, pattern: ['Lider', 'prowadząc\w*\s+postępowanie'], only_if_multiple: true}
+
+derive:
+  OdwolanieKIO.czynnosc_opis: {from: OdwolanieKIO.czynnosc_powod_id, dictionary: czynnosc_powod}

@@ -11,7 +11,7 @@ from typing import Any
 
 from .classify import Verdict, classify
 from .config import DocClass, load_classes
-from .fields import Context, extract_field, set_path
+from .fields import Context, extract_field, extract_list, set_path
 from .textio import Document, load_pdf
 
 log = logging.getLogger(__name__)
@@ -29,7 +29,26 @@ def extract(doc: Document, doc_class: DocClass) -> dict[str, Any]:
     ctx = Context(doc.text, doc_class.raw)
     for path, specs in (doc_class.raw.get("fields") or {}).items():
         set_path(out, path, extract_field(specs, ctx))
+    for path, spec in (doc_class.raw.get("lists") or {}).items():
+        template = doc_class.output_template[path][0]
+        out[path] = extract_list(spec, ctx, template)
+    for path, spec in (doc_class.raw.get("derive") or {}).items():
+        set_path(out, path, _derive(out, spec))
     return out
+
+
+def _derive(out: dict[str, Any], spec: dict[str, Any]) -> Any:
+    """A field computed from another one, e.g. canonical description looked up from an id dictionary."""
+    from .config import ROOT
+    import yaml
+
+    source: Any = out
+    for part in spec["from"].split("."):
+        source = source.get(part) if isinstance(source, dict) else None
+    if source is None:
+        return None
+    table = yaml.safe_load((ROOT / "config" / "dictionaries" / f"{spec['dictionary']}.yaml").read_text(encoding="utf-8"))
+    return table.get(source)
 
 
 def process_pdf(path: Path, classes: list[DocClass]) -> Result:
