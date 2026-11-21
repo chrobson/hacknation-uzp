@@ -1,12 +1,16 @@
 PY ?= .venv/bin/python
 
-.PHONY: test eval gate
+.PHONY: test eval gate sync
 
-test:
+# dev dependencies (pytest, rapidfuzz for the metric); `bash start.sh` syncs without them
+sync:
+	@command -v uv >/dev/null 2>&1 && uv sync --quiet || true
+
+test: sync
 	$(PY) -m pytest -q
 
-eval:
+eval: sync
 	$(PY) -m eval.run --split train --fields
 
-gate:
+gate: sync
 	$(PY) -m eval.gate
