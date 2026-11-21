@@ -19,7 +19,7 @@ from .textio import Document, canonical, load_pdf
 
 log = logging.getLogger(__name__)
 
-DOC_TIMEOUT_S = 30  # per document; a pathological PDF or regex must not stall the batch
+DOC_TIMEOUT_S = 180  # per document (OCR of a multi-page scan takes a while); a pathological PDF or regex must not stall the batch
 
 
 class DocTimeout(Exception):
