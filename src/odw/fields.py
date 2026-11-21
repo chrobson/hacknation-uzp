@@ -221,6 +221,10 @@ def _keyword_map(spec: dict[str, Any], ctx: Context) -> Any:
         if m is None:
             return None
         text = text[m.end() : m.end() + int(spec.get("window", 600))]
+    if "until" in spec:
+        cut = re.search(spec["until"], text, FLAGS)
+        if cut:
+            text = text[: cut.start()]
     best_key, best_pos = None, len(text) + 1
     for key, patterns in spec["map"].items():
         for rx in _compile(patterns):
@@ -275,8 +279,11 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
     for chunk in chunks:
         item = copy.deepcopy(item_template)
         sub = ctx.sub(chunk, n_items=len(chunks))
+        whole = ctx.sub(text, n_items=len(chunks))
         for path, fspecs in spec["fields"].items():
-            set_path(item, path, extract_field(fspecs, sub))
+            scoped = fspecs if isinstance(fspecs, list) else [fspecs]
+            on_section = any(f.get("scope") == "section" for f in scoped)
+            set_path(item, path, extract_field(fspecs, whole if on_section else sub))
         items.append(item)
     return items
 
