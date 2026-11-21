@@ -5,7 +5,8 @@
 # Działa na Linux / WSL (Ubuntu) / macOS. Nie wymaga bitu wykonywalnego (wywołuj przez "bash start.sh").
 # 1) uv (instalowany automatycznie, jeśli go brak) + uv.lock -> Python 3.13 i dokładnie przypięte zależności,
 # 2) fallback: python3.13 z systemu + venv + pip install -r requirements.txt.
-# Zmienne: ODW_NO_UV=1 wymusza ścieżkę 2 (pip).
+# 0) OCR: sprawdza tesseract + język pol; na Debianie/Ubuntu (WSL) doinstalowuje go (root / sudo bez hasła), inaczej podpowiedź.
+# Zmienne: ODW_NO_UV=1 wymusza ścieżkę 2 (pip), ODW_NO_OCR_INSTALL=1 wyłącza instalację tesseracta.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,6 +28,67 @@ if [ -f .env ]; then
         fi
     done < .env
 fi
+
+# OCR (skany bez warstwy tekstowej): tesseract z językiem polskim. Bez niego aplikacja działa dalej,
+# a skany dają {} (ostrzeżenie w logu). Na Debianie/Ubuntu (WSL) instalujemy automatycznie, jeśli się da
+# (root albo sudo bez hasła); w pozostałych przypadkach tylko podpowiedź. ODW_NO_OCR_INSTALL=1 wyłącza instalację.
+# TESSDATA_PREFIX (np. z .env) jest respektowany przez samego tesseracta.
+have_tesseract_pol() {
+    command -v tesseract >/dev/null 2>&1 || return 1
+    tesseract --list-langs 2>/dev/null | tr -d '\r' | grep -qx 'pol'
+}
+
+ensure_tesseract() {
+    have_tesseract_pol && return 0
+    local what="tesseract"
+    command -v tesseract >/dev/null 2>&1 && what="język polski (pol) dla tesseracta"
+    case "$(uname -s)" in
+        Darwin)
+            log "UWAGA: brak: $what; skany (PDF bez warstwy tekstowej) dadzą {}. Aby włączyć OCR:"
+            log "    brew install tesseract tesseract-lang"
+            log "  albo pobierz pol.traineddata (https://github.com/tesseract-ocr/tessdata_fast/raw/main/pol.traineddata)"
+            log "  do ~/.local/share/tessdata i ustaw TESSDATA_PREFIX=\"\$HOME/.local/share/tessdata\" (np. w .env)"
+            return 0 ;;
+        Linux) ;;
+        *)
+            log "UWAGA: brak: $what; skany dadzą {}. Zainstaluj tesseract z językiem polskim (pol)."
+            return 0 ;;
+    esac
+    if ! command -v apt-get >/dev/null 2>&1; then
+        log "UWAGA: brak: $what; skany dadzą {}. Zainstaluj tesseract z językiem polskim (pol) menedżerem pakietów systemu."
+        return 0
+    fi
+    local sudo=""
+    if [ "$(id -u)" != 0 ]; then
+        if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+            sudo="sudo"
+        else
+            log "UWAGA: brak: $what; skany (PDF bez warstwy tekstowej) dadzą {}. Aby włączyć OCR, uruchom raz:"
+            log "    sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-pol"
+            log "  i ponownie bash start.sh. Kontynuuję bez OCR."
+            return 0
+        fi
+    fi
+    local p="${sudo:+sudo }"
+    local cmd="${p}apt-get update && ${p}apt-get install -y tesseract-ocr tesseract-ocr-pol"
+    if [ "${ODW_NO_OCR_INSTALL:-0}" = 1 ]; then
+        log "UWAGA: brak: $what (ODW_NO_OCR_INSTALL=1, nie instaluję); skany dadzą {}. Polecenie: $cmd"
+        return 0
+    fi
+    log "brak: $what, instaluję: $cmd ..."
+    if $sudo env DEBIAN_FRONTEND=noninteractive apt-get update -qq >/dev/null \
+        && $sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
+            tesseract-ocr tesseract-ocr-pol >/dev/null; then
+        if have_tesseract_pol; then
+            log "OCR gotowy: $(tesseract --version 2>&1 | head -n 1)"
+            return 0
+        fi
+    fi
+    log "UWAGA: instalacja tesseracta nie powiodła się; skany dadzą {}. Spróbuj ręcznie: $cmd"
+    return 0
+}
+
+ensure_tesseract || true
 
 STATE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/odwolania2json"
 # Repozytorium na dysku Windows (/mnt/c/...) w WSL: venv trzymamy w systemie plików Linuksa (szybciej, bez problemów z symlinkami).
