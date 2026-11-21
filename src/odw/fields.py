@@ -343,7 +343,9 @@ def _llm(spec: dict[str, Any], ctx: Context) -> Any:
 
     if not llm.enabled():
         return None
-    text = ctx.text[: int(spec["max_chars"])] if "max_chars" in spec else ctx.text
+    text = _excerpt(ctx.text, spec["excerpt"]) if "excerpt" in spec else ctx.text
+    if "max_chars" in spec:
+        text = text[: int(spec["max_chars"])]
     choices = spec.get("choices")  # {"word key": output value}: small models pick word labels far better than numbers
     if choices:
         value = llm.ask(spec["question"], text, {"type": "string", "enum": list(choices)})
@@ -351,7 +353,25 @@ def _llm(spec: dict[str, Any], ctx: Context) -> Any:
     value = llm.ask(spec["question"], text, spec.get("schema", {"type": "string"}))
     if value is not None and spec.get("value") == "date":
         value = N.find_date(str(value))
+    if value is not None and spec.get("verbatim") and _squash(str(value)) not in _squash(text):
+        return None  # the model must quote the document, never paraphrase or invent
     return value
+
+
+def _squash(s: str) -> str:
+    return " ".join(s.lower().replace("„", '"').replace("”", '"').split())
+
+
+def _excerpt(text: str, cfg: dict[str, Any]) -> str:
+    """The passage the model sees: from the FIRST start pattern (in priority order) that occurs, to the earliest end
+    pattern after it; when no start pattern occurs, the head of the document (`fallback_chars`)."""
+    for rx in _compile(cfg.get("start", [])):
+        m = rx.search(text)
+        if m:
+            seg = text[m.start():]
+            ends = [e.start() for erx in _compile(cfg.get("end", [])) if (e := erx.search(seg, len(m.group(0)) + 1))]
+            return seg[: min(ends, default=len(seg))]
+    return text[: int(cfg.get("fallback_chars", 2500))]
 
 
 def _near(spec: dict[str, Any], ctx: Context) -> Any:

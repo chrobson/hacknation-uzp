@@ -56,6 +56,9 @@ def test_network_error_never_raises(fake):
     _, answers = fake
     answers += [OSError("down"), OSError("still down")]
     assert llm.ask("q", "t", {"type": "string"}) is None
+    assert not llm.enabled()  # circuit breaker: no more calls (and no more timeouts) in this run
+    llm.force(True)
+    assert llm.enabled()
 
 
 APPEAL_WITHOUT_KNOWN_ACTION = """Warszawa, dnia 1 marca 2026 r.
@@ -101,3 +104,22 @@ def test_reason_asks_with_word_labels_on_first_charge_only(fake):
     enum = q["response_format"]["json_schema"]["schema"]["properties"]["value"]["enum"]
     assert "zaniechanie wykluczenia wykonawcy" in enum and all(isinstance(e, str) for e in enum)
     assert len(q["messages"][1]["content"].split("<<<\n", 1)[1]) <= 1500 + 4
+
+
+def test_classification_tiebreak_off_by_default(fake):
+    """Rules classify perfectly; the grey-zone model is opt-in (classify_tiebreak) and may only veto."""
+    from odw import classify as C
+    calls, answers = fake
+    answers += [{"value": "odwolanie"}]
+    assert C._llm_tiebreak("x", list(CLS.values()), {n: 0.0 for n in CLS}) is C._UNDECIDED
+    assert calls == []
+
+
+def test_title_must_be_quoted_verbatim(fake):
+    from odw.fields import Context, extract_field
+    calls, answers = fake
+    spec = {"type": "llm", "question": "q", "verbatim": True}
+    answers += [{"value": "Budowa drogi"}, {"value": "Remont szkoły"}]
+    ctx = Context("Zamówienie pn. „Budowa  drogi” w gminie.", {})
+    assert extract_field([spec], ctx) == "Budowa drogi"
+    assert extract_field([spec], ctx) is None

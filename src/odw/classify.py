@@ -60,7 +60,7 @@ def _llm_tiebreak(text: str, classes: list[DocClass], scores: dict[str, float]):
     """Ask the LLM (if enabled) which class the document is, among classes whose required anchors matched."""
     from . import llm
 
-    if not llm.enabled():
+    if not llm.enabled() or not llm.settings().get("classify_tiebreak"):
         return _UNDECIDED
     candidates = [c for c in classes if scores[c.name] != float("-inf")]
     if not candidates:
@@ -71,6 +71,5 @@ def _llm_tiebreak(text: str, classes: list[DocClass], scores: dict[str, float]):
         "Jeśli to inny dokument (np. ogłoszenie, wyrok, przystąpienie, odpowiedź na odwołanie), odpowiedz \"inny\".",
         text, {"type": "string", "enum": [c.name for c in candidates] + ["inny"]},
     )
-    if answer is None:
-        return _UNDECIDED
-    return next((c for c in candidates if c.name == answer), None)
+    # reject-only: the model may veto a grey-zone document ("inny"), never accept one or switch its class
+    return None if answer == "inny" else _UNDECIDED

@@ -122,33 +122,9 @@ fields:
     - {type: labeled, value: date, labels: ['w\s+dniu', 'z\s+dnia'], window: 40, section: czynnosc}
     - {type: labeled, value: date, labels: ['w\s+dniu', 'z\s+dnia', '\bdnia'], window: 40, section: czynnosc_alt}
     # LLM (jeśli włączony) tylko gdy żadna reguła nie zadziałała; dostaje fragment od "wnoszę" do drugiego zarzutu.
-    - {type: llm, section: czynnosc, value: date, question: 'Podaj datę (YYYY-MM-DD) czynności lub zaniechania zamawiającego, której dotyczy PIERWSZY zarzut odwołania.', schema: {type: string, pattern: '\d{4}-\d{2}-\d{2}'}}
+    # pierwszy zarzut (dla LLM): początek wg priorytetu, koniec na drugim zarzucie/uzasadnieniu; brak kotwic → początek pisma
+    - {type: llm, excerpt: &first_charge {start: ['wnosz[eę]', '\bwnos(?:i|imy)\b', '\bzarzuca\w*', 'Zarzut\s+nr\s*1\b', '(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)'], end: ['Zarzut\s+nr\s*2\b', '^\s*(?:2|II)[.)]\s', '§\s*2\b', '^\s*Uzasadnienie', 'W\s+związku\s+z\s+powyższym'], fallback_chars: 2500}, max_chars: 1500, value: date, question: 'Podaj datę (YYYY-MM-DD) czynności lub zaniechania zamawiającego, której dotyczy PIERWSZY zarzut odwołania.', schema: {type: string, pattern: '\d{4}-\d{2}-\d{2}'}}
   OdwolanieKIO.czynnosc_powod_id:
-    # LLM (tylko gdy włączony; bez klucza ten krok nic nie robi): najpierw model na tekście pierwszego zarzutu,
-    # zamknięty słownik z kluczami SŁOWNYMI (małe modele przy numerach wybierają „1”); null → reguły poniżej.
-    - &powod_llm
-      type: llm
-      section: czynnosc
-      max_chars: 1500
-      question: >-
-        Której czynności (albo zaniechania) zamawiającego dotyczy PIERWSZY zarzut tego odwołania?
-        Wybierz dokładnie jedną etykietę z listy. Jeśli tekst tego nie mówi, zwróć null.
-      choices:
-        odrzucenie oferty: 1
-        wybór oferty najkorzystniejszej: 2
-        wykluczenie wykonawcy: 3
-        publikacja SWZ: 4
-        modyfikacja treści SWZ: 5
-        odpowiedzi lub wyjaśnienia do SWZ: 6
-        zaniechanie odrzucenia oferty: 7
-        zaniechanie wykluczenia wykonawcy: 8
-        unieważnienie postępowania: 9
-        zaniechanie unieważnienia postępowania: 10
-        opis przedmiotu zamówienia: 11
-        projektowane postanowienia umowy: 12
-    - {<<: *powod_llm, section: czynnosc_alt}
-    # 0) pierwsza pozycja wyliczenia zaskarżonych czynności po "wnoszę odwołanie ... polegających na:" ("1) ...;")
-    # 1) konkretny nagłówek pierwszego zarzutu; 2) zdanie o czynności po "wnoszę". Wygrywa najwcześniejsze dopasowanie.
     - type: keyword_map
       section: czynnosc
       after: '(?:polegając\w*|w\s+postaci|tj\.)\s*(?:na\s*)?:?\s*1\)\s*'
@@ -219,6 +195,30 @@ fields:
         6: ['wyjaśnie\w*\s+treści', 'odpowiedzi\s+na\s+pytania', 'udzieleni\w*\s+odpowiedzi']
         11: ['opis\w*\s+przedmiotu\s+zamówienia', '\bOPZ\b']
         4: ['specyfikacj\w*\s+warunków', '\bSWZ\b']
+    # LLM (tylko gdy włączony) OSTATNI: gdy żadna reguła nic nie dała. Przed regułami psuł prawdziwe pisma (train 23/39 źle).
+    # Tekst = pierwszy zarzut; zamknięty słownik z kluczami SŁOWNYMI (małe modele przy numerach wybierają „1”).
+    - &powod_llm
+      type: llm
+      max_chars: 1500
+      excerpt: *first_charge
+      question: >-
+        Której czynności (albo zaniechania) zamawiającego dotyczy PIERWSZY zarzut tego odwołania?
+        Wybierz dokładnie jedną etykietę z listy. Jeśli tekst tego nie mówi, zwróć null.
+      choices:
+        odrzucenie oferty: 1
+        wybór oferty najkorzystniejszej: 2
+        wykluczenie wykonawcy: 3
+        publikacja SWZ: 4
+        modyfikacja treści SWZ: 5
+        odpowiedzi lub wyjaśnienia do SWZ: 6
+        zaniechanie odrzucenia oferty: 7
+        zaniechanie wykluczenia wykonawcy: 8
+        unieważnienie postępowania: 9
+        zaniechanie unieważnienia postępowania: 10
+        opis przedmiotu zamówienia: 11
+        projektowane postanowienia umowy: 12
+    # 0) pierwsza pozycja wyliczenia zaskarżonych czynności po "wnoszę odwołanie ... polegających na:" ("1) ...;")
+    # 1) konkretny nagłówek pierwszego zarzutu; 2) zdanie o czynności po "wnoszę". Wygrywa najwcześniejsze dopasowanie.
   ZamowieniePubliczne.numer_bzp:
     - {type: pattern, section: dotyczy, pattern: '(\d{4})\s*/\s*BZP\s*(\d{8})((?:\s*/\s*\d{2})?)', format: '{1}/BZP{2}{3}', nospace: true}
     # Brak sekcji "dotyczy": szukaj w całym dokumencie.
@@ -243,7 +243,7 @@ fields:
     - {type: pattern, pattern: '[„"]([^”"]{15,})[”"]', clean: true}
     # tytuł bez cudzysłowu po etykiecie "Nazwa/Tytuł/Przedmiot zamówienia" (do następnej etykiety)
     - {type: text_after_label, labels: ['^\s*(?:Nazwa|Tytuł|Przedmiot)\s+zamówienia\s*:?'], max_lines: 3, stop_labels: ['^\s*(?:Tryb|Data|Numer|Nr|Znak|Ogłoszenie|Oznaczenie|Identyfikator|Wartość|CPV)\b']}
-    - {type: llm, section: dotyczy, question: 'Podaj pełny tytuł (nazwę) zamówienia publicznego, którego dotyczy odwołanie, dokładnie tak jak w tekście.', schema: {type: string}}
+    - {type: llm, section: dotyczy, question: 'Podaj pełny tytuł (nazwę) zamówienia publicznego, którego dotyczy odwołanie, dokładnie tak jak w tekście.', schema: {type: string}, verbatim: true}
 
 lists:
   Odwolujacy:

@@ -33,8 +33,8 @@ _FORCED: bool | None = None  # set by the CLI flag --llm on|off
 
 
 def force(enabled: bool | None) -> None:
-    global _FORCED
-    _FORCED = enabled
+    global _FORCED, _DOWN
+    _FORCED, _DOWN = enabled, False
     settings.cache_clear()
 
 
@@ -59,6 +59,7 @@ def settings() -> dict[str, Any]:
         "api_key": env.get("LLM_API_KEY", ""),
         "timeout_s": float(file_cfg.get("timeout_s", 15)),
         "max_chars": int(file_cfg.get("max_chars", 6000)),
+        "classify_tiebreak": bool(file_cfg.get("classify_tiebreak", False)),
     }
     wanted = bool(file_cfg.get("enabled", False)) if _FORCED is None else _FORCED
     cfg["enabled"] = wanted and bool(cfg["api_key"] and cfg["base_url"] and cfg["model"])
@@ -67,8 +68,11 @@ def settings() -> dict[str, Any]:
     return cfg
 
 
+_DOWN = False  # circuit breaker: after a call fails on every attempt (network down, 401/429), stop asking for this run
+
+
 def enabled() -> bool:
-    return settings()["enabled"]
+    return settings()["enabled"] and not _DOWN
 
 
 def _post(url: str, payload: dict[str, Any], key: str, timeout: float) -> dict[str, Any]:
@@ -120,7 +124,9 @@ def ask(question: str, text: str, schema: dict[str, Any]) -> Any:
                 "type": "object", "properties": {"value": value_schema}, "required": ["value"], "additionalProperties": False}},
         },
     }
+    global _DOWN
     url = cfg["base_url"].rstrip("/") + "/chat/completions"
+    failures = 0
     for attempt in range(2):  # one retry
         try:
             data = TRANSPORT(url, payload, cfg["api_key"], cfg["timeout_s"])
@@ -131,5 +137,9 @@ def ask(question: str, text: str, schema: dict[str, Any]) -> Any:
             log.info("LLM returned a value outside the schema: %r", value)
         except (urllib.error.URLError, TimeoutError, OSError, KeyError, IndexError, TypeError, ValueError) as exc:
             log.warning("LLM call failed (attempt %d): %s", attempt + 1, exc)
+            failures += 1
             time.sleep(0.5 * (attempt + 1))
+    if failures == 2:
+        _DOWN = True
+        log.warning("LLM unavailable: rules only for the rest of this run")
     return None

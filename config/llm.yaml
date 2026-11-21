@@ -6,3 +6,6 @@ base_url: https://api.eu.mistral.ai/v1   # Mistral AI (FR), region UE
 model: ministral-3b-2512                 # open-weight, Apache-2.0, 3.85B parametrów
 timeout_s: 15
 max_chars: 6000
+# Klasyfikacja: reguły mają 1.0 na wszystkich zbiorach; LLM w szarej strefie pogarszał wynik (ablacja blind),
+# więc domyślnie wyłączony. Po włączeniu może tylko ODRZUCIĆ dokument ("inny"), nigdy przyjąć ani zmienić klasy.
+classify_tiebreak: false
