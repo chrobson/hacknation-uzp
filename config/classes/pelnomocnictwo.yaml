@@ -80,6 +80,7 @@ fields:
       pattern:
         - 'Imię\s+i\s+nazwisko[ \t:]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
         - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+      stopwords: &rep_stop [Pan, Pani, Panią, Pana, Panu, Krajowa, Krajową, Krajowej, Izba, Izbą, Izby, Zarząd, Zarządu, Spółki, Spółka, Spółkę, Członek, Prezes, Wiceprezes, Prokurent, Mocodawca, Mocodawcy, Odwołujący, Zamawiający, Wykonawca, Sąd, Sądem]
       extra: {pesel: null}
       attrs: {pesel: '\A(?:(?!\boraz\b|\bi\b|[;•]|\n[ \t]*(?:[–•\-]|\d+[ \t]))[\s\S])*?(?:PESEL\W{0,3}|[ \t—–-])(\d{11})(?!\d)'}
     - type: names
@@ -87,6 +88,10 @@ fields:
       titlecase: true
       pattern:
         - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+        # po czasowniku udzielenia: „ustanawia w osobie Pana Grzegorza Furmana”, „udzielamy Pani Patrycji …”, „ustanawiają swoim pełnomocnikiem Leszka …”
+        - '(?:ustanaw\w*|udziel\w*|upoważni\w*)[^.;:]{0,120}?(?:pełnomocnik\w*\s+)?(?:(?:radc\w*\s+prawn\w*|adwokat\w*|adw\.|r\.\s*pr\.|mec\.|aplikant\w*\s+\w+)\s+)?(?:(?:w\s+osobie\s+)?(?:Pan(?:a|u|em)?|Pani(?:ą)?|Panią)\s+)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+[ \t\n]+(?:[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+|[A-ZŁŚŻŹĆŃÓ]{2,})(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)(?![\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ])(?![ \t]+(?:sp\.|S\.A\.|spółk|Sp\.))'
+        # współrzędnie po pierwszym pełnomocniku: „… oraz [radcę prawnego] [Panią] Monikę Jaworską”
+        - '(?:ustanaw\w*|udziel\w*|upoważni\w*)[^.;]{0,200}?\boraz\s+(?:(?:radc\w*\s+prawn\w*|adwokat\w*|adw\.|r\.\s*pr\.|mec\.|aplikant\w*\s+\w+)\s+)?(?:(?:w\s+osobie\s+)?(?:Pan(?:a|u|em)?|Pani(?:ą)?|Panią)\s+)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+[ \t\n]+(?:[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+|[A-ZŁŚŻŹĆŃÓ]{2,})(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)(?![\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ])(?![ \t]+(?:sp\.|S\.A\.|spółk|Sp\.))'
         # tytuły angielskie: attorney-at-law / advocate / legal adviser X Y
         - '(?:attorney[- ]at[- ]law|advocate|legal\s+(?:adviser|advisor|counsel)|barrister|solicitor|counsel)\s+(?:Mr\.?\s+|Ms\.?\s+|Mrs\.?\s+)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
         # bez tytułu zawodowego: "udziela pełnomocnictwa: Jan Kowalski"
@@ -95,6 +100,7 @@ fields:
         - '^[ \t]*\d{1,2}\.?[ \t]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)[ \t]+(?:adw|r\.\s*pr|radc|apl|rzecz|—|–|-|brak)'
         # punktor z nazwiskiem na początku: "• Jan Kowalski – r. pr."
         - '^[ \t]*[•▪◦*][ \t]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)[ \t]*(?:–|-|,|\(|$)'
+      stopwords: *rep_stop
       extra: {pesel: null}
       attrs: {pesel: '\A(?:(?!\boraz\b|\bi\b|[;•]|\n[ \t]*(?:[–•\-]|\d+[ \t]))[\s\S])*?(?:PESEL\W{0,3}|[ \t—–-])(\d{11})(?!\d)'}
 

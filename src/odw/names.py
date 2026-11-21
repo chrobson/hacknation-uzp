@@ -34,7 +34,7 @@ _ADJ_F = [("ckiej", "cka"), ("skiej", "ska"), ("dzkiej", "dzka"), ("cką", "cka"
 
 def _female_first(token: str) -> str:
     for suf, rep in (("ę", "a"), ("ą", "a"), ("cie", "ta"), ("ce", "ka"), ("dze", "ga"), ("rze", "ra"), ("nie", "na"),
-                     ("lii", "lia"), ("rii", "ria"), ("ii", "ia"), ("ie", "a"), ("y", "a"), ("i", "a")):
+                     ("cji", "cja"), ("lii", "lia"), ("rii", "ria"), ("ii", "ia"), ("ie", "a"), ("y", "a"), ("i", "a")):
         if token.endswith(suf) and len(token) > len(suf) + 1:
             return token[: -len(suf)] + rep
     return token
@@ -69,7 +69,9 @@ def nominative(name: str) -> str:
         return " ".join([male_gen] + [_male_surname(t) for t in rest])
     # female forms with an unambiguous ending on either token: Patrycję Malinowską, Annie Kowalskiej, Anny Nowak
     fem_last = next(((suf, rep) for suf, rep in _ADJ_F if last.endswith(suf)), None)
-    if first.endswith(("ę", "ą")) or fem_last:
+    # female dative/locative first names: Edycie, Annie, Marcie, Oldze, Agnieszce, Patrycji, Marii
+    fem_dat = first.endswith(("cie", "ce", "dze", "rze", "nie", "cji", "rii", "lii")) and len(first) > 4
+    if first.endswith(("ę", "ą")) or fem_last or fem_dat:
         new_rest = [t[: -len(fem_last[0])] + fem_last[1] if fem_last and t == last else t for t in rest]
         new_rest = [t[:-1] + "a" if t.endswith(("ę", "ą")) and len(t) > 3 else t for t in new_rest]
         return " ".join([_female_first(first)] + new_rest)
