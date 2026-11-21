@@ -198,6 +198,13 @@ run_with_pip() {
     exec "$venv/bin/python" main.py "$@"
 }
 
+# Środowisko przygotowane wcześniej przez scripts/vm_setup.sh w katalogu projektu (.runtime/): działa niezależnie od HOME
+# (np. uruchomienie przez sudo) i bez sieci; nic nie jest pobierane ani synchronizowane.
+RUNTIME_PY="$HERE/.runtime/venv/bin/python"
+if [ "${ODW_NO_RUNTIME:-0}" != 1 ] && [ -x "$RUNTIME_PY" ] && "$RUNTIME_PY" -c 'import pdfplumber, yaml' 2>/dev/null; then
+    exec "$RUNTIME_PY" main.py "$@"
+fi
+
 if [ "${ODW_NO_UV:-0}" != 1 ]; then
     run_with_uv "$@" || log "uv nie zadziałał, próbuję python3.13 + pip ..."
 fi

@@ -9,6 +9,8 @@ bash start.sh             # czyta ./input/<sprawa>/*.pdf, zapisuje ./output/<spr
 ```
 Bez klucza działa tryb regułowy: pełna funkcjonalność, niższa jakość pól czynności (powód, data).
 
+**Maszyna oceniająca UZP (Ubuntu 24.04, `/opt/solution`)**: repozytorium jest katalogiem `/opt/solution`; jednorazowo `sudo bash scripts/vm_setup.sh` (Tesseract z apt, Python 3.13 i zależności w `/opt/solution/.runtime/`, rozgrzewka), potem komenda z `RUN.md`: `sudo bash start.sh`. Po przygotowaniu komenda niczego nie pobiera i działa także bez sieci (wtedy bez LLM).
+
 **Windows**: potrzebny WSL z Ubuntu (jednorazowo w PowerShell jako administrator: `wsl --install -d Ubuntu`). Potem w terminalu Ubuntu, w katalogu projektu, te same dwie komendy, albo dwuklik / `start.bat` w katalogu projektu (uruchamia `start.sh` w WSL).
 Skany wymagają Tesseracta z językiem polskim. W WSL zwykły użytkownik ma hasło do sudo, więc jeśli `start.sh` wypisze ostrzeżenie „OCR NIEDOSTĘPNY”, uruchom raz:
 `sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-pol` i ponownie `bash start.sh`.

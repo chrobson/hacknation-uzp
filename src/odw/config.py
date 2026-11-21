@@ -112,7 +112,7 @@ def load_reject_protects(path: Path = REJECT_FILE) -> frozenset[str] | None:
 
 
 def load_classes(directory: Path = CLASSES_DIR) -> list[DocClass]:
-    classes = [load_class(p) for p in sorted(directory.glob("*.yaml"))]
+    classes = [load_class(p) for p in sorted(directory.glob("*.yaml")) if not p.name.startswith(".")]  # skip ._* metadata
     if not classes:
         raise SystemExit(f"no document classes found in {directory}")
     return classes
