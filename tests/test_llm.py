@@ -188,3 +188,49 @@ def test_dotenv_saved_on_windows(tmp_path, encoding):
     env = tmp_path / ".env"
     env.write_bytes("LLM_API_KEY=abc\r\nLLM_MODEL=m\r\n".encode(encoding))
     assert llm._dotenv(env) == {"LLM_API_KEY": "abc", "LLM_MODEL": "m"}
+
+
+def test_fenced_json_answer_is_read(fake, monkeypatch):
+    calls, _ = fake
+    monkeypatch.setattr(llm, "TRANSPORT", lambda *a: {"choices": [{"message": {"content": '```json\n{"value": "abc"}\n```'}}]})
+    assert llm.ask("q", "t", {"type": "string"}) == "abc"
+
+
+def test_unreadable_answer_does_not_open_the_breaker(fake, monkeypatch):
+    monkeypatch.setattr(llm, "TRANSPORT", lambda *a: {"choices": [{"message": {"content": '{"value": "trunc'}}]})
+    assert llm.ask("q", "t", {"type": "string"}) is None
+    assert llm.enabled()  # one document's malformed answer must not switch the model off for the whole run
+
+
+def test_schema_refused_with_400_is_resent_relaxed(fake):
+    calls, answers = fake
+    answers += [_http(400), {"value": "2026-03-12"}]
+    assert llm.ask("q", "t", {"type": "string", "pattern": r"\d{4}-\d{2}-\d{2}"}) == "2026-03-12"
+    js = calls[1]["response_format"]["json_schema"]
+    assert js["strict"] is False and "pattern" not in js["schema"]["properties"]["value"]
+    answers += [_http(400), {"value": "12 marca"}, {"value": "12 marca"}]  # the pattern is still enforced locally
+    assert llm.ask("q", "t", {"type": "string", "pattern": r"\d{4}-\d{2}-\d{2}"}) is None
+    assert llm.enabled()
+
+
+def test_breaker_opens_after_repeated_refusals_and_on_auth_errors(fake):
+    _, answers = fake
+    for _ in range(2):
+        answers += [_http(400), _http(400)]
+        assert llm.ask("q", "t", {"type": "string"}) is None
+        assert llm.enabled()
+    answers += [_http(400), _http(400)]
+    assert llm.ask("q", "t", {"type": "string"}) is None
+    assert not llm.enabled()  # three questions in a row refused: the endpoint cannot be used
+    llm.force(True)
+    answers += [_http(401), _http(401)]
+    assert llm.ask("q", "t", {"type": "string"}) is None
+    assert not llm.enabled()
+
+
+def test_ask_respects_the_open_breaker(fake):
+    calls, answers = fake
+    answers += [OSError("down"), OSError("down")]
+    assert llm.ask("q", "t", {"type": "string"}) is None
+    n = len(calls)
+    assert llm.ask("q", "t", {"type": "string"}) is None and len(calls) == n  # no request once the breaker is open

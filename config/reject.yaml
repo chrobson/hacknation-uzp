@@ -1,5 +1,8 @@
 # Dokumenty, które na pewno NIE są żadną z klas (wynik: {}), niezależnie od liczby klas.
 # Sprawdzane przed klasyfikacją. head_chars: szukaj tylko w pierwszych N znakach.
+# protects: klasy, które ta lista chroni przed fałszywym przyjęciem. Klasa spoza listy (np. własna "faktura" albo
+# "wyrok_kio" dodana przez --classes-dir) jest oceniana normalnie także dla dokumentu z listy odrzuceń.
+protects: [odwolanie, pelnomocnictwo, przelew]
 reject:
   - {name: ogloszenie_bzp, pattern: '\A\s*Ogłoszenie\s+nr\s+\d{4}\s*/\s*BZP', head_chars: 300}
   - {name: ogloszenie_ted, pattern: 'See\s+the\s+notice\s+on\s+TED', head_chars: 500}
@@ -13,6 +16,6 @@ reject:
   # Przelew / pełnomocnictwo bez ŻADNEGO kontekstu sprawy (zamówienie, odwołanie, KIO, wpis, opłata skarbowa za pełnomocnictwo):
   # np. zapłata za fakturę, pełnomocnictwo do urzędu skarbowego. Wzorce bez polskich znaków (działają też po zdjęciu diakrytyków).
   - name: przelew_bez_kontekstu
-    pattern: '\A(?![\s\S]*(?:zam\w*\s+publiczn|\bUZP\b|\bwpis|odwo\w*|\bKIO\b|krajow\w+\s+izb|op\w*\s+skarbow|pe\w{1,2}nomocni|appeal|power\s+of\s+attorney|stamp\s+duty|procurement))(?=[\s\S]*(?:przelew|transfer|payment|transakcj|rachun))'
+    pattern: '\A(?![\s\S]*(?:zam\w*\s+publiczn|\bUZP\b|\bwpis|odwo\w*|\bKIO\b|krajow\w+\s+izb|op\w*\.?\s+skarb|pe\w{1,2}nomocni|\bpe\wn\.|appeal|power\s+of\s+attorney|stamp\s+duty|procurement))(?=[\s\S]*(?:przelew|transfer|payment|transakcj|rachun))'
   - name: pelnomocnictwo_bez_kontekstu
     pattern: '\A(?![\s\S]*(?:zam\w*ieni|odwo\w*|\bKIO\b|krajow\w+\s+izb|przetarg|post\w{1,2}powani|\bPzp\b|procurement|appeal|tender|op\w*\s+skarbow|przelew|payment|transfer))(?=[\s\S]*(?:pe\w{1,2}nomocni|power\s+of\s+attorney))'

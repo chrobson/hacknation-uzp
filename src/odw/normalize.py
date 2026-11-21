@@ -100,14 +100,14 @@ def find_amount(text: str) -> float | None:
 
 # Polish company name: capitalised words (small connectors allowed) ending with a legal form. Case-sensitive.
 _WORD = r"(?!Mocodaw|Działając|Pełnomoc|Dane\b|Zamawiaj|Wykonawc|Odwołując|Konsorcj|Ja\b|Nazwa\b|Firma\b)" \
-        r"(?:[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż][\w\-.&]*|[A-ZŁŚŻŹĆŃÓ0-9][\w]*-[\w\-]+|[A-ZŁŚŻŹĆŃÓ]{2,}|„[^”]+”)"
+        r"(?:[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż][\w\-.&]*|[A-ZĄĆĘŁŃÓŚŹŻ0-9][\w]*-[\w\-]+|[A-ZĄĆĘŁŃÓŚŹŻ]{2,}|„[^”]+”)"
 LEGAL_FORM = r"(?:S\.A\.|sp\.\s*z\s*o\.\s*o\.(?:\s*sp\.\s*k\.)?|Sp\.\s*z\s*o\.\s*o\.|sp\.\s*k\.|sp\.\s*j\.|sp\.\s*p\.|s\.c\.|" \
              r"spółka\s+(?:akcyjna|jawna|komandytowa|partnerska|z\s+ograniczoną\s+odpowiedzialnością))"
 COMPANY_RE = re.compile(rf"(?<![\w])({_WORD}(?:[ \t\n]+(?:{_WORD}|i|w|z|oraz|im\.))*?[ \t\n]+{LEGAL_FORM})")
 # Public bodies have no legal form: "Gmina X", "Miasto X", "Szpital ...", "Uniwersytet ...", "Zarząd Dróg ..."
 PUBLIC_BODY_RE = re.compile(
     r"(?<![\w])((?:Gmina|Miasto|Powiat|Województwo|Skarb\s+Państwa|Szpital|Samodzielny|Uniwersytet|Politechnika|Akademia|"
-    r"Zarząd|Urząd|Ministerstwo|Instytut|Państwowe|Regionaln\w+|Wojewódzk\w+|Miejsk\w+|Powiatow\w+|Centrum|Agencja|"
+    r"Zarząd|Urząd|Ministerstwo|Instytut|Państwow[aey]|Zespół|Muzeum|Filharmonia|Ośrodek|Teatr|Biblioteka|Nadleśnictwo|Regionaln\w+|Wojewódzk\w+|Miejsk\w+|Powiatow\w+|Centrum|Agencja|"
     r"Generalna|Komenda|Narodow\w+|Zakład|Przedsiębiorstwo|"
     r"Gminie|Miastu|Powiatowi|Województwu|Skarbowi\s+Państwa|Szpitalowi|Uniwersytetowi|Politechnice|Akademii|Zarządowi|"
     r"Urzędowi|Ministerstwu|Instytutowi|Agencji|Komendzie|Zakładowi|Przedsiębiorstwu)"

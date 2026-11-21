@@ -18,6 +18,7 @@ log() { printf '[start.sh] %s\n' "$*" >&2; }
 if [ -f .env ]; then
     while IFS= read -r line || [ -n "$line" ]; do
         line="${line%$'\r'}"
+        line="${line#$'\xef\xbb\xbf'}"   # BOM z Notatnika Windows przed pierwszym kluczem
         case "$line" in ''|'#'*) continue ;; esac
         key="${line%%=*}"; val="${line#*=}"
         key="${key#export }"; key="${key//[[:space:]]/}"

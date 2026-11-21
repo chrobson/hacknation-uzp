@@ -36,8 +36,8 @@ _FORCED: bool | None = None  # set by the CLI flag --llm on|off
 def force(enabled: bool | None) -> None:
     global _FORCED, _DOWN
     global _REASON
-    global _WAITED
-    _FORCED, _DOWN, _REASON, _WAITED = enabled, False, "", 0.0
+    global _WAITED, _REFUSED
+    _FORCED, _DOWN, _REASON, _WAITED, _REFUSED = enabled, False, "", 0.0, 0
     settings.cache_clear()
 
 
@@ -120,10 +120,22 @@ def _valid(value: Any, schema: dict[str, Any]) -> bool:
     return ok
 
 
+_FENCE = re.compile(r"\A\s*```(?:json)?\s*|\s*```\s*\Z", re.IGNORECASE)
+_REFUSED = 0  # consecutive questions the endpoint refused as malformed (HTTP 400/422) even with the relaxed schema
+_REFUSED_LIMIT = 3
+
+
+def _answer(content: Any) -> Any:
+    """The `value` of the model's JSON answer; tolerates a markdown fence around it (```json … ```)."""
+    if isinstance(content, str):
+        content = json.loads(_FENCE.sub("", content))
+    return content["value"]
+
+
 def ask(question: str, text: str, schema: dict[str, Any]) -> Any:
     """Ask for one value. Returns None when off, on error, on invalid output, or when the model says null."""
     cfg = settings()
-    if not cfg["enabled"]:
+    if not enabled():  # off, or the circuit breaker is open
         return None
     value_schema = {**schema}
     if "null" not in (value_schema.get("type") if isinstance(value_schema.get("type"), list) else [value_schema.get("type")]):
@@ -142,17 +154,24 @@ def ask(question: str, text: str, schema: dict[str, Any]) -> Any:
                 "type": "object", "properties": {"value": value_schema}, "required": ["value"], "additionalProperties": False}},
         },
     }
-    global _DOWN, _WAITED
+    global _DOWN, _WAITED, _REFUSED
     url = cfg["base_url"].rstrip("/") + "/chat/completions"
     failures = 0  # every failed call (for the summary)
     hard = 0  # failed attempts that were not rate limits: both attempts failing trips the circuit breaker
+    refused = 0  # HTTP 400/422: the endpoint refuses THIS request, it is not down
     attempt = 0
     while attempt < 2:  # one retry; rate limits (429/503) are waited out and do not count as attempts
         try:
             data = TRANSPORT(url, payload, cfg["api_key"], cfg["timeout_s"])
             CALLS["ok"] += 1
-            content = data["choices"][0]["message"]["content"]
-            value = json.loads(content)["value"] if isinstance(content, str) else content["value"]
+            _REFUSED = 0
+            try:
+                value = _answer(data["choices"][0]["message"]["content"])
+            except (KeyError, IndexError, TypeError, ValueError) as exc:
+                # a malformed answer to one question says nothing about the service: never trips the breaker
+                log.warning("LLM answer unreadable (attempt %d): %s", attempt + 1, exc)
+                attempt += 1
+                continue
             if _valid(value, schema):
                 return value
             log.info("LLM returned a value outside the schema: %r", value)
@@ -163,6 +182,17 @@ def ask(question: str, text: str, schema: dict[str, Any]) -> Any:
                 CALLS["failed"] += 1
                 _DOWN = True
                 return None
+            if exc.code in (400, 422):
+                # e.g. an endpoint that does not accept `pattern` under strict mode, or an over-long prompt.
+                # Resend once without strict mode and without `pattern`; _valid() still checks the answer locally.
+                log.warning("LLM refused the request (HTTP %s, attempt %d): retrying with a relaxed schema", exc.code, attempt + 1)
+                js = payload["response_format"]["json_schema"]
+                js["strict"] = False
+                js["schema"]["properties"]["value"] = {k: v for k, v in value_schema.items() if k != "pattern"}
+                failures += 1
+                refused += 1
+                attempt += 1
+                continue
             wait = _retry_after(exc, failures)
             if exc.code in (429, 503) and wait is not None and _WAITED + wait <= MAX_RATE_WAIT_S:
                 log.info("LLM HTTP %s: waiting %.0fs (rate limit)", exc.code, wait)
@@ -181,7 +211,9 @@ def ask(question: str, text: str, schema: dict[str, Any]) -> Any:
             attempt += 1
             time.sleep(0.5 * attempt)
     CALLS["failed"] += failures
-    if hard >= 2:
+    if refused >= 2:
+        _REFUSED += 1
+    if hard >= 2 or _REFUSED >= _REFUSED_LIMIT:
         _DOWN = True
         log.warning("LLM unavailable: rules only for the rest of this run")
     return None

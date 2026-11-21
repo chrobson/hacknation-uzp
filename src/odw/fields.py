@@ -20,14 +20,17 @@ import re
 from typing import Any, Callable
 
 from . import normalize as N
+from .config import fold
 
 FLAGS = re.IGNORECASE | re.MULTILINE
 
 
-def _compile(patterns: list[str] | str) -> list[re.Pattern[str]]:
+def _compile(patterns: list[str] | str, folded: bool = False) -> list[re.Pattern[str]]:
+    """`folded`: the pattern with Polish diacritics removed, to be matched against fold(text). fold() is 1:1 per
+    character, so match positions on the folded text are valid positions in the original text."""
     if isinstance(patterns, str):
         patterns = [patterns]
-    return [re.compile(p, FLAGS) for p in patterns]
+    return [re.compile(fold(p) if folded else p, FLAGS) for p in patterns]
 
 
 def _finder(kind: str, spec: dict[str, Any]) -> Callable[[str], Any]:
@@ -46,7 +49,8 @@ def _finder(kind: str, spec: dict[str, Any]) -> Callable[[str], Any]:
         return lambda s: N.find_id(kind, s)
     if kind == "regex":
         rx = re.compile(spec["value_pattern"], FLAGS)
-        return lambda s: (m := rx.search(s)) and (m.group(1) if m.groups() else m.group(0))
+        # a value that spans a line break is one string in the output: "Kancelaria Radców\nPrawnych" → single spaces
+        return lambda s: (m := rx.search(s)) and " ".join((m.group(1) if m.groups() else m.group(0)).split())
     raise ValueError(f"unknown value kind: {kind}")
 
 
@@ -89,24 +93,33 @@ def _section_text(text: str, name: str, sections: dict[str, Any]) -> str | None:
     spec = sections.get(name)
     if spec is None:
         raise KeyError(f"unknown section: {name}")
+    out = _section_pass(text, text, name, sections, False)
+    if out is None:  # start label not found: diacritics lost by a font map / OCR ("Zamawiajacy:") → folded retry
+        out = _section_pass(text, fold(text), name, sections, True)
+    return out
+
+
+def _section_pass(orig: str, text: str, name: str, sections: dict[str, Any], folded: bool) -> str | None:
+    """One pass of _section_text: labels are searched in `text` (possibly folded), pieces are cut from `orig`."""
+    spec = sections[name]
     start = None
-    for rx in _compile(spec["start"]):
+    for rx in _compile(spec["start"], folded):
         m = rx.search(text)
         if m and (start is None or m.start() < start.start()):
             start = m
     if start is None:
         return None
     resume = set(spec.get("resume_after", []))
-    missing = re.compile(spec["restart_if_missing"], FLAGS) if "restart_if_missing" in spec else None
-    restart_at = re.compile(spec["restart_at"], FLAGS) if "restart_at" in spec else None
+    missing = _compile(spec["restart_if_missing"], folded)[0] if "restart_if_missing" in spec else None
+    restart_at = _compile(spec["restart_at"], folded)[0] if "restart_at" in spec else None
     pieces, pos, restarted = [], start.end(), False
     for _ in range(8):  # at most a few embedded blocks
-        end, owner, owner_match = _next_ender(text, name, sections, pos)
-        pieces.append(text[pos:end])
+        end, owner, owner_match = _next_ender(text, name, sections, pos, folded)
+        pieces.append(orig[pos:end])
         if owner in resume and owner_match is not None:
-            pos, _, _ = _next_ender(text, owner, sections, owner_match.end())  # skip the embedded block
+            pos, _, _ = _next_ender(text, owner, sections, owner_match.end(), folded)  # skip the embedded block
         elif (missing and restart_at and not restarted and owner is not None
-              and not missing.search("\n".join(pieces)) and (m := restart_at.search(text, end))):
+              and not missing.search(text[start.end():end]) and (m := restart_at.search(text, end))):
             # cut off before any content: resume once at the line of the next content keyword
             restarted, pos = True, text.rfind("\n", 0, m.start()) + 1
         else:
@@ -116,15 +129,15 @@ def _section_text(text: str, name: str, sections: dict[str, Any]) -> str | None:
     return "\n".join(pieces)
 
 
-def _next_ender(text: str, name: str, sections: dict[str, Any], pos: int):
+def _next_ender(text: str, name: str, sections: dict[str, Any], pos: int, folded: bool = False):
     """(position, owning section, match) of the first label after `pos` that ends section `name`."""
     spec = sections[name]
     enders: list[tuple[re.Pattern[str], str]] = []
     for other, ospec in sections.items():
         if other != name and not ospec.get("isolated"):  # isolated: a fallback section that never ends the others
-            enders += [(rx, other) for rx in _compile(ospec["start"])]
-    enders += [(rx, "_end") for rx in _compile(sections.get("_end", {}).get("start", []))]
-    enders += [(rx, "_end") for rx in _compile(spec.get("end", []))]
+            enders += [(rx, other) for rx in _compile(ospec["start"], folded)]
+    enders += [(rx, "_end") for rx in _compile(sections.get("_end", {}).get("start", []), folded)]
+    enders += [(rx, "_end") for rx in _compile(spec.get("end", []), folded)]
     best = (len(text), None, None)
     for rx, owner in enders:
         m = rx.search(text, pos)
@@ -213,35 +226,45 @@ def _assign_accounts(text: str, cfg: dict[str, Any]) -> dict[str, str]:
 def _labeled(spec: dict[str, Any], ctx: Context) -> Any:
     find = _finder(spec.get("value", "token"), spec)
     window = int(spec.get("window", 160))
-    hits = []
-    for rank, rx in enumerate(_compile(spec["labels"])):
-        hits.extend((rank, m) for m in rx.finditer(ctx.text))
-    # default: earliest label in the document; `label_priority`: labels in the YAML order (strongest first)
-    order = (lambda h: (h[0], h[1].start())) if spec.get("label_priority") else (lambda h: h[1].start())
-    for _, m in sorted(hits, key=order):
-        after = ctx.text[m.end() : m.end() + window].lstrip(" \t:.…")
-        value = find(after)
-        if value not in (None, ""):
-            return value
+    # second pass only when the exact labels gave nothing: labels with diacritics folded ("Tytul przelewu")
+    for folded in (False, True):
+        hay = fold(ctx.text) if folded else ctx.text
+        hits = []
+        for rank, rx in enumerate(_compile(spec["labels"], folded)):
+            hits.extend((rank, m) for m in rx.finditer(hay))
+        # default: earliest label in the document; `label_priority`: labels in the YAML order (strongest first)
+        order = (lambda h: (h[0], h[1].start())) if spec.get("label_priority") else (lambda h: h[1].start())
+        for _, m in sorted(hits, key=order):
+            after = ctx.text[m.end() : m.end() + window].lstrip(" \t:.…")
+            value = find(after)
+            if value not in (None, ""):
+                return value
     return None
 
 
 def _text_after_label(spec: dict[str, Any], ctx: Context) -> Any:
-    stops = _compile(spec.get("stop_labels", []))
+    value = _text_after_label_pass(spec, ctx.text, False)
+    # exact labels gave nothing: retry with diacritics folded in labels and stops (value still cut from the original)
+    return value if value is not None else _text_after_label_pass(spec, ctx.text, True)
+
+
+def _text_after_label_pass(spec: dict[str, Any], text: str, folded: bool) -> Any:
+    stops = _compile(spec.get("stop_labels", []), folded)
     max_lines = int(spec.get("max_lines", 4))
-    for rx in _compile(spec["labels"]):
-        m = rx.search(ctx.text)
+    f = fold if folded else (lambda s: s)
+    for rx in _compile(spec["labels"], folded):
+        m = rx.search(f(text))
         if not m:
             continue
-        rest = ctx.text[m.end() :].lstrip(" \t:")
+        rest = text[m.end() :].lstrip(" \t:")
         lines = rest.split("\n")
         taken: list[str] = []
         inline = spec.get("inline_stops", False)
         for i, line in enumerate(lines[: max_lines + 1]):
-            if i > 0 and any(s.match(line) for s in stops):
+            if i > 0 and any(s.match(f(line)) for s in stops):
                 break
             if inline:  # a following field glued onto the same line ("… CEN123 zł 17,00 zrealizowano …")
-                cut = min((sm.start() for s in stops if (sm := s.search(line, 1))), default=None)
+                cut = min((sm.start() for s in stops if (sm := s.search(f(line), 1))), default=None)
                 if cut is not None:
                     taken.append(line[:cut])
                     break
@@ -257,7 +280,7 @@ def _text_after_label(spec: dict[str, Any], ctx: Context) -> Any:
 
 # Address / contact fragments that a two-column layout glues into the middle of a name.
 _INSERTS = re.compile(
-    r"\s*,?\s*(?:ul\.|al\.|pl\.|os\.)\s[^,\n]{1,60}?,\s*\d{2}-\d{3}\s+[A-ZŁŚŻŹĆŃÓ][\w-]*(?:[ \t]+[A-ZŁŚŻŹĆŃÓ][\w-]*)?"
+    r"\s*,?\s*(?:ul\.|al\.|pl\.|os\.)\s[^,\n]{1,60}?,\s*\d{2}-\d{3}\s+[A-ZĄĆĘŁŃÓŚŹŻ][\w-]*(?:[ \t]+[A-ZĄĆĘŁŃÓŚŹŻ][\w-]*)?"
     r"|\s*,?\s*(?:e-?mail|tel\.?|fax)\s*:?\s*[\w.+@()-]+(?:\s\d+)*"
 )
 
@@ -322,26 +345,31 @@ def _exists(spec: dict[str, Any], ctx: Context) -> Any:
 
 def _keyword_map(spec: dict[str, Any], ctx: Context) -> Any:
     """Return the key whose pattern matches earliest in the text (optionally after an anchor)."""
-    text = ctx.text
+    key = _keyword_map_pass(spec, ctx.text, False)
+    # nothing matched: retry on text and patterns with diacritics folded
+    return key if key is not None else _keyword_map_pass(spec, fold(ctx.text), True)
+
+
+def _keyword_map_pass(spec: dict[str, Any], text: str, folded: bool) -> Any:
     if "after" in spec:
-        m = next((m for rx in _compile(spec["after"]) if (m := rx.search(text))), None)
+        m = next((m for rx in _compile(spec["after"], folded) if (m := rx.search(text))), None)
         if m is None:
             return None
         text = text[m.end() : m.end() + int(spec.get("window", 600))]
     if "until" in spec:
-        cut = re.search(spec["until"], text, FLAGS)
+        cut = _compile(spec["until"], folded)[0].search(text)
         if cut:
             text = text[: cut.start()]
     best_key, best_pos = None, len(text) + 1
     for key, patterns in spec["map"].items():
-        for rx in _compile(patterns):
+        for rx in _compile(patterns, folded):
             m = rx.search(text)
             if m and m.start() < best_pos:
                 best_key, best_pos = key, m.start()
     return best_key
 
 
-NAME = r"[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?"
+NAME = r"[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?"
 _LEGAL_FORM = re.compile(r"\bS\.\s?A\.|\b[Ss]p\.|\b[Ss]półk", re.IGNORECASE)
 
 
@@ -602,6 +630,7 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
                 value = extract_field(usable, doc)
                 if value is not None:
                     set_path(item, path, value)
+        _imply(item, spec)
         return [item]
     chunks, labels = [text], [""]
     # `split_if`: split into items only when the section shows an explicit multi-party signal (e.g. a consortium)
@@ -639,8 +668,18 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
             value = extract_field(fspecs, sub, scopes)  # each spec may pick its own scope (item/section/document)
             if value is not None or not isinstance(_get_path(item, path), list):
                 set_path(item, path, value)
+        _imply(item, spec)
         items.append(item)
     return items
+
+
+def _imply(item: dict[str, Any], spec: dict[str, Any]) -> None:
+    """`imply: [{if_any: [path, …], set: {path: value}}]` — consistency inside one list item: when any of the
+    `if_any` fields was extracted, the `set` fields take the given values (e.g. a named representative ⇒ flag 1)."""
+    for rule in spec.get("imply", []):
+        if any(_get_path(item, p) not in (None, "", []) for p in rule["if_any"]):
+            for path, value in rule["set"].items():
+                set_path(item, path, value)
 
 
 def _get_path(obj: Any, path: str) -> Any:

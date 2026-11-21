@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 from functools import cache
 
-from .config import DocClass, Signal, load_reject
+from .config import DocClass, Signal, load_reject, load_reject_protects
 from .textio import Document
 
 
@@ -33,6 +33,11 @@ def _reject_rules() -> tuple[Signal, ...]:
     return tuple(load_reject())
 
 
+@cache
+def _reject_protects() -> frozenset[str] | None:
+    return load_reject_protects()
+
+
 def rejected_by(text: str, rules: tuple[Signal, ...] | None = None) -> bool:
     return any(sig.matches(text) for sig in (_reject_rules() if rules is None else rules))
 
@@ -42,7 +47,12 @@ def classify(doc: Document, classes: list[DocClass]) -> Verdict:
         return Verdict(None, {})
     text = doc.text
     if rejected_by(text):
-        return Verdict(None, {})
+        # The reject list guards the classes it names (`protects`). A class added for exactly such a document
+        # (an invoice, a KIO ruling …) is still scored; with only the guarded classes loaded the result is {}.
+        protects = _reject_protects()
+        classes = [] if protects is None else [c for c in classes if c.name not in protects]
+        if not classes:
+            return Verdict(None, {})
     scores = {c.name: score(c, text) for c in classes}
     best = max(classes, key=lambda c: scores[c.name])
     if best.threshold - GREY_BELOW <= scores[best.name] < best.threshold + GREY_ABOVE:

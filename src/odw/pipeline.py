@@ -164,6 +164,10 @@ def run(input_dir: Path, output_dir: Path, classes: list[DocClass] | None = None
     from . import llm
 
     classes = classes or load_classes()
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)  # an empty input still leaves an (empty) output folder
+    except OSError:
+        log.exception("cannot create %s", output_dir)
     start, budget = time.monotonic(), _budget_s()
     pdfs = sorted(p for p in input_dir.rglob("*") if p.suffix.lower() == ".pdf" and p.is_file())
     results: dict[Path, Result] = {}
