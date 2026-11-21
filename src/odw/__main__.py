@@ -40,6 +40,9 @@ def main(argv: list[str] | None = None) -> int:
         "--classes-dir", type=Path, action="append", default=[], metavar="DIR",
         help="dodatkowy folder z klasami (YAML), dołączany do klas podstawowych; można podać wiele razy",
     )
+    ap.add_argument("--evidence", type=Path, default=ROOT / "evidence",
+                    help="folder na pliki evidence (strona + fragment źródła dla każdego pola); domyślnie ./evidence")
+    ap.add_argument("--no-evidence", action="store_true", help="nie zapisuj evidence")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
 
@@ -50,7 +53,10 @@ def main(argv: list[str] | None = None) -> int:
     classes = load_classes(args.classes)
     for extra in args.classes_dir:
         classes += load_classes(extra)
-    results = run(args.input, args.output, classes)
+    if args.evidence.resolve() == args.output.resolve() or args.output.resolve() in args.evidence.resolve().parents:
+        print("evidence nie może trafiać do folderu output (dodatkowe pliki obniżają ocenę)", file=sys.stderr)
+        return 2
+    results = run(args.input, args.output, classes, None if args.no_evidence else args.evidence)
     rejected = sum(1 for r in results if r.verdict.cls is None)
     print(f"przetworzono {len(results)} PDF, odrzucono {rejected}, wynik: {args.output}")
     return 0

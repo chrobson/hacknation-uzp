@@ -51,6 +51,7 @@ class Result:
     source: Path
     verdict: Verdict
     data: dict[str, Any]
+    doc: Document | None = None
 
 
 def extract(doc: Document, doc_class: DocClass, out: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -112,13 +113,13 @@ def process_pdf(path: Path, classes: list[DocClass], timeout: float = DOC_TIMEOU
             doc = load_pdf(path)
             verdict = classify(doc, classes)
             if verdict.cls is None:
-                return Result(path, verdict, {})
+                return Result(path, verdict, {}, doc)
             partial = _partial_or_template(verdict.cls)
             try:
                 extract(doc, verdict.cls, partial)
             except DocTimeout:
                 log.error("%s: extraction timed out after %ss; keeping fields extracted so far", path, timeout)
-            return Result(path, verdict, partial)
+            return Result(path, verdict, partial, doc)
     except DocTimeout:
         log.error("%s: timed out before classification finished → {}", path)
     except Exception:
@@ -126,11 +127,23 @@ def process_pdf(path: Path, classes: list[DocClass], timeout: float = DOC_TIMEOU
     return Result(path, verdict if verdict.cls else Verdict(None, {}), _partial_or_template(verdict.cls) if verdict.cls else {})
 
 
+def _write_evidence(target: Path, result: Result) -> None:
+    from .evidence import build
+
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        payload = build(result.doc, result.verdict.name, result.data)
+        target.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:  # evidence is a convenience; it must never break the run
+        log.exception("evidence for %s failed", result.source)
+
+
 def _partial_or_template(doc_class: DocClass) -> dict[str, Any]:
     return copy.deepcopy(doc_class.output_template)
 
 
-def run(input_dir: Path, output_dir: Path, classes: list[DocClass] | None = None) -> list[Result]:
+def run(input_dir: Path, output_dir: Path, classes: list[DocClass] | None = None,
+        evidence_dir: Path | None = None) -> list[Result]:
     classes = classes or load_classes()
     results = []
     for pdf in sorted(p for p in input_dir.rglob("*") if p.suffix.lower() == ".pdf"):
@@ -142,6 +155,8 @@ def run(input_dir: Path, output_dir: Path, classes: list[DocClass] | None = None
             target.write_text(json.dumps(result.data, ensure_ascii=False, indent=2), encoding="utf-8")
         except OSError:
             log.exception("cannot write %s", target)
+        if evidence_dir is not None and result.doc is not None:
+            _write_evidence(evidence_dir / rel.with_suffix(".evidence.json"), result)
         log.info("%s -> %s", rel.with_suffix(".pdf"), result.verdict.name or "{} (rejected)")
         results.append(result)
     return results

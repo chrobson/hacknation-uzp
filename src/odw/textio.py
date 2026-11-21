@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import pdfplumber
@@ -18,6 +18,9 @@ MIN_TEXT_CHARS = 40
 class Document:
     path: Path
     pages: list[str]
+    # per page: words with positions (x0, top, x1, bottom in PDF points, origin top-left) for evidence boxes
+    words: list[list[dict]] = field(default_factory=list)
+    sizes: list[tuple[float, float]] = field(default_factory=list)  # (width, height) per page
 
     @property
     def text(self) -> str:
@@ -30,10 +33,17 @@ class Document:
 
 def load_pdf(path: Path) -> Document:
     pages: list[str] = []
+    words: list[list[dict]] = []
+    sizes: list[tuple[float, float]] = []
     try:
         with pdfplumber.open(path) as pdf:
             for page in pdf.pages:
                 pages.append(page.extract_text(x_tolerance=1.5) or "")
+                words.append([
+                    {"text": w["text"], "x0": round(w["x0"], 1), "top": round(w["top"], 1), "x1": round(w["x1"], 1), "bottom": round(w["bottom"], 1)}
+                    for w in page.extract_words(x_tolerance=1.5)
+                ])
+                sizes.append((round(float(page.width), 1), round(float(page.height), 1)))
     except Exception as exc:  # corrupt or encrypted PDF: treat as unreadable, never crash the batch
         log.warning("cannot read %s: %s", path, exc)
-    return Document(path=path, pages=pages)
+    return Document(path=path, pages=pages, words=words, sizes=sizes)
