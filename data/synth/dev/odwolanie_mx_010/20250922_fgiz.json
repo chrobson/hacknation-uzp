@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-09-04",
+    "czynnosc_dzien": "2026-09-02",
+    "czynnosc_powod_id": 2,
+    "czynnosc_opis": "Ogłoszenie wyboru oferty",
+    "miejscowosc": "Gdańsk"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Calvero Gospodarka Odpadami sp.k.",
+      "nip": "9995986745",
+      "regon": "999796504",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Barbara Włodarczyk",
+        "nazwa": "Kancelaria Radcy Prawnego Barbara Włodarczyk",
+        "mail": "kancelaria@wlodarczyk.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Quentavis Technologie sp. k.",
+      "nip": "9999726630",
+      "regon": "999835633",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "LPWiK/ZP/2026/09",
+    "numer_ted": "999211-2026",
+    "tytul": "Dostawa, instalacja i konfiguracja zintegrowanego systemu informatycznego klasy HIS wraz ze świadczeniem usług serwisu pogwarancyjnego przez okres 36 miesięcy"
+  }
+}

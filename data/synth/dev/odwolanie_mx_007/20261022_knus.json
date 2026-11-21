@@ -1,0 +1,52 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-09-16",
+    "czynnosc_dzien": "2026-09-13",
+    "czynnosc_powod_id": 3,
+    "czynnosc_opis": "Decyzja o wykluczeniu wykonawcy",
+    "miejscowosc": "Wrocław"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9998008097",
+      "nazwa": "Fenrix Technologie S.A.",
+      "nip": "9991582308",
+      "regon": null,
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Ignacy Rutkiewicz",
+        "nazwa": null,
+        "mail": "i.rutkiewicz@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Gmina Brzozowo Pomorskie",
+      "nip": "9995062817",
+      "regon": "999871350",
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": "9993122884",
+      "nazwa": "Eurosept Infrastruktura S.A.",
+      "nip": "9996097888",
+      "regon": "999725710",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": null,
+      "nazwa": "Gmina Rudnik Wielki",
+      "nip": "9990264287",
+      "regon": "999242211",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999236",
+    "numer_postepowania": "ZP.246.2026",
+    "numer_ted": "999512-2026",
+    "tytul": "Usługi ochrony fizycznej i monitoringu w systemie całodobowym"
+  }
+}

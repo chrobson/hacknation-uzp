@@ -1,0 +1,52 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-01-02",
+    "czynnosc_dzien": "2025-12-25",
+    "czynnosc_powod_id": 6,
+    "czynnosc_opis": "Odpowiedzi/wyjaśnienia do SWZ",
+    "miejscowosc": "Kraków"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9999448354",
+      "nazwa": "Calvero Gospodarka Odpadami sp.k.",
+      "nip": "9995986745",
+      "regon": "999796504",
+      "przez-pelnomocnika": 0,
+      "pelnomocnik": {
+        "imie_nazwisko": null,
+        "nazwa": null,
+        "mail": null
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9998340863",
+      "nazwa": "Ypsilon Usługi sp. k.",
+      "nip": "9998078300",
+      "regon": "999191360",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": "9994470318",
+      "nazwa": "Regionalne Centrum Usług Medycznych sp. z o.o.",
+      "nip": "9991723094",
+      "regon": "999806551",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": null,
+      "nazwa": "Danevia Automatyka sp. j.",
+      "nip": "9990166660",
+      "regon": "999032816",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999063",
+    "numer_postepowania": "ZP.548.2026",
+    "numer_ted": "999477-2026",
+    "tytul": "Całodobowa obsługa techniczna i konserwacja instalacji budynków Zamawiającego"
+  }
+}

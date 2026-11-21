@@ -35,7 +35,7 @@ def generate(split: str = "dev", n: int = 30, seed: int = 0, out_dir: Path | Non
     out = Path(out_dir) if out_dir else default_out(split)
     out.mkdir(parents=True, exist_ok=True)
     if clean:
-        for d in out.glob(PREFIX + "*"):
+        for d in out.glob(PREFIX + "[0-9][0-9][0-9]"):  # keep *_mx_* (eval.synth.multi)
             if d.is_dir():
                 shutil.rmtree(d)
     templates = lib.load_templates(split)

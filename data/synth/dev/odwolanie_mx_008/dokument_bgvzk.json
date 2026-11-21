@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-10-25",
+    "czynnosc_dzien": "2026-10-20",
+    "czynnosc_powod_id": 3,
+    "czynnosc_opis": "Decyzja o wykluczeniu wykonawcy",
+    "miejscowosc": "Warszawa"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9990430692",
+      "nazwa": "Prestal Dystrybucja Medyczna S.A.",
+      "nip": "9990396494",
+      "regon": "999666290",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Dorota Sikorski",
+        "nazwa": "Kancelaria Adwokacka Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9990983326",
+      "nazwa": "Dolnośląskie Sieci Ciepłownicze S.A.",
+      "nip": "9993067418",
+      "regon": "999140592",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": null,
+      "nazwa": "Przedsiębiorstwo Energetyki Cieplnej w Olszance Dolnej sp. z o.o.",
+      "nip": "9992187790",
+      "regon": "999947717",
+      "prowadzacy_postepowanie": 1
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999641",
+    "numer_postepowania": "DI.578.2026",
+    "numer_ted": null,
+    "tytul": "Budowa sali gimnastycznej wraz z zapleczem sanitarno-szatniowym i infrastrukturą towarzyszącą przy Szkole Podstawowej nr 3 w Brzozowie Pomorskim"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-07-07",
+    "czynnosc_dzien": "2026-07-01",
+    "czynnosc_powod_id": 8,
+    "czynnosc_opis": "Zaniechanie wykluczenia wykonawcy",
+    "miejscowosc": "Katowice"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9991240860",
+      "nazwa": "Belmoria Systemy S.A.",
+      "nip": "9992160970",
+      "regon": null,
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Aleksandra Jabłończyk",
+        "nazwa": "Kancelaria Prawna Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9995721046",
+      "nazwa": "Lubelskie Przedsiębiorstwo Wodociągów i Kanalizacji sp. z o.o.",
+      "nip": null,
+      "regon": "999437085",
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": null,
+      "nazwa": "Gmina Brzozowo Pomorskie",
+      "nip": "9995062817",
+      "regon": "999871350",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999837",
+    "numer_postepowania": "ZP/PN/48/2026",
+    "numer_ted": "999475-2026",
+    "tytul": "Świadczenie usług przewozu uczniów do szkół w roku szkolnym 2026/2027"
+  }
+}

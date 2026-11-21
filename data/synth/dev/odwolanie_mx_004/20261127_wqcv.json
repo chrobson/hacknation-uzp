@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-08-12",
+    "czynnosc_dzien": "2026-08-04",
+    "czynnosc_powod_id": 7,
+    "czynnosc_opis": "Zaniechanie odrzucenia oferty",
+    "miejscowosc": "Katowice"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9996902468",
+      "nazwa": "Opalit Serwis sp. k.",
+      "nip": "9992251714",
+      "regon": null,
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Marek Jabłoński",
+        "nazwa": "Kancelaria Adwokacka i Partnerzy",
+        "mail": "biuro@biuro.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9992446832",
+      "nazwa": "Kadmos Systemy sp. k.",
+      "nip": "9998081160",
+      "regon": "999915958",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": "9999716254",
+      "nazwa": "Aurelink Automatyka S.A.",
+      "nip": "9997518659",
+      "regon": "999184816",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "DI.579.2026",
+    "numer_ted": "999584-2026",
+    "tytul": "Dostawa licencji oprogramowania do monitorowania infrastruktury i alarmowej"
+  }
+}

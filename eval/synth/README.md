@@ -40,6 +40,7 @@ at the output root. None of these is shown to the pipeline.
 .venv/bin/python -m eval.synth.pelnomocnictwo.generate --split dev --n 30 --seed 1
 .venv/bin/python -m eval.synth.przelew.generate        --split dev --n 30 --seed 1 --clean
 .venv/bin/python -m eval.synth.negatywy.generate       --split dev --n 20 --seed 1 --clean
+.venv/bin/python -m eval.synth.multi.generate          --seed 11   # odwolanie_mx_*/pelnomocnictwo_mx_*: multi-entity parties
 
 # blind (writes to $SYNTH_BLIND_ROOT only)
 .venv/bin/python -m eval.synth.odwolanie.generate      --split blind --n 30 --seed 2
@@ -76,6 +77,9 @@ accepted as a class, F1 per class and, with `--fields`, F1 per field per class.
 * PESEL is a string in GT (as in train `przyklad_43`); `_equal` treats str and int as different.
 * `czynnosc_opis` for id 6 is "Odpowiedzi/wyjaśnienia do SWZ" (train GT), not the dictionary
   spelling "Odpowiedzi/wyjaśnienia do SWZ".
+* `eval.synth.multi`: a leading contracting authority (`prowadzacy_postepowanie = 1`) is always
+  marked with the schema wording ("prowadzący postępowanie" / "lider postępowania" / "postępowanie
+  prowadzi X"); a bare "pełnomocnik zamawiających" or "w imieniu i na rzecz" is never the only cue.
 * No-attorney odwołanie: `przez-pelnomocnika = 0` and `pelnomocnik` with all fields null
   (train has no such example).
 * przelew `tytul` keeps the trailing CEN reference; `numer_transakcji` is the separately

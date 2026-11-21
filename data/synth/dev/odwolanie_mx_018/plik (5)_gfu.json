@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-09-04",
+    "czynnosc_dzien": "2026-08-26",
+    "czynnosc_powod_id": 11,
+    "czynnosc_opis": "Opis przedmiotu zamówienia (OPZ)",
+    "miejscowosc": "Kraków"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9997450782",
+      "nazwa": "Korvel Serwis sp. z o.o. sp.k.",
+      "nip": "9996998288",
+      "regon": "999873715",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Bartosz Jastrzębski",
+        "nazwa": "Kancelaria Radców Prawnych Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@biuro.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9998459407",
+      "nazwa": "Opalit Wyposażenie S.A.",
+      "nip": "9997564636",
+      "regon": "999247630",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999112",
+    "numer_postepowania": "ZS.520.2026",
+    "numer_ted": "999477-2026",
+    "tytul": "Dostawa, instalacja i konfiguracja zintegrowanego systemu informatycznego klasy HIS wraz ze świadczeniem usług serwisu pogwarancyjnego przez okres 36 miesięcy"
+  }
+}

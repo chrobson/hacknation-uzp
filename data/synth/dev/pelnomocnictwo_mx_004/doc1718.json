@@ -1,0 +1,34 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9997939273",
+        "nazwa": "Corvantis Sieci sp. z o.o.",
+        "nip": "9995584735",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Natalia Wojtczak"
+        },
+        {
+          "imie_nazwisko": "Rafał Gajewski"
+        },
+        {
+          "imie_nazwisko": "Kamil Czajka"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Grażyna Walczak",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Joanna Szulc",
+      "pesel": "93122495029"
+    }
+  ]
+}

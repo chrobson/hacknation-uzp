@@ -1,0 +1,52 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-05-04",
+    "czynnosc_dzien": "2026-04-26",
+    "czynnosc_powod_id": 8,
+    "czynnosc_opis": "Zaniechanie wykluczenia wykonawcy",
+    "miejscowosc": "Tarnów"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Helvix Eko-Serwis sp.k.",
+      "nip": "9995558958",
+      "regon": "999054443",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Klaudia Dobrowolski",
+        "nazwa": null,
+        "mail": "k.dobrowolski@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Szpital Specjalistyczny im. Mikołaja Kopernika w Miłkowie",
+      "nip": "9995452613",
+      "regon": "999839803",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": null,
+      "nazwa": "Dolnośląskie Sieci Ciepłownicze S.A.",
+      "nip": "9993067418",
+      "regon": "999140592",
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": "9992898131",
+      "nazwa": "Galdaris Technologie sp. z o.o.",
+      "nip": "9998380192",
+      "regon": "999172530",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "DI.579.2026",
+    "numer_ted": "999512-2026",
+    "tytul": "Sukcesywna dostawa produktów leczniczych w podziale na 12 pakietów"
+  }
+}

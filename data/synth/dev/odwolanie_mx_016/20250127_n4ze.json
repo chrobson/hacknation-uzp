@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-11-06",
+    "czynnosc_dzien": "2026-10-30",
+    "czynnosc_powod_id": 1,
+    "czynnosc_opis": "Decyzja o odrzuceniu oferty",
+    "miejscowosc": "Lublin"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Meridian Konsulting sp. j.",
+      "nip": null,
+      "regon": "999851916",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Oliwia Wierzbicka",
+        "nazwa": "Kancelaria Adwokacka Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@sekretariat.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Przedsiębiorstwo Energetyki Cieplnej w Olszance Dolnej sp. z o.o.",
+      "nip": "9992187790",
+      "regon": null,
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": null,
+      "nazwa": "Elarion Technologie sp. z o.o.",
+      "nip": "9996764238",
+      "regon": "999940293",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999263",
+    "numer_postepowania": "DI.579.2026",
+    "numer_ted": "999687-2026",
+    "tytul": "Zakup i dostawa sprzętu komputerowego wraz z oprogramowaniem oraz usługą wdrożenia"
+  }
+}

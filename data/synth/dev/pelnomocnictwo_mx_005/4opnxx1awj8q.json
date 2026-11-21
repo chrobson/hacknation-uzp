@@ -1,0 +1,27 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9997927279",
+        "nazwa": "Umbria Rozwiązania sp. j.",
+        "nip": "9990600725",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Dorota Mazurkiewicz"
+        },
+        {
+          "imie_nazwisko": "Michał Jabłoński"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Klaudia Borkowska",
+      "pesel": null
+    }
+  ]
+}

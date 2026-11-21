@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-06-16",
+    "czynnosc_dzien": "2026-06-10",
+    "czynnosc_powod_id": 11,
+    "czynnosc_opis": "Opis przedmiotu zamówienia (OPZ)",
+    "miejscowosc": "Poznań"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9998008097",
+      "nazwa": "Fenrix Technologie S.A.",
+      "nip": "9991582308",
+      "regon": "999759441",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Barbara Włodarczyk",
+        "nazwa": null,
+        "mail": "b.wlodarczyk@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Dolnośląskie Sieci Ciepłownicze S.A.",
+      "nip": "9993067418",
+      "regon": "999140592",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": "9998340863",
+      "nazwa": "Ypsilon Usługi sp. k.",
+      "nip": "9998078300",
+      "regon": "999191360",
+      "prowadzacy_postepowanie": 1
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999112",
+    "numer_postepowania": "SWZ.896.2026",
+    "numer_ted": "999639-2026",
+    "tytul": "Kompleksowe usługi utrzymania czystości, ochrony fizycznej i obsługi technicznej obiektów Zamawiających w latach 2026–2029"
+  }
+}

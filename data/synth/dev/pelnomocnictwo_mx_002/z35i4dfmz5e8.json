@@ -1,0 +1,44 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9992397370",
+        "nazwa": "Gildentia Wyposażenie sp. z o.o.",
+        "nip": "9995126748",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Karolina Gajewska"
+        },
+        {
+          "imie_nazwisko": "Marta Baran"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9990858824",
+        "nazwa": "Nexalia Ciepłownictwo sp. z o.o.",
+        "nip": "9993896005",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Wanda Wojtczak"
+        },
+        {
+          "imie_nazwisko": "Jolanta Łukaszewska"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Rafał Niedźwiecki",
+      "pesel": null
+    }
+  ]
+}

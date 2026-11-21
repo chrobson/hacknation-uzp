@@ -1,0 +1,42 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9995522683",
+        "nazwa": "Imperon Serwis sp. z o.o.",
+        "nip": "9993124780",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Ignacy Wierzbicki"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": "Olga Baran",
+        "krs": null,
+        "nazwa": "BOMARK-BUD Olga Baran",
+        "nip": "9996203312",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Olga Baran"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Edyta Głowacz",
+      "pesel": "69030496667"
+    },
+    {
+      "imie_nazwisko": "Tomasz Szulc",
+      "pesel": "87122570352"
+    }
+  ]
+}

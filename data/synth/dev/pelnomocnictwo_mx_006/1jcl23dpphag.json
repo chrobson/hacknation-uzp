@@ -1,0 +1,45 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9994177767",
+        "nazwa": "Quentavis Technologie Sp. z o.o.",
+        "nip": "9998869183",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Mateusz Czajka"
+        },
+        {
+          "imie_nazwisko": "Maciej Przybylski"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9995522683",
+        "nazwa": "Imperon Serwis sp. z o.o.",
+        "nip": "9993124780",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Grzegorz Chmielewski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Sebastian Niedźwiecki",
+      "pesel": "59110974031"
+    },
+    {
+      "imie_nazwisko": "Justyna Wieczorek",
+      "pesel": null
+    }
+  ]
+}

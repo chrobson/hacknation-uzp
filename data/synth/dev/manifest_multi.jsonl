@@ -1,0 +1,30 @@
+{"case": "odwolanie_mx_000", "file": "zal_8_bzxrfz.pdf", "template": "m01_numbered", "font": "Verdana", "n_zam": 2, "lead": 0}
+{"case": "odwolanie_mx_001", "file": "zal_5_l3n49m.pdf", "template": "m01_numbered", "font": "TimesNR", "n_zam": 3, "lead": 1, "att": "nofirm", "title": "adw"}
+{"case": "odwolanie_mx_002", "file": "dokument_621l7.pdf", "template": "m02_labelled", "font": "Georgia", "n_zam": 2, "lead": 1}
+{"case": "odwolanie_mx_003", "file": "dokument_flbyc.pdf", "template": "m02_labelled", "font": "Georgia", "n_zam": 3, "lead": 0, "n_odw": 2, "inline": true}
+{"case": "odwolanie_mx_004", "file": "20261127_wqcv.pdf", "template": "m03_prose_wspolnie", "font": "Verdana", "n_zam": 2, "lead": null}
+{"case": "odwolanie_mx_005", "file": "zal_3_ofn033.pdf", "template": "m03_prose_wspolnie", "font": "TimesNR", "n_zam": 3, "lead": 2, "title": "rp"}
+{"case": "odwolanie_mx_006", "file": "plik (2)_2ij.pdf", "template": "m04_w_imieniu", "font": "Georgia", "n_zam": 2, "lead": 0}
+{"case": "odwolanie_mx_007", "file": "20261022_knus.pdf", "template": "m04_w_imieniu", "font": "Arial", "n_zam": 3, "lead": 0, "att": "nofirm"}
+{"case": "odwolanie_mx_008", "file": "dokument_bgvzk.pdf", "template": "m05_tables", "font": "TimesNR", "n_zam": 2, "lead": 1}
+{"case": "odwolanie_mx_009", "file": "20260820_5rqw.pdf", "template": "m05_tables", "font": "Georgia", "n_zam": 3, "lead": 0, "n_odw": 2, "leader_last": true}
+{"case": "odwolanie_mx_010", "file": "20250922_fgiz.pdf", "template": "m06_kv_footer", "font": "Georgia", "n_zam": 1}
+{"case": "odwolanie_mx_011", "file": "dokument_kupvj.pdf", "template": "m06_kv_footer", "font": "TimesNR", "n_zam": 2, "lead": 1, "att": "nofirm", "n_odw": 2}
+{"case": "odwolanie_mx_012", "file": "scan_78434.pdf", "template": "m07_consortium_prose", "font": "Verdana", "n_zam": 1, "n_odw": 2, "title": "adw"}
+{"case": "odwolanie_mx_013", "file": "20260306_2l47.pdf", "template": "m07_consortium_prose", "font": "DejaVuSans", "n_zam": 1, "n_odw": 3, "att": "nofirm", "title": "rp"}
+{"case": "odwolanie_mx_014", "file": "plik (9)_nx8.pdf", "template": "m08_leader_second", "font": "Verdana", "n_zam": 1, "n_odw": 2, "n_att": 2}
+{"case": "odwolanie_mx_015", "file": "20250406_efdz.pdf", "template": "m08_leader_second", "font": "Verdana", "n_zam": 2, "lead": 0, "n_odw": 2, "n_att": 3}
+{"case": "odwolanie_mx_016", "file": "20250127_n4ze.pdf", "template": "m09_two_columns", "font": "DejaVuSans", "n_zam": 2, "lead": 0, "n_odw": 2}
+{"case": "odwolanie_mx_017", "file": "dhzuov.pdf", "template": "m09_two_columns", "font": "Georgia", "n_zam": 3, "lead": null, "att": "none"}
+{"case": "odwolanie_mx_018", "file": "plik (5)_gfu.pdf", "template": "m10_firm_letterhead", "font": "TimesNR", "n_zam": 1, "title": ""}
+{"case": "odwolanie_mx_019", "file": "scan_96249.pdf", "template": "m10_firm_letterhead", "font": "Arial", "n_zam": 2, "lead": 1, "att": "nofirm", "title": "rp"}
+{"case": "pelnomocnictwo_mx_000", "file": "zalacznik_10_l50.pdf", "template": "p01_columns", "font": "Arial", "n_principals": 2, "n_sig": [2, 1], "n_att": 1}
+{"case": "pelnomocnictwo_mx_001", "file": "scan_59979.pdf", "template": "p01_columns", "font": "Georgia", "n_principals": 2, "n_sig": [1, 2], "n_att": 2}
+{"case": "pelnomocnictwo_mx_002", "file": "z35i4dfmz5e8.pdf", "template": "p02_prose_inflected", "font": "Georgia", "n_principals": 2, "n_sig": [2, 2], "n_att": 1}
+{"case": "pelnomocnictwo_mx_003", "file": "scan_12545.pdf", "template": "p02_prose_inflected", "font": "Arial", "n_principals": 2, "n_sig": [1, 1], "n_att": 2, "fizyczna": [false, true]}
+{"case": "pelnomocnictwo_mx_004", "file": "doc1718.pdf", "template": "p03_footer_ids", "font": "Verdana", "n_principals": 1, "n_sig": [3], "n_att": 2}
+{"case": "pelnomocnictwo_mx_005", "file": "4opnxx1awj8q.pdf", "template": "p03_footer_ids", "font": "TimesNewRoman", "n_principals": 1, "n_sig": [2], "n_att": 1}
+{"case": "pelnomocnictwo_mx_006", "file": "1jcl23dpphag.pdf", "template": "p04_kv_forms", "font": "Arial", "n_principals": 2, "n_sig": [2, 1], "n_att": 2}
+{"case": "pelnomocnictwo_mx_007", "file": "vp132jc2gz2f.pdf", "template": "p04_kv_forms", "font": "TimesNewRoman", "n_principals": 2, "n_sig": [1, 1], "n_att": 3, "fizyczna": [true, false]}
+{"case": "pelnomocnictwo_mx_008", "file": "zth9g3xaivct.pdf", "template": "p05_joint_letter", "font": "Arial", "n_principals": 2, "n_sig": [2, 2], "n_att": 1}
+{"case": "pelnomocnictwo_mx_009", "file": "skan-22302.pdf", "template": "p05_joint_letter", "font": "CourierNew", "n_principals": 2, "n_sig": [3, 1], "n_att": 2}

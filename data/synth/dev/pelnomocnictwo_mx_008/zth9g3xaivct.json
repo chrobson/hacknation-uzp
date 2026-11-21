@@ -1,0 +1,44 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9990397426",
+        "nazwa": "Brontex Eko-Serwis spółka z ograniczoną odpowiedzialnością",
+        "nip": "9991079940",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Jakub Różański"
+        },
+        {
+          "imie_nazwisko": "Barbara Dudziewicz"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9992671408",
+        "nazwa": "Elmontex Energetyka sp. z o.o.",
+        "nip": "9996380214",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Paweł Włodarczyk"
+        },
+        {
+          "imie_nazwisko": "Edyta Kędzierska"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Teresa Malinowska",
+      "pesel": null
+    }
+  ]
+}

@@ -77,7 +77,7 @@ def generate(split: str, n: int, seed: int, out_root: Path | None = None, clean:
     out_root = Path(out_root or default_out(split))
     out_root.mkdir(parents=True, exist_ok=True)
     if clean:
-        for d in out_root.glob(f"{CLASS}_*"):
+        for d in out_root.glob(f"{CLASS}_[0-9][0-9][0-9]"):  # keep *_mx_* (eval.synth.multi)
             if d.is_dir():
                 shutil.rmtree(d)
     templates = load_templates(split)

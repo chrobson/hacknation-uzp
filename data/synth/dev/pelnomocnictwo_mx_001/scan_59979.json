@@ -1,0 +1,45 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9997627096",
+        "nazwa": "Optivia Instalacje Energetyczne sp.j.",
+        "nip": "9994790622",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Ignacy Sobczak"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9994080946",
+        "nazwa": "Tarvena Serwis sp.k.",
+        "nip": "9993105794",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Zbigniew Jastrzębski"
+        },
+        {
+          "imie_nazwisko": "Piotr Lis"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Marta Kurek",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Tomasz Grabowski",
+      "pesel": null
+    }
+  ]
+}
