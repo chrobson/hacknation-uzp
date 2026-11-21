@@ -81,7 +81,7 @@ def test_title_first_layout():
     assert get(TITLE_FIRST, "kwota") == 17.0
     assert get(TITLE_FIRST, "data_operacji") == "2026-02-03"
     assert get(TITLE_FIRST, "tytul") == "opłata skarbowa od pełnomocnictwa w sprawie ZP.1.2026 ABC1234567890"
-    assert get(TITLE_FIRST, "z_rachunku") == "61109010140000071219812874"
+    assert get(TITLE_FIRST, "z_rachunku") == "PL61109010140000071219812874"
 
 
 def test_grid_label_in_the_middle_of_wrapped_value():
@@ -93,8 +93,8 @@ def test_english_layout():
     assert get(ENGLISH, "kwota") == 34.0
     assert get(ENGLISH, "data_operacji") == "2026-05-06"
     assert get(ENGLISH, "tytul") == "Opłata skarbowa za pełnomocnictwo"
-    assert get(ENGLISH, "z_rachunku") == "61109010140000071219812874"
-    assert get(ENGLISH, "na_rachunek") == "27114020040000300201355387"
+    assert get(ENGLISH, "z_rachunku") == "PL61109010140000071219812874"
+    assert get(ENGLISH, "na_rachunek") == "PL27114020040000300201355387"
 
 
 def test_statement_takes_the_operation_not_the_balance():

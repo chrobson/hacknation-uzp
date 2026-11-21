@@ -25,7 +25,9 @@ Na końcu przebiegu program wypisuje podsumowanie: liczbę PDF, odrzucone, użyc
 | dane treningowe UZP (45 spraw) | 1,000 | 1,000 |
 | holdout z danych UZP (15 spraw, nieużywany do strojenia) | 1,000 | 1,000 |
 | synth-dev (120 dokumentów o innych układach, także wielopodmiotowe) | 0,940 | 0,940 |
-| skany UZP przez OCR (30 dokumentów) | 0,813 | 0,826 |
+| skany UZP przez OCR (30 dokumentów) | 0,817 | 0,830 |
+
+Numery rachunków są zapisywane tak, jak w dokumencie: z prefiksem `PL`, jeśli dokument go podaje (bez spacji, np. `PL61109010140000071219812874`), w przeciwnym razie 26 cyfr. Tak potwierdził UZP (21.11.2026); lokalne dane wzorcowe poprawiono skryptem `eval/gt_account_pl.py`, bo część wzorcowych JSON-ów UZP pomijała `PL`.
 
 Dokumenty obce (ogłoszenia, wyroki KIO, SWZ, faktury, umowy, pisma podobne do klas): 0 przyjętych na 36. Bramka jakości (`make gate`, 9 testów, m.in. brak regresji, 0 fałszywych przyjęć, niezależność od nazw plików, praca bez LLM, < 1 s/dokument) pilnuje każdej zmiany.
 

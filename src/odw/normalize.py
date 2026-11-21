@@ -34,8 +34,15 @@ DATE_RE = re.compile(
 # 1 234,56 | 1.234,56 | 17.00 | 50,00 — always with exactly two decimals
 AMOUNT_RE = re.compile(r"(?<![\d.,])(\d{1,3}(?:[  .]\d{3})+|\d+)[,.](\d{2})(?![\d])")
 
-# 26-digit Polish account number, optional PL, any whitespace (incl. line breaks) between groups
-ACCOUNT_RE = re.compile(r"(?<![\dA-Z])(?:PL)?\s?((?:\d[\s-]?){25}\d)(?!\d)")
+# 26-digit Polish account number, optional PL, any whitespace (incl. line breaks) between groups.
+# group "num" = the digits, group "pl" = the country prefix when the document prints one.
+ACCOUNT_RE = re.compile(r"(?<![\dA-Z])(?:(?P<pl>PL)[\s-]?)?(?P<num>(?:\d[\s-]?){25}\d)(?!\d)")
+
+
+def account_value(m: re.Match[str]) -> str:
+    """Account as printed in the document: "PL" + 26 digits when the document has the prefix, else 26 digits.
+    UZP (Discord, 21.11 21:17): the number as contained in the document; reference JSONs without PL are an error."""
+    return ("PL" if m.group("pl") else "") + digits(m.group("num"))
 
 
 def parse_date(m: re.Match[str]) -> str | None:

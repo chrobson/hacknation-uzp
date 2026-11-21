@@ -2,9 +2,9 @@
   "przelew_bankowy": {
     "data_operacji": "2026-05-01",
     "kwota": 15000.0,
-    "na_rachunek": "83857487285854133752374620",
+    "na_rachunek": "PL83857487285854133752374620",
     "numer_transakcji": null,
     "tytul": "Wpis od odwołania - postępowanie DAZ/131/2026, zamawiający: Centrum Kultury i Sportu w Grabowie Nadrzecznym",
-    "z_rachunku": "00880509913633331687549357"
+    "z_rachunku": "PL00880509913633331687549357"
   }
 }

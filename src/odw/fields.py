@@ -36,7 +36,7 @@ def _finder(kind: str, spec: dict[str, Any]) -> Callable[[str], Any]:
     if kind == "amount":
         return N.find_amount
     if kind == "account":
-        return lambda s: (m := N.ACCOUNT_RE.search(s)) and N.digits(m.group(1))
+        return lambda s: (m := N.ACCOUNT_RE.search(s)) and N.account_value(m)
     if kind == "token":
         tok = re.compile(spec.get("token_pattern", r"[A-Z0-9][A-Z0-9./\-]{3,}"), re.IGNORECASE)
         return lambda s: (m := tok.search(s)) and m.group(0).rstrip(".,;")
@@ -142,7 +142,7 @@ def _assign_accounts(text: str, cfg: dict[str, Any]) -> dict[str, str]:
     last_kw: list[dict[str, int]] = []  # last position of each role's keyword before each account
     spans: list[tuple[int, int]] = []
     for m in N.ACCOUNT_RE.finditer(text):
-        acct = N.digits(m.group(1))
+        acct = N.digits(m.group("num"))
         if any(a == acct for a, _ in found):
             continue
         base = max(0, m.start() - lookback)
@@ -179,7 +179,9 @@ def _assign_accounts(text: str, cfg: dict[str, Any]) -> dict[str, str]:
             roles["sender"] = next(a for a in accts if a != roles["receiver"])
         else:
             roles = {"sender": accts[0], "receiver": accts[1]}
-    return roles
+    # The number as printed: "PL" prefix kept when any occurrence of that number carries it in the document.
+    prefixed = {N.digits(m.group("num")) for m in N.ACCOUNT_RE.finditer(text) if m.group("pl")}
+    return {role: ("PL" + a if a in prefixed else a) for role, a in roles.items()}
 
 
 def _labeled(spec: dict[str, Any], ctx: Context) -> Any:

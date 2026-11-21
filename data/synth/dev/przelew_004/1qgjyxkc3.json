@@ -2,9 +2,9 @@
   "przelew_bankowy": {
     "data_operacji": "2026-07-09",
     "kwota": 17.0,
-    "na_rachunek": "43046337661291756811869204",
+    "na_rachunek": "PL43046337661291756811869204",
     "numer_transakcji": "CEN2607392095654",
     "tytul": "opłata skarbowa od pełnomocnictwa dla Bartosz Rutkowski w postępowaniu przed KIO w przetargu ZP.271/130/2026 CEN2607392095654",
-    "z_rachunku": "21098240169258849380864560"
+    "z_rachunku": "PL21098240169258849380864560"
   }
 }

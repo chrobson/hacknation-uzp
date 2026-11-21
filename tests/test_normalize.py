@@ -36,3 +36,15 @@ def test_accounts_by_nearest_keyword_in_prose():
 def test_accounts_in_two_column_layout_follow_header_order():
     text = f"Beneficjent Nadawca\nFirma X Firma Y\nul. Długa 1 ul. Krótka 2 ul. Krótka 2 ul. Krótka 2\n{A} {B}\n"
     assert _assign_accounts(text, CFG) == {"receiver": A, "sender": B}
+
+
+def test_account_keeps_printed_pl_prefix():
+    """UZP 21.11 21:17: the account number as contained in the document; "PL" kept when printed, no spaces."""
+    from odw.normalize import ACCOUNT_RE, account_value
+
+    def val(s):
+        return account_value(ACCOUNT_RE.search(s))
+
+    assert val("Rachunek: PL61109010140000071219812874") == "PL61109010140000071219812874"
+    assert val("IBAN: PL 61 1090 1014 0000 0712 1981 2874") == "PL61109010140000071219812874"
+    assert val("Rachunek: 61 1090 1014 0000 0712 1981 2874") == "61109010140000071219812874"

@@ -47,8 +47,8 @@ def _locate(value: Any, text: str) -> tuple[int, int] | None:
             if N.parse_date(m) == s:
                 return m.span()
         return None
-    if re.fullmatch(r"\d{5,}", s):
-        m = _digits_pattern(s).search(text)
+    if re.fullmatch(r"(?:PL)?\d{5,}", s):  # identifiers; accounts may keep the printed "PL" prefix
+        m = _digits_pattern(s.removeprefix("PL")).search(text)
         return m.span() if m else None
     words = s.split()
     if not words:

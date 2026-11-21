@@ -2,9 +2,9 @@
   "przelew_bankowy": {
     "data_operacji": "2026-02-07",
     "kwota": 100.0,
-    "na_rachunek": "38191587886680497037877080",
+    "na_rachunek": "PL38191587886680497037877080",
     "numer_transakcji": "CEN2602610175337",
     "tytul": "opłata skarbowa od pełnomocnictwa dla Ryszard Lipowczyk i Michał Borkowski w postępowaniu przed KIO w przetargu SZP.17.2026 CEN2602610175337",
-    "z_rachunku": "27313726088032820930424126"
+    "z_rachunku": "PL27313726088032820930424126"
   }
 }

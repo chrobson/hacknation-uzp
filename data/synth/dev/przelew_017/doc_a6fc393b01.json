@@ -2,9 +2,9 @@
   "przelew_bankowy": {
     "data_operacji": "2026-08-08",
     "kwota": 7500.0,
-    "na_rachunek": "57421677910972931901050689",
+    "na_rachunek": "PL57421677910972931901050689",
     "numer_transakcji": null,
     "tytul": "Wpis od odwołania - postępowanie ZS.158.2026, zamawiający: Lunareth Automatyka sp. z o.o.",
-    "z_rachunku": "87767998528637357156751729"
+    "z_rachunku": "PL87767998528637357156751729"
   }
 }
