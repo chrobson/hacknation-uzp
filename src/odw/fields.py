@@ -52,6 +52,7 @@ class Context:
         self.cfg = class_cfg
         self.n_items = n_items  # number of items in the enclosing list (for list-relative fields)
         self.label = ""  # the split label that introduced this list item (e.g. "1) Zamawiający – Lider:")
+        self.index = 0  # position of this item in the enclosing list
         self._accounts: dict[str, str] | None = None
         self._sections: dict[str, str | None] = {}
 
@@ -182,8 +183,9 @@ def _text_after_label(spec: dict[str, Any], ctx: Context) -> Any:
 
 
 def _pattern(spec: dict[str, Any], ctx: Context) -> Any:
+    rejects = _compile(spec.get("reject", []))
     for rx in _compile(spec["pattern"]):
-        m = rx.search(ctx.text)
+        m = next((m for m in rx.finditer(ctx.text) if not any(r.search(m.group(1) if m.groups() else m.group(0)) for r in rejects)), None)
         if m:
             if "format" in spec:  # e.g. "{1}/BZP{2}" with regex groups; missing groups become ""
                 groups = [m.group(0)] + [g or "" for g in m.groups()]
@@ -212,7 +214,8 @@ def _exists(spec: dict[str, Any], ctx: Context) -> Any:
         return None
     hay = ctx.label if spec.get("in_label") else ctx.text
     hit = any(rx.search(hay) for rx in _compile(spec["pattern"]))
-    return spec.get("true", 1) if hit else spec.get("false", 0)
+    yes, no = spec.get("if_true", spec.get(True, 1)), spec.get("if_false", spec.get(False, 0))
+    return yes if hit else no
 
 
 def _keyword_map(spec: dict[str, Any], ctx: Context) -> Any:
@@ -236,6 +239,49 @@ def _keyword_map(spec: dict[str, Any], ctx: Context) -> Any:
     return best_key
 
 
+NAME = r"[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?"
+
+
+def _names(spec: dict[str, Any], ctx: Context) -> Any:
+    """All person names in a region → list of items ``{field: name}`` (deduplicated, document order).
+
+    pattern     regex whose group 1 is the name (default: two capitalised words on one line)
+    after       optional regex; search only after its first match (e.g. the signature block)
+    exclude_from  output path of another field whose names are excluded (e.g. representatives)
+    stopwords   first/last words that mark a role, not a name (e.g. Prezes, Zarządu)
+    """
+    text = ctx.text
+    segmented = False
+    if "segment_by" in spec and ctx.n_items > 1:  # one segment per list item, e.g. "W imieniu <firma>:" blocks
+        parts = re.split(spec["segment_by"], text, flags=FLAGS)
+        if len(parts) - 1 >= ctx.n_items:
+            text, segmented = parts[ctx.index + 1], True
+    if "after" in spec and not segmented:
+        m = next((m for rx in _compile(spec["after"]) if (m := rx.search(text))), None)
+        if m is None:
+            return None
+        text = text[m.start() :]
+    rx = re.compile(spec.get("pattern", rf"({NAME}[ \t]+{NAME})"), re.MULTILINE)
+    attrs = {k: re.compile(v, FLAGS) for k, v in spec.get("attrs", {}).items()}
+    stop = {w.lower() for w in spec.get("stopwords", [])}
+    exclude = set(ctx.cfg.get("_excluded_names", {}).get(spec.get("exclude_from", ""), []))
+    field = spec.get("field", "imie_nazwisko")
+    items: list[dict[str, Any]] = []
+    for m in rx.finditer(text):
+        name = " ".join(m.group(1).split())
+        words = name.split()
+        if any(w.lower() in stop for w in words) or name in exclude or any(i[field] == name for i in items):
+            continue
+        item: dict[str, Any] = {field: name, **spec.get("extra", {})}
+        tail = text[m.end() : m.end() + 60]
+        for key, arx in attrs.items():  # e.g. PESEL written right after the name
+            am = arx.search(tail)
+            if am:
+                item[key] = am.group(1)
+        items.append(item)
+    return items or None
+
+
 TYPES: dict[str, Callable[[dict[str, Any], Context], Any]] = {
     "labeled": _labeled,
     "text_after_label": _text_after_label,
@@ -244,6 +290,7 @@ TYPES: dict[str, Callable[[dict[str, Any], Context], Any]] = {
     "first_line": _first_line,
     "exists": _exists,
     "keyword_map": _keyword_map,
+    "names": _names,
 }
 
 
@@ -279,17 +326,28 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
             labels = [m.group(0) for m in starts]
     chunks = chunks[: int(spec.get("max_items", 50))]
     items = []
-    for chunk, label in zip(chunks, labels):
+    for index, (chunk, label) in enumerate(zip(chunks, labels)):
         item = copy.deepcopy(item_template)
         sub = ctx.sub(chunk, n_items=len(chunks))
         sub.label = label
         whole = ctx.sub(text, n_items=len(chunks))
+        doc = ctx.sub(ctx.text, n_items=len(chunks))
+        for c in (sub, whole, doc):
+            c.index = index
         for path, fspecs in spec["fields"].items():
-            scoped = fspecs if isinstance(fspecs, list) else [fspecs]
-            on_section = any(f.get("scope") == "section" for f in scoped)
-            set_path(item, path, extract_field(fspecs, whole if on_section else sub))
+            scope = next((f.get("scope") for f in (fspecs if isinstance(fspecs, list) else [fspecs]) if f.get("scope")), None)
+            c = {"section": whole, "document": doc}.get(scope, sub)
+            value = extract_field(fspecs, c)
+            if value is not None or not isinstance(_get_path(item, path), list):
+                set_path(item, path, value)
         items.append(item)
     return items
+
+
+def _get_path(obj: Any, path: str) -> Any:
+    for part in re.findall(r"[^.\[\]]+|\[\d+\]", path):
+        obj = obj[int(part[1:-1])] if part.startswith("[") else obj.get(part) if isinstance(obj, dict) else None
+    return obj
 
 
 def set_path(obj: Any, path: str, value: Any) -> None:

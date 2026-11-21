@@ -27,8 +27,14 @@ class Result:
 def extract(doc: Document, doc_class: DocClass) -> dict[str, Any]:
     out = copy.deepcopy(doc_class.output_template)
     ctx = Context(doc.text, doc_class.raw)
+    excluded: dict[str, list[str]] = {}
+    ctx.cfg = {**doc_class.raw, "_excluded_names": excluded}
     for path, specs in (doc_class.raw.get("fields") or {}).items():
-        set_path(out, path, extract_field(specs, ctx))
+        value = extract_field(specs, ctx)
+        if isinstance(value, list):  # names-type field: remember names so other fields can exclude them
+            excluded[path] = [next(iter(v.values())) for v in value if isinstance(v, dict)]
+        if value is not None or not isinstance(out.get(path), list):
+            set_path(out, path, value)
     for path, spec in (doc_class.raw.get("lists") or {}).items():
         template = doc_class.output_template[path][0]
         out[path] = extract_list(spec, ctx, template)
