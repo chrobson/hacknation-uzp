@@ -175,9 +175,15 @@ def _text_after_label(spec: dict[str, Any], ctx: Context) -> Any:
         rest = ctx.text[m.end() :].lstrip(" \t:")
         lines = rest.split("\n")
         taken: list[str] = []
+        inline = spec.get("inline_stops", False)
         for i, line in enumerate(lines[: max_lines + 1]):
             if i > 0 and any(s.match(line) for s in stops):
                 break
+            if inline:  # a following field glued onto the same line ("… CEN123 zł 17,00 zrealizowano …")
+                cut = min((sm.start() for s in stops if (sm := s.search(line, 1))), default=None)
+                if cut is not None:
+                    taken.append(line[:cut])
+                    break
             if line.strip():
                 taken.append(line)
             if "”" in line:  # closing quote ends a quoted title
@@ -336,7 +342,10 @@ def _near(spec: dict[str, Any], ctx: Context) -> Any:
     stops = _compile(spec.get("stop", []))
     hits = sorted((m for rx in _compile(spec["anchors"]) for m in rx.finditer(ctx.text)), key=lambda m: m.start())
     for m in hits:
-        seg = ctx.text[m.end() : m.end() + window]
+        end = m.end() + window
+        while end < len(ctx.text) and not ctx.text[end].isspace():  # never cut a token at the window edge
+            end += 1
+        seg = ctx.text[m.end() : end]
         cut = min((sm.start() for rx in stops if (sm := rx.search(seg))), default=len(seg))
         value = find(seg[:cut])
         if value not in (None, ""):

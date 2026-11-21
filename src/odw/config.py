@@ -21,10 +21,15 @@ class Signal:
     weight: float
     head_chars: int | None  # search only the first N characters of the document; None = whole text
     also: tuple[re.Pattern[str], ...] = ()  # extra patterns that must ALL match too (same head_chars)
+    min_count: int = 1  # the main pattern must occur at least this many times (e.g. two account numbers)
 
     def matches(self, text: str) -> bool:
         hay = text[: self.head_chars] if self.head_chars else text
-        return bool(self.pattern.search(hay)) and all(p.search(hay) for p in self.also)
+        if self.min_count > 1:
+            found = len({m.group(0) for m in self.pattern.finditer(hay)}) >= self.min_count
+        else:
+            found = bool(self.pattern.search(hay))
+        return found and all(p.search(hay) for p in self.also)
 
 
 @dataclass(frozen=True)
@@ -49,6 +54,7 @@ def _signals(items: list[dict[str, Any]] | None) -> list[Signal]:
                 weight=float(item.get("weight", 1)),
                 head_chars=item.get("head_chars"),
                 also=tuple(re.compile(p, _FLAGS) for p in patterns[1:]),
+                min_count=int(item.get("min_count", 1)),
             )
         )
     return out

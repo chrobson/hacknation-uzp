@@ -12,6 +12,9 @@ classify:
     # pismo kierowane do KIO (rodzaj pisma rozstrzygają sygnały poniżej, w tym ujemne dla innych pism KIO)
     - 'Krajow\w+\s+Izb\w+\s+Odwoławcz\w+'
   signals:
+    # Jednoznaczny nagłówek INNEJ klasy na górze dokumentu:
+    - {pattern: '^\s*(?-i:P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W\w*|Pełnomocnictwo)\b', weight: -6, head_chars: 600}
+    - {pattern: '^\s*(?:potwierdzeni\w*\s+(?:realizacji\s+|wykonania\s+)?(?:polecenia\s+)?przelewu|polecenie\s+przelewu|dowód\s+wykonania\s+przelewu)', weight: -6, head_chars: 600}
     # Pisma KIO i zamawiającego innych rodzajów (nagłówek):
     - {pattern: '^\s*(?-i:WEZWANIE|ZAWIADOMIENIE|INFORMACJA\s+O\s+WYNIKU)\b', weight: -6, head_chars: 1500}
     - {pattern: '^\s*O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E\b', weight: 3}

@@ -5,6 +5,7 @@ description: bankowe potwierdzenie przelewu (wpis od odwołania lub opłata skar
 classify:
   threshold: 4
   required:
+    - {pattern: '(?<![\dA-Z])(?:PL)?\s?\d{2}(?:\s?\d{4}){6}(?!\d)', min_count: 2}
     - {pattern: 'potwierdzeni\w*\s+(realizacji\s+|wykonania\s+)?(polecenia\s+)?(przelewu|transakcji|operacji)|dowód\s+wykonania\s+przelewu|polecenie\s+przelewu|potwierdzenie\s+przelewu', head_chars: 1200}
     - {pattern: 'przelew\w*', head_chars: 1500}
     # Nagłówki wydruków bankowych bez słowa "przelew" (szczegóły transakcji, historia, wyciąg, wersja angielska):
@@ -13,6 +14,11 @@ classify:
     - all: ['rachunek\s+obciążony|rachunek\s+(nadawcy|zleceniodawcy|płatnika)|\bz\s+rachunku|debit\s+account|from\s+account|sender.{0,10}account|payer.{0,10}account', 'rachunek\s+uznany|rachunek\s+(odbiorcy|beneficjenta)|\bna\s+rachunek|beneficiary.{0,10}account|to\s+account|recipient.{0,10}account|payee.{0,10}account']
       head_chars: 2000
   signals:
+    # Jednoznaczny nagłówek INNEJ klasy na górze dokumentu:
+    - {pattern: '^\s*(?-i:P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W\w*|Pełnomocnictwo)\b', weight: -6, head_chars: 600}
+    - {pattern: '^\s*(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)\s*$', weight: -6, head_chars: 2500}
+    # Dwa różne numery rachunków (26 cyfr) i kwota z walutą: silny, niezależny od układu sygnał przelewu.
+    - {pattern: '(?<![\dA-Z])(?:PL)?\s?\d{2}(?:\s?\d{4}){6}(?!\d)', weight: 2, min_count: 2}
     # Pisma KIO i zamawiającego innych rodzajów (nagłówek):
     - {pattern: '^\s*(?-i:WEZWANIE|ZAWIADOMIENIE|INFORMACJA\s+O\s+WYNIKU)\b', weight: -6, head_chars: 1500}
     - {pattern: 'potwierdzeni\w*\s+(realizacji\s+|wykonania\s+)?(polecenia\s+)?(przelewu|transakcji|operacji)|dowód\s+wykonania\s+przelewu|polecenie\s+przelewu', weight: 3, head_chars: 800}

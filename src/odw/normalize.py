@@ -11,6 +11,8 @@ MONTHS = {
     "styczeń": 1, "luty": 2, "marzec": 3, "kwiecień": 4, "maj": 5, "czerwiec": 6,
     "lipiec": 7, "sierpień": 8, "wrzesień": 9, "październik": 10, "listopad": 11, "grudzień": 12,
 }
+MONTHS.update({m: i + 1 for i, m in enumerate(
+    ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"])})
 _MONTH_ALT = "|".join(sorted(MONTHS, key=len, reverse=True))
 ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10, "XI": 11, "XII": 12}
 _ROMAN_ALT = "|".join(sorted(ROMAN, key=len, reverse=True))
@@ -19,7 +21,8 @@ DATE_RE = re.compile(
     r"(?P<iso>\b(?P<y1>\d{4})[-./](?P<m1>\d{1,2})[-./](?P<d1>\d{1,2})\b)"
     r"|(?P<dmy>\b(?P<d2>\d{1,2})[-./](?P<m2>\d{1,2})[-./](?P<y2>\d{4})\b)"
     rf"|(?P<word>\b(?P<d3>\d{{1,2}})\s+(?P<m3>{_MONTH_ALT})\s+(?P<y3>\d{{4}}))"
-    rf"|(?P<roman>\b(?P<d4>\d{{1,2}})[ .]+(?P<m4>(?-i:{_ROMAN_ALT}))[ .]+(?P<y4>\d{{4}}))",
+    rf"|(?P<roman>\b(?P<d4>\d{{1,2}})[\s.]+(?P<m4>(?-i:{_ROMAN_ALT}))[\s.]+(?P<y4>\d{{4}}))"
+    rf"|(?P<en>\b(?P<m5>{_MONTH_ALT})\s+(?P<d5>\d{{1,2}}),?\s+(?P<y5>\d{{4}}))",
     re.IGNORECASE,
 )
 
@@ -36,6 +39,8 @@ def parse_date(m: re.Match[str]) -> str | None:
             y, mo, d = int(m.group("y1")), int(m.group("m1")), int(m.group("d1"))
         elif m.group("dmy"):
             y, mo, d = int(m.group("y2")), int(m.group("m2")), int(m.group("d2"))
+        elif m.group("en"):
+            y, mo, d = int(m.group("y5")), MONTHS[m.group("m5").lower()], int(m.group("d5"))
         elif m.group("roman"):
             y, mo, d = int(m.group("y4")), ROMAN[m.group("m4")], int(m.group("d4"))
         else:
@@ -61,9 +66,15 @@ INT_AMOUNT_RE = re.compile(
 _GROUP_SEP = re.compile(r"[ \u00a0.]")
 
 
+EN_AMOUNT_RE = re.compile(r"(?<![\d.,])(\d{1,3}(?:,\d{3})+)\.(\d{2})(?![\d])")  # 7,500.00
+
+
 def find_amount(text: str) -> float | None:
     """Earliest amount in the text: decimals anywhere, whole numbers only next to a currency."""
     candidates: list[tuple[int, float]] = []
+    m = EN_AMOUNT_RE.search(text)
+    if m:
+        candidates.append((m.start() - 0.5, float(f"{m.group(1).replace(',', '')}.{m.group(2)}")))
     m = AMOUNT_RE.search(text)
     if m:
         candidates.append((m.start(), float(f"{_GROUP_SEP.sub('', m.group(1))}.{m.group(2)}")))
@@ -119,5 +130,16 @@ def iban_valid(account26: str) -> bool:
 
 
 def clean_text(s: str) -> str:
-    s = " ".join(s.split())
-    return s.strip(" \t„”\"'«»:;,").strip()
+    """Collapse whitespace; strip separators, and quotes only when unbalanced (keeps „Alfa” sp. z o.o. intact)."""
+    s = " ".join(s.split()).strip(" \t:;,'")
+    if s.startswith("„") and "”" not in s:
+        s = s[1:]
+    if s.endswith("”") and "„" not in s:
+        s = s[:-1]
+    if s.startswith("„") and s.endswith("”") and s.count("„") == 1 and s.count("”") == 1:
+        s = s[1:-1]
+    if s.count('"') % 2 == 1:
+        s = s.strip('"')
+    elif s.startswith('"') and s.endswith('"') and s.count('"') == 2:
+        s = s[1:-1]
+    return s.strip(" \t:;,'«»")

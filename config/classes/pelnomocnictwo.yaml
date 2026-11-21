@@ -5,9 +5,14 @@ description: pełnomocnictwo procesowe udzielone pełnomocnikowi przez mocodawc�
 classify:
   threshold: 4
   required:
+    - {pattern: 'pełnomocnictw|pełnomocnik', head_chars: 1500}
+    - 'upoważni\w*|udziel\w*\s+(?:\w+\s+){0,3}pełnomocn|ustanaw\w*\s+(?:\w+\s+){0,3}pełnomocn'
     - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', head_chars: 800}
     - 'udziel\w*\s+(\w+\s+)?pełnomocnictw|ustanawia\w*\s+(\w+\s+)?pełnomocnik|upoważniam'
   signals:
+    # Jednoznaczny nagłówek INNEJ klasy na górze dokumentu:
+    - {pattern: '^\s*(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)\s*$', weight: -6, head_chars: 2500}
+    - {pattern: '^\s*(?:potwierdzeni\w*\s+(?:realizacji\s+|wykonania\s+)?(?:polecenia\s+)?przelewu|polecenie\s+przelewu|dowód\s+wykonania\s+przelewu)', weight: -6, head_chars: 600}
     # Pisma KIO i zamawiającego innych rodzajów (nagłówek):
     - {pattern: '^\s*(?-i:WEZWANIE|ZAWIADOMIENIE|INFORMACJA\s+O\s+WYNIKU)\b', weight: -6, head_chars: 1500}
     - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', weight: 3, head_chars: 600}
