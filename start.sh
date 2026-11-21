@@ -38,8 +38,35 @@ have_tesseract_pol() {
     tesseract --list-langs 2>/dev/null | tr -d '\r' | grep -qx 'pol'
 }
 
+ocr_banner() {
+    log "=================================================================================="
+    log "!!! OCR NIEDOSTĘPNY: brak tesseracta z językiem polskim (pol).                   !!!"
+    log "!!! Skany (PDF bez warstwy tekstowej) NIE zostaną odczytane i dadzą {}.          !!!"
+    log "!!! Debian/Ubuntu/WSL: sudo apt-get install -y tesseract-ocr tesseract-ocr-pol   !!!"
+    log "!!! macOS: brew install tesseract tesseract-lang                                 !!!"
+    log "=================================================================================="
+}
+
+# tesseract jest, brakuje tylko pol: pobierz model do ~/.local/share/tessdata (bez roota, każdy system)
+fetch_pol_model() {
+    command -v tesseract >/dev/null 2>&1 || return 1
+    [ "${ODW_NO_OCR_INSTALL:-0}" = 1 ] && return 1
+    local dir="$HOME/.local/share/tessdata" url="https://github.com/tesseract-ocr/tessdata_fast/raw/main/pol.traineddata"
+    mkdir -p "$dir" || return 1
+    if [ ! -s "$dir/pol.traineddata" ]; then
+        log "brak modelu pol dla tesseracta, pobieram do $dir ..."
+        if command -v curl >/dev/null 2>&1; then curl -fsSL -o "$dir/pol.traineddata.part" "$url" || return 1
+        elif command -v wget >/dev/null 2>&1; then wget -qO "$dir/pol.traineddata.part" "$url" || return 1
+        else return 1; fi
+        mv "$dir/pol.traineddata.part" "$dir/pol.traineddata"
+    fi
+    export TESSDATA_PREFIX="$dir"
+    have_tesseract_pol
+}
+
 ensure_tesseract() {
     have_tesseract_pol && return 0
+    fetch_pol_model && { log "OCR gotowy (model pol w $TESSDATA_PREFIX)"; return 0; }
     local what="tesseract"
     command -v tesseract >/dev/null 2>&1 && what="język polski (pol) dla tesseracta"
     case "$(uname -s)" in
@@ -89,6 +116,7 @@ ensure_tesseract() {
 }
 
 ensure_tesseract || true
+have_tesseract_pol || ocr_banner
 
 STATE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/odwolania2json"
 # Repozytorium na dysku Windows (/mnt/c/...) w WSL: venv trzymamy w systemie plików Linuksa (szybciej, bez problemów z symlinkami).

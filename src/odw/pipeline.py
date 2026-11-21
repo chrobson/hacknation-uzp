@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import copy
 import json
+import sys
 import logging
 import signal
 import threading
@@ -161,4 +162,18 @@ def run(input_dir: Path, output_dir: Path, classes: list[DocClass] | None = None
             _write_evidence(evidence_dir / rel.with_suffix(".evidence.json"), result)
         log.info("%s -> %s", rel.with_suffix(".pdf"), result.verdict.name or "{} (rejected)")
         results.append(result)
+    _warn_unread_scans(results)
     return results
+
+
+def _warn_unread_scans(results: list[Result]) -> None:
+    """Loud summary when scans stayed unread because OCR (tesseract + Polish model) is missing."""
+    from .textio import ocr_available
+
+    unread = [r for r in results if r.doc is not None and not r.doc.has_text]
+    if unread and not ocr_available():
+        msg = (f"!!! OCR NIEDOSTĘPNY: {len(unread)} skan(ów) bez warstwy tekstowej dało {{}}. "
+               "Zainstaluj tesseract z językiem polskim (Debian/Ubuntu: apt-get install tesseract-ocr tesseract-ocr-pol; "
+               "macOS: brew install tesseract tesseract-lang) i uruchom ponownie. !!!")
+        log.error(msg)
+        print(msg, file=sys.stderr)
