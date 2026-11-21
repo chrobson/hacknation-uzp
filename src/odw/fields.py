@@ -155,9 +155,11 @@ def _labeled(spec: dict[str, Any], ctx: Context) -> Any:
     find = _finder(spec.get("value", "token"), spec)
     window = int(spec.get("window", 160))
     hits = []
-    for rx in _compile(spec["labels"]):
-        hits.extend(rx.finditer(ctx.text))
-    for m in sorted(hits, key=lambda m: m.start()):
+    for rank, rx in enumerate(_compile(spec["labels"])):
+        hits.extend((rank, m) for m in rx.finditer(ctx.text))
+    # default: earliest label in the document; `label_priority`: labels in the YAML order (strongest first)
+    order = (lambda h: (h[0], h[1].start())) if spec.get("label_priority") else (lambda h: h[1].start())
+    for _, m in sorted(hits, key=order):
         after = ctx.text[m.end() : m.end() + window].lstrip(" \t:.…")
         value = find(after)
         if value not in (None, ""):

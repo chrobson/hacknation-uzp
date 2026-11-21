@@ -67,7 +67,8 @@ fields:
     # Układ nieznany: pierwsza niezerowa kwota z walutą za liczbą, gdziekolwiek:
     - {type: near, value: amount, anchors: ['(?<![\w.,])(?=(?!0+[,.]00)\d[\d  .]*(?:[,.]\d{2})?[ \t]*(?:PLN|zł)(?!\w))'], window: 30}
   przelew_bankowy.data_operacji:
-    - {type: labeled, value: date, labels: ['data\s+(operacji|transakcji|realizacji|wykonania|księgowania|przelewu|obciążenia|waluty)', 'w\s+dniu', 'zrealizowan\w*\s+dnia', 'zrealizowano', 'value\s+date', 'execution\s+date', '(booking|transaction|payment|transfer)\s+date', '\bdata\s*:'], window: 120}
+    # 1) etykiety jednoznacznie oznaczające wykonanie operacji, w kolejności siły (nie pierwsza data w dokumencie)
+    - {type: labeled, value: date, label_priority: true, window: 120, labels: ['data\s+(operacji|transakcji|realizacji|wykonania|księgowania|obciążenia|waluty)', 'przyjęt\w*\s+do\s+realizacji', 'zrealizowan\w*(?:\s+dnia)?', 'zaksięgowan\w*', 'przelew\s+(?:wysłany|wykonany|zrealizowany)', 'wysłan\w*\s+dnia', 'value\s+date', 'execution\s+date', '(booking|transaction|payment|transfer)\s+date', 'data\s+przelewu', '^\s*zapłat\w*\s*[:–-]', 'w\s+dniu', '\bdata\s*:']}
     # Kolumna "Data" w tabeli (karta, wyciąg, historia) — bez dat wydruku/wygenerowania:
     - {type: labeled, value: date, labels: ['\bdata\b(?!\s+(i\s+godzina|wydruku|wygenerowania|sporządzenia|zlecenia|utworzenia|generowania))'], window: 120}
     # Układ nieznany: data w pobliżu słów o wykonaniu/dniu operacji (nie wydruku):
