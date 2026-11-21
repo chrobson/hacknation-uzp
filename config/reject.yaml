@@ -10,3 +10,9 @@ reject:
   # Dokumenty postępowania, które nie są żadną z klas (nagłówek u góry strony).
   - {name: swz, pattern: '^\s*(?-i:SPECYFIKACJA\s+WARUNKÓW\s+ZAMÓWIENIA)', head_chars: 600}
   - {name: faktura, pattern: '^\s*(?:Faktura(?:\s+VAT)?|FAKTURA(?:\s+VAT)?)\s*(?:nr\b|$)', head_chars: 300}
+  # Przelew / pełnomocnictwo bez ŻADNEGO kontekstu sprawy (zamówienie, odwołanie, KIO, wpis, opłata skarbowa za pełnomocnictwo):
+  # np. zapłata za fakturę, pełnomocnictwo do urzędu skarbowego. Wzorce bez polskich znaków (działają też po zdjęciu diakrytyków).
+  - name: przelew_bez_kontekstu
+    pattern: '\A(?![\s\S]*(?:zam\w*\s+publiczn|\bUZP\b|\bwpis|odwo\w*|\bKIO\b|krajow\w+\s+izb|op\w*\s+skarbow|pe\w{1,2}nomocni|appeal|power\s+of\s+attorney|stamp\s+duty|procurement))(?=[\s\S]*(?:przelew|transfer|payment|transakcj|rachun))'
+  - name: pelnomocnictwo_bez_kontekstu
+    pattern: '\A(?![\s\S]*(?:zam\w*ieni|odwo\w*|\bKIO\b|krajow\w+\s+izb|przetarg|post\w{1,2}powani|\bPzp\b|procurement|appeal|tender|op\w*\s+skarbow|przelew|payment|transfer))(?=[\s\S]*(?:pe\w{1,2}nomocni|power\s+of\s+attorney))'
