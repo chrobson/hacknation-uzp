@@ -194,6 +194,13 @@ def _text_after_label(spec: dict[str, Any], ctx: Context) -> Any:
     return None
 
 
+# Address / contact fragments that a two-column layout glues into the middle of a name.
+_INSERTS = re.compile(
+    r"\s*,?\s*(?:ul\.|al\.|pl\.|os\.)\s[^,\n]{1,60}?,\s*\d{2}-\d{3}\s+[A-ZŁŚŻŹĆŃÓ][\w-]*(?:[ \t]+[A-ZŁŚŻŹĆŃÓ][\w-]*)?"
+    r"|\s*,?\s*(?:e-?mail|tel\.?|fax)\s*:?\s*[\w.+@()-]+(?:\s\d+)*"
+)
+
+
 def _pattern(spec: dict[str, Any], ctx: Context) -> Any:
     rejects = _compile(spec.get("reject", []))
     for rx in _compile(spec["pattern"]):
@@ -208,6 +215,8 @@ def _pattern(spec: dict[str, Any], ctx: Context) -> Any:
                 return "".join(value.split()) if spec.get("nospace") else value
             value = m.group(1) if m.groups() else m.group(0)
             value = N.digits(value) if spec.get("digits") else N.clean_text(value) if spec.get("clean") else value
+            if spec.get("strip_inserts") and isinstance(value, str):
+                value = N.clean_text(_INSERTS.sub(" ", value))
             if "require" in spec and not any(r.search(value) for r in _compile(spec["require"])):
                 continue  # implausible value (e.g. a law-firm field without any law-firm word): try next pattern
             if spec.get("titlecase") or spec.get("nominative"):

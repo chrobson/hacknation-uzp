@@ -231,7 +231,7 @@ lists:
       pelnomocnik.imie_nazwisko:
         - {if_no_section: true, type: pattern, scope: document, pattern: '(?:reprezentowan\w*\s+(?:jest\s+)?przez|pełnomocnik\w*(?:\s*\(cy\))?(?:\s+Odwołując\w*)?)\s*[:–-]?\s*(?:pełnomocnika\s*[–-]?\s*)?(?:(?:adw\.|r\.\s*pr\.|apl\.\s*adw\.|radc\w*\s+prawn\w*|adwokat\w*|mec\.)\s*)?((?-i:[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?))(?![\w.])'}
       pelnomocnik.nazwa:
-        - {if_no_section: true, type: pattern, scope: document, pattern: 'adres\s+do\s+korespondencji:\s*([\s\S]+?)(?=,\s*(?:ul\.|al\.|pl\.|os\.)|\n\s*(?:ul\.|tel))', clean: true, require: ['Kancelari|adwokac|radc|prawn|legal|partnersk|attorney|\blaw\b']}
+        - {if_no_section: true, type: pattern, scope: document, pattern: 'adres\s+do\s+korespondencji:\s*([\s\S]+?)(?=,\s*(?:ul\.|al\.|pl\.|os\.)|\n\s*(?:ul\.|tel))', clean: true, strip_inserts: true, require: ['Kancelari|adwokac|radc|prawn|legal|partnersk|attorney|\blaw\b']}
         # pierwsza nazwa zaczynająca się od "Kancelaria" (z jedną linią kontynuacji)
         - {if_no_section: true, type: pattern, scope: document, clean: true, pattern: '((?-i:Kancelari)\w*[ \t]+[^,;()|\n]*?(?:\n(?!\s*(?:ul\.|al\.|pl\.|tel|e-?mail|adres|[\d+])|[^\n]*:)[^,;()|\n]*?)?)(?=\s*[,;()|]|\s+(?:ul\.|al\.|pl\.)\s|\s*\n|\s*$)'}
       pelnomocnik.mail:
