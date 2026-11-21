@@ -114,7 +114,7 @@ _DATIVE_HEAD = {"Gminie": "Gmina", "Miastu": "Miasto", "Powiatowi": "Powiat", "W
                 "Przedsiębiorstwu": "Przedsiębiorstwo"}
 
 ID_PATTERNS = {
-    "nip": re.compile(r"NIP(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(?:PL[ \u00a0-]?)?(\d(?:[ \u00a0-]?\d){9})(?!\d)", re.IGNORECASE),
+    "nip": re.compile(r"NIP(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(?:PL[\s-]?)?(\d(?:[ \u00a0-]?\d){9})(?!\d)", re.IGNORECASE),
     "krs": re.compile(r"KRS(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(\d(?:[ \u00a0]?\d){9})(?!\d)", re.IGNORECASE),
     "regon": re.compile(r"REGON(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(\d(?:[ \u00a0]?\d){13}|\d(?:[ \u00a0]?\d){8})(?!\d)", re.IGNORECASE),
     "pesel": re.compile(r"PESEL\W{0,3}(\d{11})(?!\d)", re.IGNORECASE),

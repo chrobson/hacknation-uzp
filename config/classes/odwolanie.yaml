@@ -274,7 +274,7 @@ lists:
         - {type: pattern, pattern: 'KRS(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
         - {<<: *odw_near, value: krs}
       nip:
-        - {type: pattern, pattern: 'NIP(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(?:PL[  -]?)?(\d(?:[\s-]?\d){9})(?!\d)', digits: true}
+        - {type: pattern, pattern: 'NIP(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(?:PL[\s-]?)?(\d(?:[\s-]?\d){9})(?!\d)', digits: true}
         - {<<: *odw_near, value: nip}
       regon:
         - {type: pattern, pattern: 'REGON(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(\d(?:[  ]?\d){13}|\d(?:[\s]?\d){8})(?!\d)', digits: true}
@@ -318,8 +318,8 @@ lists:
         - {<<: *zam_back, value: krs}
         - {<<: *zam_near, value: krs}
       nip:
-        - {type: pattern, pattern: '^\s*NIP\W{0,3}(?:PL[  -]?)?\d(?:[  -]?\d){9}[ \t]+(?:PL[  -]?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
-        - {type: pattern, pattern: 'NIP(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(?:PL[  -]?)?(\d(?:[\s-]?\d){9})(?!\d)', digits: true}
+        - {type: pattern, pattern: '^\s*NIP\W{0,3}(?:PL[\s-]?)?\d(?:[  -]?\d){9}[ \t]+(?:PL[\s-]?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
+        - {type: pattern, pattern: 'NIP(?:\s+(?:pod\s+)?(?:nr|numer\w*)\.?)?\W{0,3}(?:PL[\s-]?)?(\d(?:[\s-]?\d){9})(?!\d)', digits: true}
         - {<<: *zam_back, value: nip}
         - {<<: *zam_near, value: nip}
         - {<<: *zam_near, value: nip, scope: document, only_if_single: true}

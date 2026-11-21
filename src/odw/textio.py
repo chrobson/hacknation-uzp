@@ -130,6 +130,39 @@ def ocr_pdf(path: Path) -> Document:
     return Document(path=path, pages=pages, words=words, sizes=sizes, ocr=True)
 
 
+_ROLE_HEAD = re.compile(r"^(?:ODWOŁUJĄC\w*|Odwołując\w*|ZAMAWIAJĄC\w*|Zamawiając\w*):?$")
+
+
+def _page_text(page) -> str:
+    """Page text; a two-column party header ("ODWOŁUJĄCY   ZAMAWIAJĄCY" side by side) is read column by column,
+    otherwise every line would mix both parties (left half + right half)."""
+    text = page.extract_text(x_tolerance=1.5) or ""
+    if not re.search(r"(?im)^\s*odwołując\w*:?[ \t]+zamawiając\w*:?\s*$", text):
+        return text
+    try:
+        words = page.extract_words(x_tolerance=1.5)
+        lines: dict[int, list[dict]] = {}
+        for w in words:
+            lines.setdefault(round(w["top"] / 3), []).append(w)
+        rows = [sorted(ws, key=lambda w: w["x0"]) for _, ws in sorted(lines.items())]
+        head = next(r for r in rows if len(r) == 2 and all(_ROLE_HEAD.match(w["text"]) for w in r)
+                    and r[1]["x0"] - r[0]["x1"] > page.width * 0.15)
+        split, top = head[1]["x0"] - 4, min(w["top"] for w in head) - 1
+        # the block ends at the first later line that crosses the column gap (e.g. a centred "ODWOŁANIE")
+        later = [r for r in rows if min(w["top"] for w in r) > top + 2]
+        cross = next((r for r in later if any(w["x0"] < split < w["x1"] for w in r) or
+                      (r[0]["x0"] < split and r[-1]["x1"] < split and len(r) == 1 and r[0]["text"].isupper()
+                       and len(r[0]["text"]) > 6)), None)
+        bottom = min(w["top"] for w in cross) - 1 if cross else float(page.height)
+        part = lambda box: page.crop(box).extract_text(x_tolerance=1.5) or ""
+        return "\n".join(t for t in (part((0, 0, page.width, top)),
+                                      part((0, top, split, bottom)),
+                                      part((split, top, page.width, bottom)),
+                                      part((0, bottom, page.width, page.height)) if cross else "") if t)
+    except (StopIteration, ValueError):
+        return text
+
+
 def load_pdf(path: Path) -> Document:
     pages: list[str] = []
     words: list[list[dict]] = []
@@ -137,7 +170,7 @@ def load_pdf(path: Path) -> Document:
     try:
         with pdfplumber.open(path) as pdf:
             for page in pdf.pages:
-                pages.append(page.extract_text(x_tolerance=1.5) or "")
+                pages.append(_page_text(page))
                 words.append([
                     {"text": w["text"], "x0": round(w["x0"], 1), "top": round(w["top"], 1), "x1": round(w["x1"], 1), "bottom": round(w["bottom"], 1)}
                     for w in page.extract_words(x_tolerance=1.5)
