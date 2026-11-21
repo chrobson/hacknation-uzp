@@ -73,6 +73,7 @@ def settings() -> dict[str, Any]:
     return cfg
 
 
+CALLS = {"ok": 0, "failed": 0}  # per run, for the CLI summary
 _DOWN = False  # circuit breaker: after a call fails on every attempt (network down, 401/429), stop asking for this run
 
 
@@ -135,6 +136,7 @@ def ask(question: str, text: str, schema: dict[str, Any]) -> Any:
     for attempt in range(2):  # one retry
         try:
             data = TRANSPORT(url, payload, cfg["api_key"], cfg["timeout_s"])
+            CALLS["ok"] += 1
             content = data["choices"][0]["message"]["content"]
             value = json.loads(content)["value"] if isinstance(content, str) else content["value"]
             if _valid(value, schema):
@@ -144,7 +146,17 @@ def ask(question: str, text: str, schema: dict[str, Any]) -> Any:
             log.warning("LLM call failed (attempt %d): %s", attempt + 1, exc)
             failures += 1
             time.sleep(0.5 * (attempt + 1))
+    CALLS["failed"] += failures
     if failures == 2:
         _DOWN = True
         log.warning("LLM unavailable: rules only for the rest of this run")
     return None
+
+
+def summary() -> str:
+    """One line for the end of a run: whether the model was used, how often, and why not (never the key)."""
+    cfg = settings()
+    if not cfg["enabled"]:
+        return "LLM: wyłączony (tylko reguły)"
+    state = " — niedostępny, dokończono na regułach" if _DOWN else ""
+    return f"LLM: {cfg['model']} @ {cfg['base_url']}: {CALLS['ok']} wywołań, {CALLS['failed']} nieudanych{state}"

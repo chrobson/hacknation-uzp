@@ -63,7 +63,9 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     results = run(args.input, args.output, classes, None if args.no_evidence else args.evidence)
     rejected = sum(1 for r in results if r.verdict.cls is None)
+    from . import llm
     print(f"przetworzono {len(results)} PDF, odrzucono {rejected}, wynik: {args.output}")
+    print(llm.summary())
     return 0
 
 
