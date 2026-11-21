@@ -435,7 +435,14 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
             if spec.get("keep_head") and len(re.findall(r"[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]", head)) >= 12:
                 chunks.insert(0, head)  # "A …; oraz B …" or "A (lead) … na rzecz: 1) B": text before the first marker is an item
                 labels.insert(0, "")
+    if "prefer" in spec and len(chunks) > 1:
+        # e.g. consortium → only the leader: move the first item whose label or text matches `prefer` to the front
+        prefs = _compile(spec["prefer"])
+        pick = next((i for i, (c, l) in enumerate(zip(chunks, labels)) if any(r.search(l + "\n" + c) for r in prefs)), 0)
+        chunks.insert(0, chunks.pop(pick))
+        labels.insert(0, labels.pop(pick))
     chunks = chunks[: int(spec.get("max_items", 50))]
+    labels = labels[: len(chunks)]
     items = []
     for index, (chunk, label) in enumerate(zip(chunks, labels)):
         item = copy.deepcopy(item_template)

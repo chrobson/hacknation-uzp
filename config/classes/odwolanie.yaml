@@ -205,7 +205,10 @@ fields:
 lists:
   Odwolujacy:
     section: odwolujacy
-    split: '^\s*\d\)\s*(Lider|Partner)\w*[^\n]*:'
+    # konsorcjum: "1) Lider Konsorcjum:", wiersze tabeli "1 Firma …", "1. Firma …", proza "Firma A … ; Firma B …"
+    split: '^\s*\d\)\s*(Lider|Partner)\w*[^\n]*:|^[ \t]*\d{1,2}[.)]?[ \t]+(?=(?-i:[A-ZŁŚŻŹĆŃÓ„][a-ząćęłńóśźż\w-]))|;\s*(?=(?-i:[A-ZŁŚŻŹĆŃÓ][\w-]+\s+[A-ZŁŚŻŹĆŃÓ]))'
+    keep_head: true
+    prefer: ['\bLider\w*']   # GT: przy konsorcjum tylko Lider
     max_items: 1            # przy konsorcjum: tylko Lider
     fields:
       nazwa:
