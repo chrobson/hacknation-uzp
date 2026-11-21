@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+import re
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 import pdfplumber
@@ -29,6 +30,16 @@ class Document:
     @property
     def has_text(self) -> bool:
         return sum(len(p.split()) for p in self.pages) > 0 and len("".join(self.text.split())) >= MIN_TEXT_CHARS
+
+
+_NBSP = str.maketrans({"\u00a0": " ", "\u2007": " ", "\u202f": " ", "\u2009": " "})
+_SPACE_BEFORE_COLON = re.compile(r"[ \t]+:")
+
+
+def canonical(doc: Document) -> Document:
+    """Typography that should never change a value: exotic spaces → space, "NIP :" → "NIP:"."""
+    pages = [_SPACE_BEFORE_COLON.sub(":", p.translate(_NBSP)) for p in doc.pages]
+    return replace(doc, pages=pages)
 
 
 def load_pdf(path: Path) -> Document:

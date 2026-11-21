@@ -4,6 +4,9 @@ description: bankowe potwierdzenie przelewu (wpis od odwołania lub opłata skar
 
 classify:
   threshold: 4
+  required:
+    - {pattern: 'potwierdzeni\w*\s+(realizacji\s+|wykonania\s+)?(polecenia\s+)?(przelewu|transakcji|operacji)|dowód\s+wykonania\s+przelewu|polecenie\s+przelewu|potwierdzenie\s+przelewu', head_chars: 1200}
+    - {pattern: 'przelew\w*', head_chars: 1500}
   signals:
     - {pattern: 'potwierdzeni\w*\s+(realizacji\s+|wykonania\s+)?(polecenia\s+)?(przelewu|transakcji|operacji)|dowód\s+wykonania\s+przelewu|polecenie\s+przelewu', weight: 3, head_chars: 800}
     - {pattern: '(PL)?\s?\d{2}(\s?\d{4}){6}', weight: 1}

@@ -58,7 +58,7 @@ sections:
   odwolujacy: {start: '^\s*Odwołując\w*\s*:'}
   zamawiajacy: {start: ['^\s*Zamawiając\w*\s*:', '^(?=\s*1\)\s*Zamawiając)']}
   czynnosc: {start: 'wnosz[eę]', end: ['Zarzut\s+nr\s*2\b', '^\s*Uzasadnienie']}
-  dotyczy: {start: '^\s*dotyczy\s*:?', end: ['^\s*Działając', 'wnosz[eę]']}
+  dotyczy: {start: ['^\s*dotyczy\s*:?', '\bdotyczy\s*:'], end: ['^\s*Działając', 'wnosz[eę]']}
   _end:
     start: ['^\s*(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)\s*$', '^\s*(dotyczy|Prezes\b|Krajowa\s+Izba|Wykonawc\w*\s+wybran|Uczestnik|Przystępując|Działając|Wartość\s+zamówienia|Wpis\s+od|W\s+imieniu)']
 
@@ -135,8 +135,8 @@ fields:
       token_pattern: '[A-Z0-9][A-Za-z0-9./\-]*\d[A-Za-z0-9./\-]*'
       window: 60
   ZamowieniePubliczne.tytul:
-    - {type: pattern, pattern: 'pn\.?:?\s*„([^”]+)”', clean: true}
-    - {type: pattern, pattern: '„([^”]{15,})”', clean: true}
+    - {type: pattern, pattern: 'pn\.?:?\s*[„"]([^”"]+)[”"]', clean: true}
+    - {type: pattern, pattern: '[„"]([^”"]{15,})[”"]', clean: true}
     - {type: llm, section: dotyczy, question: 'Podaj pełny tytuł (nazwę) zamówienia publicznego, którego dotyczy odwołanie, dokładnie tak jak w tekście.', schema: {type: string}}
 
 lists:
@@ -145,7 +145,7 @@ lists:
     split: '^\s*\d\)\s*(Lider|Partner)\w*[^\n]*:'
     max_items: 1            # przy konsorcjum: tylko Lider
     fields: &party
-      nazwa: {type: first_line}
+      nazwa: {type: first_line, cut: ['\s*,\s*(?:ul\.|al\.|pl\.|os\.)', '\s+(?:ul\.|al\.|pl\.|os\.)\s', '\s*,?\s*\d{2}-\d{3}\s', '\s*,?\s*(?:KRS|NIP|REGON)\b']}
       krs: {type: pattern, pattern: 'KRS\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
       nip: {type: pattern, pattern: 'NIP\W{0,3}(?:PL[  -]?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
       regon: {type: pattern, pattern: 'REGON\W{0,3}(\d(?:[  ]?\d){13}|\d(?:[  ]?\d){8})(?!\d)', digits: true}
@@ -160,7 +160,7 @@ lists:
     section: zamawiajacy
     split: '^\s*\d\)\s*Zamawiaj\w*[^\n]*:'
     fields:
-      nazwa: {type: first_line}
+      nazwa: {type: first_line, cut: ['\s*,\s*(?:ul\.|al\.|pl\.|os\.)', '\s+(?:ul\.|al\.|pl\.|os\.)\s', '\s*,?\s*\d{2}-\d{3}\s', '\s*,?\s*(?:KRS|NIP|REGON)\b']}
       krs: {type: pattern, pattern: 'KRS\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
       nip: {type: pattern, pattern: 'NIP\W{0,3}(?:PL[  -]?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
       regon: {type: pattern, pattern: 'REGON\W{0,3}(\d(?:[  ]?\d){13}|\d(?:[  ]?\d){8})(?!\d)', digits: true}

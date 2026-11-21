@@ -15,7 +15,7 @@ from typing import Any
 from .classify import Verdict, classify
 from .config import DocClass, load_classes
 from .fields import Context, extract_field, extract_list, set_path
-from .textio import Document, load_pdf
+from .textio import Document, canonical, load_pdf
 
 log = logging.getLogger(__name__)
 
@@ -105,12 +105,13 @@ def _derive(out: dict[str, Any], spec: dict[str, Any]) -> Any:
     return table.get(source)
 
 
-def process_pdf(path: Path, classes: list[DocClass], timeout: float = DOC_TIMEOUT_S) -> Result:
-    """Never raises. Unreadable/unclassifiable → {}; extraction failure → partial result."""
+def process_pdf(path: Path, classes: list[DocClass], timeout: float = DOC_TIMEOUT_S, doc: Document | None = None) -> Result:
+    """Never raises. Unreadable/unclassifiable → {}; extraction failure → partial result.
+    `doc` lets callers (e.g. perturbation tests) pass already-loaded text instead of reading the PDF."""
     verdict = Verdict(None, {})
     try:
         with deadline(timeout):
-            doc = load_pdf(path)
+            doc = canonical(doc if doc is not None else load_pdf(path))
             verdict = classify(doc, classes)
             if verdict.cls is None:
                 return Result(path, verdict, {}, doc)

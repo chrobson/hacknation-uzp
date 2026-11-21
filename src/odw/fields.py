@@ -204,8 +204,14 @@ def _account(spec: dict[str, Any], ctx: Context) -> Any:
 
 
 def _first_line(spec: dict[str, Any], ctx: Context) -> Any:
+    """First non-empty line; `cut` patterns trim what a wider layout may append (address, identifiers)."""
     skips = _compile(spec.get("skip", []))
+    cuts = _compile(spec.get("cut", []))
     for line in ctx.text.lstrip(" \t:").split("\n"):
+        for rx in cuts:
+            m = rx.search(line)
+            if m and m.start() > 0:
+                line = line[: m.start()]
         line = N.clean_text(line)
         if line and not any(rx.search(line) for rx in skips):
             return line
