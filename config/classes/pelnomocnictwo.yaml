@@ -45,7 +45,10 @@ fields:
   # Pełnomocnicy: imię i nazwisko po tytule zawodowym (adw., r. pr., ...), bez powtórzeń.
   pelnomocnicy:
     type: names
-    pattern: '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+    pattern:
+      - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+      # bez tytułu zawodowego: "udziela pełnomocnictwa: Jan Kowalski"
+      - '(?:udziel\w*|ustanawia\w*)\s+(?:niniejszym\s+)?pełnomocni\w+\s*:?\s*(?:Pan\w*\s+)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
     extra: {pesel: null}
     attrs: {pesel: 'PESEL\W{0,3}(\d{11})'}
 
@@ -61,8 +64,8 @@ lists:
           clean: true
           pattern: '(?-i:(?<![\w])((?:(?!Mocodaw|Działając|Pełnomoc|Dane\b|Zamawiaj|Wykonawc|Konsorcj|Ja\b)[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż][\w\-.&]*|[A-ZŁŚŻŹĆŃÓ0-9][\w]*-[\w\-]+|„[^”]+”)(?:[ \t\n]+(?:(?!Mocodaw|Działając|Pełnomoc|Dane\b|Zamawiaj|Wykonawc|Konsorcj|Ja\b)[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż][\w\-.&]*|[A-ZŁŚŻŹĆŃÓ0-9][\w]*-[\w\-]+|i|w|z|oraz|im\.|„[^”]+”))*?[ \t\n]+(?:S\.A\.|sp\.\s*z\s*o\.\s*o\.(?:\s*sp\.\s*k\.)?|sp\.\s*k\.|sp\.\s*j\.|sp\.\s*p\.|s\.c\.|Sp\.\s*z\s*o\.\s*o\.|Spółka\s+[\w ]+?(?=,|\n|\s\())))'
         - {type: pattern, pattern: 'Mocodawc\w*[ \t]+(?:jest[ \t]+)?(?!ustanaw|upoważ|udziel)([A-ZŁŚŻŹĆŃÓ0-9„"][^\n,(]+?)(?=,|\n|\s+\()', clean: true, reject: ['^(?-i:[A-ZŁŚŻŹĆŃÓ \t]+)$', 'pełnomoc']}
-      data.krs: {type: pattern, pattern: 'KRS\W{0,3}(\d{10})', digits: true}
-      data.nip: {type: pattern, pattern: 'NIP\W{0,3}(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}|\d{10})', digits: true}
+      data.krs: {type: pattern, pattern: 'KRS\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
+      data.nip: {type: pattern, pattern: 'NIP\W{0,3}(?:PL[  -]?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
       data.typ: {type: exists, scope: section, pattern: ['działalnoś\w*\s+gospodarcz', 'CEIDG', 'Ewidencji\s+i\s+Informacji'], if_true: osoba_fizyczna, if_false: osoba_prawna}
       data.imie_nazwisko:
         - {type: pattern, scope: section, pattern: 'niżej\s+podpisan\w*(?:\s*\(a\))?\s+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż-]+)'}

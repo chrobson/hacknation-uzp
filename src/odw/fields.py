@@ -189,6 +189,9 @@ def _pattern(spec: dict[str, Any], ctx: Context) -> Any:
         if m:
             if "format" in spec:  # e.g. "{1}/BZP{2}" with regex groups; missing groups become ""
                 groups = [m.group(0)] + [g or "" for g in m.groups()]
+                for idx, width in (spec.get("pad") or {}).items():  # "00364525" → "364525"; "1234" → "001234"
+                    if groups[int(idx)]:
+                        groups[int(idx)] = str(int(groups[int(idx)])).zfill(int(width))
                 value = spec["format"].format(*groups)
                 return "".join(value.split()) if spec.get("nospace") else value
             value = m.group(1) if m.groups() else m.group(0)
@@ -261,13 +264,15 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
         if m is None:
             return None
         text = text[m.start() :]
-    rx = re.compile(spec.get("pattern", rf"({NAME}[ \t]+{NAME})"), re.MULTILINE)
+    pats = spec.get("pattern", rf"({NAME}[ \t]+{NAME})")
+    rxs = [re.compile(p, re.MULTILINE) for p in (pats if isinstance(pats, list) else [pats])]
     attrs = {k: re.compile(v, FLAGS) for k, v in spec.get("attrs", {}).items()}
     stop = {w.lower() for w in spec.get("stopwords", [])}
     exclude = set(ctx.cfg.get("_excluded_names", {}).get(spec.get("exclude_from", ""), []))
     field = spec.get("field", "imie_nazwisko")
     items: list[dict[str, Any]] = []
-    for m in rx.finditer(text):
+    matches = sorted((m for rx in rxs for m in rx.finditer(text)), key=lambda m: m.start())
+    for m in matches:
         name = " ".join(m.group(1).split())
         words = name.split()
         if any(w.lower() in stop for w in words) or name in exclude or any(i[field] == name for i in items):
@@ -297,6 +302,8 @@ TYPES: dict[str, Callable[[dict[str, Any], Context], Any]] = {
 def extract_field(specs: dict[str, Any] | list[dict[str, Any]], ctx: Context) -> Any:
     for spec in specs if isinstance(specs, list) else [specs]:
         c = ctx
+        if "unless_section" in spec and ctx.section(spec["unless_section"]) is not None:
+            continue  # fallback used only when the document has no such section
         if "section" in spec:
             text = ctx.section(spec["section"])
             if text is None:

@@ -12,11 +12,14 @@ MONTHS = {
     "lipiec": 7, "sierpień": 8, "wrzesień": 9, "październik": 10, "listopad": 11, "grudzień": 12,
 }
 _MONTH_ALT = "|".join(sorted(MONTHS, key=len, reverse=True))
+ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10, "XI": 11, "XII": 12}
+_ROMAN_ALT = "|".join(sorted(ROMAN, key=len, reverse=True))
 
 DATE_RE = re.compile(
     r"(?P<iso>\b(?P<y1>\d{4})[-./](?P<m1>\d{1,2})[-./](?P<d1>\d{1,2})\b)"
     r"|(?P<dmy>\b(?P<d2>\d{1,2})[-./](?P<m2>\d{1,2})[-./](?P<y2>\d{4})\b)"
-    rf"|(?P<word>\b(?P<d3>\d{{1,2}})\s+(?P<m3>{_MONTH_ALT})\s+(?P<y3>\d{{4}}))",
+    rf"|(?P<word>\b(?P<d3>\d{{1,2}})\s+(?P<m3>{_MONTH_ALT})\s+(?P<y3>\d{{4}}))"
+    rf"|(?P<roman>\b(?P<d4>\d{{1,2}})[ .]+(?P<m4>(?-i:{_ROMAN_ALT}))[ .]+(?P<y4>\d{{4}}))",
     re.IGNORECASE,
 )
 
@@ -33,6 +36,8 @@ def parse_date(m: re.Match[str]) -> str | None:
             y, mo, d = int(m.group("y1")), int(m.group("m1")), int(m.group("d1"))
         elif m.group("dmy"):
             y, mo, d = int(m.group("y2")), int(m.group("m2")), int(m.group("d2"))
+        elif m.group("roman"):
+            y, mo, d = int(m.group("y4")), ROMAN[m.group("m4")], int(m.group("d4"))
         else:
             y, mo, d = int(m.group("y3")), MONTHS[m.group("m3").lower()], int(m.group("d3"))
         return date(y, mo, d).isoformat()
@@ -47,12 +52,25 @@ def find_date(text: str) -> str | None:
     return None
 
 
+# Whole amounts only count next to a currency: "17 PLN", "PLN 17", "17,- zł", "1 200 zł".
+INT_AMOUNT_RE = re.compile(
+    r"(?<![\d.,])(\d{1,3}(?:[ \u00a0.]\d{3})+|\d+)(?:,-)?\s*(?:PLN|zł)(?!\w)"
+    r"|(?:PLN|zł)\s*(\d{1,3}(?:[ \u00a0.]\d{3})+|\d+)(?![\d,.])",
+    re.IGNORECASE,
+)
+_GROUP_SEP = re.compile(r"[ \u00a0.]")
+
+
 def find_amount(text: str) -> float | None:
+    """Earliest amount in the text: decimals anywhere, whole numbers only next to a currency."""
+    candidates: list[tuple[int, float]] = []
     m = AMOUNT_RE.search(text)
-    if not m:
-        return None
-    whole = re.sub(r"[  .]", "", m.group(1))
-    return float(f"{whole}.{m.group(2)}")
+    if m:
+        candidates.append((m.start(), float(f"{_GROUP_SEP.sub('', m.group(1))}.{m.group(2)}")))
+    m = INT_AMOUNT_RE.search(text)
+    if m:
+        candidates.append((m.start(), float(_GROUP_SEP.sub("", m.group(1) or m.group(2)))))
+    return min(candidates)[1] if candidates else None
 
 
 def digits(s: str) -> str:

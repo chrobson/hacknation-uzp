@@ -108,9 +108,14 @@ fields:
         4: ['Specyfikacj\w*\s+Warunków\s+Zamówienia', '\bSWZ\b']
   ZamowieniePubliczne.numer_bzp:
     - {type: pattern, section: dotyczy, pattern: '(\d{4})\s*/\s*BZP\s*(\d{8})((?:\s*/\s*\d{2})?)', format: '{1}/BZP{2}{3}', nospace: true}
+    # Brak sekcji "dotyczy": szukaj w całym dokumencie.
+    - {type: pattern, unless_section: dotyczy, pattern: '(\d{4})\s*/\s*BZP\s*(\d{8})((?:\s*/\s*\d{2})?)', format: '{1}/BZP{2}{3}', nospace: true}
   ZamowieniePubliczne.numer_ted:
-    - {type: pattern, section: dotyczy, pattern: '(\d{4})\s*/\s*S\s*\d{1,3}\s*-\s*(\d{6})', format: '{2}-{1}'}
-    - {type: pattern, section: dotyczy, pattern: '(?<![\d/])(\d{6})\s*-\s*(\d{4})(?!\d)', format: '{1}-{2}'}
+    # 'YYYY/S NNN-NNNNNN' → 'NNNNNN-YYYY'; eForms '00364525-2025' (wiodące zera) → '364525-2025'
+    - {type: pattern, section: dotyczy, pattern: '(\d{4})\s*/\s*S\s*\d{1,3}\s*-\s*(\d{5,8})', format: '{2}-{1}', pad: {2: 6}}
+    - {type: pattern, section: dotyczy, pattern: '(?<![\d/])(\d{5,8})\s*-\s*(\d{4})(?!\d)', format: '{1}-{2}', pad: {1: 6}}
+    - {type: pattern, unless_section: dotyczy, pattern: '(\d{4})\s*/\s*S\s*\d{1,3}\s*-\s*(\d{5,8})', format: '{2}-{1}', pad: {2: 6}}
+    - {type: pattern, unless_section: dotyczy, pattern: '(?:TED|Dzienni\w*\s+Urzędow\w*)[^\n]{0,60}?(?<![\d/])(\d{5,8})\s*-\s*(\d{4})(?!\d)', format: '{1}-{2}', pad: {1: 6}}
   ZamowieniePubliczne.numer_postepowania:
     - type: labeled
       value: token
@@ -128,9 +133,9 @@ lists:
     max_items: 1            # przy konsorcjum: tylko Lider
     fields: &party
       nazwa: {type: first_line}
-      krs: {type: pattern, pattern: 'KRS\W{0,3}(\d{10})', digits: true}
-      nip: {type: pattern, pattern: 'NIP\W{0,3}(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}|\d{10})', digits: true}
-      regon: {type: pattern, pattern: 'REGON\W{0,3}(\d{14}|\d{9})', digits: true}
+      krs: {type: pattern, pattern: 'KRS\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
+      nip: {type: pattern, pattern: 'NIP\W{0,3}(?:PL[  -]?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
+      regon: {type: pattern, pattern: 'REGON\W{0,3}(\d(?:[  ]?\d){13}|\d(?:[  ]?\d){8})(?!\d)', digits: true}
       przez-pelnomocnika: {type: exists, scope: section, pattern: ['reprezentowan\w*\s+przez', 'pełnomocnik']}
       pelnomocnik.imie_nazwisko:
         - {type: pattern, scope: section, pattern: 'reprezentowan\w*\s+przez:?\s*(?:(?:adw\.|r\.\s*pr\.|apl\.\s*adw\.|radc\w*\s+prawn\w*|adwokat\w*)\s*)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'}
@@ -143,9 +148,9 @@ lists:
     split: '^\s*\d\)\s*Zamawiaj\w*[^\n]*:'
     fields:
       nazwa: {type: first_line}
-      krs: {type: pattern, pattern: 'KRS\W{0,3}(\d{10})', digits: true}
-      nip: {type: pattern, pattern: 'NIP\W{0,3}(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}|\d{10})', digits: true}
-      regon: {type: pattern, pattern: 'REGON\W{0,3}(\d{14}|\d{9})', digits: true}
+      krs: {type: pattern, pattern: 'KRS\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
+      nip: {type: pattern, pattern: 'NIP\W{0,3}(?:PL[  -]?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
+      regon: {type: pattern, pattern: 'REGON\W{0,3}(\d(?:[  ]?\d){13}|\d(?:[  ]?\d){8})(?!\d)', digits: true}
       prowadzacy_postepowanie: {type: exists, in_label: true, pattern: ['Lider', 'prowadząc\w*\s+postępowanie'], only_if_multiple: true}
 
 derive:
