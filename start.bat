@@ -1,4 +1,4 @@
 @echo off
-REM Uruchomienie na Windows: przez WSL (zalecane) albo lokalny Python 3.13+
+REM Windows: runs start.sh inside WSL (Ubuntu). Arguments are passed through, e.g. start.bat --input input --output output
 cd /d "%~dp0"
-where wsl >nul 2>nul && (wsl ./start.sh %*) || (python main.py %*)
+wsl bash ./start.sh %*
