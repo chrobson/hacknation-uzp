@@ -210,6 +210,8 @@ lists:
     # konsorcjum: "1) Lider Konsorcjum:", wiersze tabeli "1 Firma …", "1. Firma …", proza "Firma A … ; Firma B …"
     split: '^\s*\d\)\s*(Lider|Partner)\w*[^\n]*:|^[ \t]*\d{1,2}[.)]?[ \t]+(?=(?-i:[A-ZŁŚŻŹĆŃÓ„][a-ząćęłńóśźż\w-]))|;\s*(?=(?-i:[A-ZŁŚŻŹĆŃÓ][\w-]+\s+[A-ZŁŚŻŹĆŃÓ]))'
     keep_head: true
+    # tryb listy tylko przy jawnym konsorcjum; jeden odwołujący (z numerowanymi wyliczeniami) zostaje jedną pozycją
+    split_if: ['konsorcj', 'wspóln\w*\s+ubiegając', '\blider\w*', '\bpartner\w*\s+konsorcj', 'członk\w*\s+konsorcj']
     prefer: ['\bLider\w*']   # GT: przy konsorcjum tylko Lider
     max_items: 1            # przy konsorcjum: tylko Lider
     fields:
@@ -238,8 +240,11 @@ lists:
         - {if_no_section: true, type: pattern, scope: document, pattern: '(?:reprezentowan\w*\s+(?:jest\s+)?przez|pełnomocnik\w*(?:\s*\(cy\))?(?:\s+Odwołując\w*)?)\s*[:–-]?\s*(?:pełnomocnika\s*[–-]?\s*)?(?:(?:adw\.|r\.\s*pr\.|apl\.\s*adw\.|radc\w*\s+prawn\w*|adwokat\w*|mec\.)\s*)?((?-i:[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?))(?![\w.])'}
       pelnomocnik.nazwa:
         - {if_no_section: true, type: pattern, scope: document, pattern: 'adres\s+do\s+korespondencji:\s*([\s\S]+?)(?=,\s*(?:ul\.|al\.|pl\.|os\.)|\n\s*(?:ul\.|tel))', clean: true, strip_inserts: true, require: ['Kancelari|adwokac|radc|prawn|legal|partnersk|attorney|\blaw\b']}
-        # pierwsza nazwa zaczynająca się od "Kancelaria" (z jedną linią kontynuacji)
-        - {if_no_section: true, type: pattern, scope: document, clean: true, pattern: '((?-i:Kancelari)\w*[ \t]+[^,;()|\n]*?(?:\n(?!\s*(?:ul\.|al\.|pl\.|tel|e-?mail|adres|[\d+])|[^\n]*:)[^,;()|\n]*?)?)(?=\s*[,;()|]|\s+(?:ul\.|al\.|pl\.)\s|\s*\n|\s*$)'}
+        # nazwa kancelarii tylko w pobliżu wskazania pełnomocnika (inaczej null: GT nie ma kancelarii)
+        - {if_no_section: true, type: near, scope: document, value: regex, window: 260,
+           anchors: ['reprezentowan\w*\s+(?:jest\s+)?przez', 'pełnomocnik\w*', 'adres\w*\s+do\s+(?:korespondencji|doręczeń)'],
+           stop: ['^\s*Zamawiając', '^\s*(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)', '^\s*Dotyczy', 'Zamawiając\w*\s*:'],
+           value_pattern: '((?-i:Kancelari)\w*[ \t]+[^,;()|\n]*?(?:\n(?!\s*(?:ul\.|al\.|pl\.|tel|e-?mail|adres|[\d+])|[^\n]*:)[^,;()|\n]*?)?)(?=\s*[,;()|]|\s+(?:ul\.|al\.|pl\.)\s|\s*\n|\s*$)'}
       pelnomocnik.mail:
         - {if_no_section: true, type: pattern, scope: document, pattern: '(?:reprezentowan|pełnomocnik|Kancelari|korespondencji|doręczeń)[\s\S]{0,300}?([\w.+-]+@[\w-]+(?:\.[\w-]+)+)'}
   Zamawiajacy:

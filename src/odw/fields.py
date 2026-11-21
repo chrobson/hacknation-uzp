@@ -425,7 +425,9 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
                     set_path(item, path, value)
         return [item]
     chunks, labels = [text], [""]
-    if "split" in spec:
+    # `split_if`: split into items only when the section shows an explicit multi-party signal (e.g. a consortium)
+    may_split = "split_if" not in spec or any(r.search(text) for r in _compile(spec["split_if"]))
+    if "split" in spec and may_split:
         rx = _compile(spec["split"])[0]
         starts = [m for m in rx.finditer(text)]
         if starts:

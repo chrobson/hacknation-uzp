@@ -6,12 +6,18 @@ classify:
   threshold: 4
   required:
     - {pattern: '^\s*(?:UPOWAŻNIENIE|POWER\s+OF\s+ATTORNEY)\b', head_chars: 1500}
-    - 'umocowuj\w*|power\s+of\s+attorney'
-    - {pattern: 'pełnomocnictw|pełnomocnik', head_chars: 1500}
-    - 'upoważni\w*|udziel\w*\s+(?:\w+\s+){0,3}pełnomocn|ustanaw\w*\s+(?:\w+\s+){0,3}pełnomocn'
+    - 'umocowuj\w*|power\s+of\s+attorney|attorney[- ]in[- ]fact|hereby\s+(?:appoint|authori[sz]e|grant)'
+    - {pattern: 'pełnomocnictw|pełnomocnik', head_chars: 600}
+    - {pattern: 'upoważni\w*|udziel\w*\s+(?:\w+\s+){0,3}pełnomocn|ustanaw\w*\s+(?:\w+\s+){0,3}pełnomocn', head_chars: 1500}
     - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', head_chars: 800}
     - 'udziel\w*\s+(\w+\s+)?pełnomocnictw|ustanawia\w*\s+(\w+\s+)?pełnomocnik|upoważniam'
   signals:
+    # Pełnomocnictwo po angielsku
+    - {pattern: 'power\s+of\s+attorney|attorney[- ]in[- ]fact', weight: 3, head_chars: 800}
+    - {pattern: 'hereby\s+(?:appoint|authori[sz]e|grant|empower)', weight: 2}
+    - {pattern: '\bto\s+represent\b', weight: 1}
+    - {pattern: 'National\s+Appeal\s+Chamber|\bKIO\b', weight: 1}
+    - {pattern: '\b(?:principal|grantor)\b', weight: 1}
     # „udzielają radcy prawnemu X, PESEL …, oraz … pełnomocnictwa” (dopełnienie między czasownikiem a rzeczownikiem)
     - {pattern: 'udziel\w*[\s\S]{0,200}?pełnomocnictw', weight: 2}
     # Dokumenty innego rodzaju (umowa, aneks, oferta, protokół), które tylko zawierają treść klasy:
@@ -79,6 +85,8 @@ fields:
       titlecase: true
       pattern:
         - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+        # tytuły angielskie: attorney-at-law / advocate / legal adviser X Y
+        - '(?:attorney[- ]at[- ]law|advocate|legal\s+(?:adviser|advisor|counsel)|barrister|solicitor|counsel)\s+(?:Mr\.?\s+|Ms\.?\s+|Mrs\.?\s+)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
         # bez tytułu zawodowego: "udziela pełnomocnictwa: Jan Kowalski"
         - '(?:udziel\w*|ustanawia\w*)\s+(?:niniejszym\s+)?pełnomocni\w+\s*:?\s*(?:Pan\w*\s+)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
         # wiersz tabeli pełnomocników: "1 Jan Kowalski adwokat — 12345678901"
