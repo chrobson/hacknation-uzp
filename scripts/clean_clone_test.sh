@@ -10,7 +10,7 @@
 #    uv instaluje się sam i pobiera Pythona 3.13
 # 3. (FALLBACK=1, domyślnie) to samo w python:3.13-slim z ODW_NO_UV=1 -> ścieżka python3.13 + venv + pip (+ apt tesseract)
 # 4. porównanie bajt po bajcie:
-#    - ubuntu-uv vs python-pip: cały output (także skany; oba z tesseractem 5.x z Debiana/Ubuntu); różnica = FAIL
+#    - ubuntu-uv vs python-pip: PDF-y z warstwą tekstową identyczne (FAIL przy różnicy); skany tylko raport (różne wersje tesseracta)
 #    - lokalny vs kontenery: PDF-y z warstwą tekstową (wszystko poza scans/) muszą być identyczne; różnica = FAIL;
 #      różnice na skanach tylko raportowane (inna wersja tesseracta / brak języka pol lokalnie)
 #    - liczba skanów z niepustym wynikiem (nie "{}") w każdym przebiegu
@@ -135,13 +135,19 @@ if [ "$FALLBACK" = 1 ]; then
     '
     compare_local python-pip "$PY"
     report_scans python-pip "$PY/output"
-    # Oba kontenery mają tesseract 5.x z Debiana/Ubuntu: cały output (ze skanami) musi być identyczny.
-    if diff -r "$UB/output" "$PY/output" >"$WORK/diff-ub-py.txt"; then
-        echo "OK [ubuntu-uv vs python-pip]: cały output identyczny bajt po bajcie (z $N_SCANS skanami)"
+    # PDF-y z warstwą tekstową muszą być identyczne; skany tylko raportujemy,
+    # bo kontenery mają różne wersje tesseracta (Ubuntu 5.3.x, Debian 5.5.x).
+    if diff -r -x scans "$UB/output" "$PY/output" >"$WORK/diff-ub-py.txt"; then
+        echo "OK [ubuntu-uv vs python-pip]: PDF-y z warstwą tekstową identyczne bajt po bajcie"
     else
-        echo "FAIL [ubuntu-uv vs python-pip]: output różni się:"
+        echo "FAIL [ubuntu-uv vs python-pip]: output (bez skanów) różni się:"
         head -50 "$WORK/diff-ub-py.txt"
         STATUS=1
+    fi
+    if diff -rq "$UB/output/scans" "$PY/output/scans" >"$WORK/diff-ub-py-scans.txt"; then
+        echo "info [ubuntu-uv vs python-pip]: skany identyczne"
+    else
+        echo "info [ubuntu-uv vs python-pip]: skany różnią się w $(wc -l <"$WORK/diff-ub-py-scans.txt" | tr -d ' ') plikach (różne wersje tesseracta, tylko raport)"
     fi
 fi
 
