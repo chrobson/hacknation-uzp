@@ -77,13 +77,3 @@ def test_party_blocks_after_short_wnosze_do_not_end_the_act_section():
     assert (o["OdwolanieKIO"]["czynnosc_powod_id"], o["OdwolanieKIO"]["czynnosc_dzien"]) == (7, "2025-03-03")
     assert o["Zamawiajacy"][0]["nip"] == "8161234567" and o["Odwolujacy"][0]["nip"] == "5213456789"
 
-
-def test_act_section_cut_before_content_restarts_at_the_charge():
-    """'wnoszę odwołanie' then non-party blocks (Wykonawca wybrany, Wartość zamówienia…) then the charge."""
-    text = ("Warszawa, 12 marca 2025 r.\nKrajowa Izba Odwoławcza\nOdwołujący:\nAlfa Budownictwo sp. z o.o., NIP 5213456789\n"
-            "Zamawiający:\nGmina Rudnik Wielki, NIP 8161234567\nODWOŁANIE\nNiniejszym wnoszę odwołanie.\n"
-            "Wykonawca wybrany: Beta sp. z o.o., NIP 1112223344\nWartość zamówienia: powyżej progów unijnych\n"
-            "I. Czynność Zamawiającego: zaniechanie odrzucenia oferty Beta sp. z o.o., o czym poinformowano w dniu 3 marca 2025 r.\n"
-            "Uzasadnienie\nW dniu 1 stycznia 2025 r. wszczęto postępowanie.\n")
-    o = extract(Document(Path("e.pdf"), [text]), CLS)["OdwolanieKIO"]
-    assert (o["czynnosc_powod_id"], o["czynnosc_dzien"]) == (7, "2025-03-03")

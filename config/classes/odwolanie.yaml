@@ -92,9 +92,6 @@ sections:
     start: 'wnosz[eę]'
     end: ['Zarzut\s+nr\s*2\b', '^\s*Uzasadnienie']
     resume_after: [zamawiajacy, odwolujacy, dotyczy]
-    # ucięta przed treścią (brak daty i „zarzut”) → wznów od najbliższej linii z zarzutem / czynnością / zaniechaniem
-    restart_if_missing: 'zarzu|\d{1,2}[ .\-/]+(?:\d{1,2}|[a-ząćęłńóśźż]{3,})[ .\-/]+\d{4}'
-    restart_at: '\bzarzu\w*|\bczynnoś\w*|\bzaniechani\w*'
   # zapas, gdy brak „wnoszę”: 3. osoba, „składam odwołanie”, „odwołanie od/wobec …”, „zarzucam”; isolated = nie ucina innych sekcji
   czynnosc_alt:
     isolated: true

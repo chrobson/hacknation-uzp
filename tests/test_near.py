@@ -38,3 +38,12 @@ def test_list_without_section_uses_only_layout_independent_specs():
     }}
     items = extract_list(spec, Context(TABLE, CFG), {"nazwa": None, "nip": None})
     assert items == [{"nazwa": "Gmina Rudnik Wielki", "nip": "9990264287"}]
+
+
+def test_section_restart_mechanism():
+    """restart_if_missing/restart_at (generic, currently unused in the shipped classes)."""
+    from odw.fields import _section_text
+    secs = {"a": {"start": "wnoszę", "restart_if_missing": r"\d{4}", "restart_at": r"Zarzut"}, "b": {"start": "^Blok"}}
+    text = "wnoszę odwołanie\nBlok stron\nZarzut 1: czynność z 2025 r.\n"
+    assert "Zarzut 1" in _section_text(text, "a", secs)
+    assert "Zarzut" not in _section_text(text, "a", {**secs, "a": {"start": "wnoszę"}})
