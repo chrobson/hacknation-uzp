@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-09-06",
+    "czynnosc_dzien": "2026-08-27",
+    "czynnosc_powod_id": 11,
+    "czynnosc_opis": "Opis przedmiotu zamówienia (OPZ)",
+    "miejscowosc": "Zielona Góra"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9999271101",
+      "nazwa": "Lantis Aparatura Medyczna sp.j.",
+      "nip": "9999915346",
+      "regon": null,
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Norbert Milewski",
+        "nazwa": "Kancelaria Prawna i Partnerzy",
+        "mail": "biuro@sekretariat.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Quantis Sieci sp. j.",
+      "nip": "9997080832",
+      "regon": null,
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999453",
+    "numer_postepowania": "SWZ.622.2026",
+    "numer_ted": "999449-2026",
+    "tytul": "Dostawa materiałów eksploatacyjnych do urządzeń biurowych"
+  }
+}

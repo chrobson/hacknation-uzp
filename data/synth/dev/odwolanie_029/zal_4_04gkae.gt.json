@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-09-05",
+    "czynnosc_dzien": "2026-08-27",
+    "czynnosc_powod_id": 1,
+    "czynnosc_opis": "Decyzja o odrzuceniu oferty",
+    "miejscowosc": "Warszawa"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9994387983",
+      "nazwa": "Xenonix Technologie S.A.",
+      "nip": "9995704079",
+      "regon": "999094645",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Joanna Stępień",
+        "nazwa": "Stępień Borkowski Kancelaria Prawna sp.p.",
+        "mail": "sekretariat@sbkancelaria.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9997685689",
+      "nazwa": "Rubiconis Wyposażenie sp. z o.o.",
+      "nip": "9994374540",
+      "regon": null,
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999731",
+    "numer_postepowania": "SWZ.613.2026",
+    "numer_ted": "999656-2026",
+    "tytul": "Odbiór i zagospodarowanie odpadów komunalnych z nieruchomości zamieszkałych"
+  }
+}

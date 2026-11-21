@@ -1,0 +1,44 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9997542713",
+        "nazwa": "Optivia Farmacja sp. z o.o.",
+        "nip": "9999640117",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Mirosław Wojtczak"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9992992231",
+        "nazwa": "Granitix Usługi S.A.",
+        "nip": "9993373158",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Halina Dobrowolska"
+        },
+        {
+          "imie_nazwisko": "Agata Wierzbicka"
+        },
+        {
+          "imie_nazwisko": "Konrad Czajka"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Grażyna Różańska",
+      "pesel": null
+    }
+  ]
+}

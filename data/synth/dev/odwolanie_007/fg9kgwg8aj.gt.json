@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-05-31",
+    "czynnosc_dzien": null,
+    "czynnosc_powod_id": 6,
+    "czynnosc_opis": "Odpowiedzi i wyjaśnienia do SWZ",
+    "miejscowosc": "Rzeszów"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Corvella Rozwiązania S.A.",
+      "nip": "9990271196",
+      "regon": "999066287",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Dorota Sikorski",
+        "nazwa": "Kancelaria Adwokacka Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9991840562",
+      "nazwa": "Małopolskie Centrum Logistyki Medycznej sp. z o.o.",
+      "nip": "9998802341",
+      "regon": "999015873",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999063",
+    "numer_postepowania": "DI.529.2026",
+    "numer_ted": "999408-2026",
+    "tytul": "Termomodernizacja budynków użyteczności publicznej wraz z instalacją pomp ciepła"
+  }
+}

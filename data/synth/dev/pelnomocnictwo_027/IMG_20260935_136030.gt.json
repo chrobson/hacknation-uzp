@@ -1,0 +1,24 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9999448354",
+        "nazwa": "Calvero Gospodarka Odpadami sp.k.",
+        "nip": "9995986745",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Henryk Rutkowski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Urszula Dudziewicz",
+      "pesel": null
+    }
+  ]
+}

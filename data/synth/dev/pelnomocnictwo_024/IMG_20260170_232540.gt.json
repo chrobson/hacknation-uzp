@@ -1,0 +1,45 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": "Rafał Wysocki",
+        "krs": null,
+        "nazwa": "AURELINK-TRANS Rafał Wysocki",
+        "nip": "9995582601",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Rafał Wysocki"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9993189125",
+        "nazwa": "Torvex Energetyka sp. z o.o.",
+        "nip": "9997252606",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Tadeusz Zalewski"
+        },
+        {
+          "imie_nazwisko": "Maciej Furman"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Justyna Lewicka",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Ignacy Przybylski",
+      "pesel": null
+    }
+  ]
+}

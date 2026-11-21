@@ -1,0 +1,24 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9998011794",
+        "nazwa": "Korvel Instalacje sp. z o.o. sp.k.",
+        "nip": "9998731786",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Halina Urbańska"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Leszek Kucharski",
+      "pesel": "80021499557"
+    }
+  ]
+}

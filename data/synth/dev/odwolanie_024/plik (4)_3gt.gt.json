@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-08-20",
+    "czynnosc_dzien": "2026-08-18",
+    "czynnosc_powod_id": 10,
+    "czynnosc_opis": "Zaniechanie unieważnienia postępowania",
+    "miejscowosc": "Katowice"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9997450782",
+      "nazwa": "Korvel Serwis sp. z o.o. sp.k.",
+      "nip": "9996998288",
+      "regon": null,
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Ryszard Lipowczyk",
+        "nazwa": "Kancelaria Adwokacka Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Zorina Technologie sp. z o.o.",
+      "nip": "9995791492",
+      "regon": "999387761",
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": "9994294850",
+      "nazwa": "Centaur Wyposażenie S.A.",
+      "nip": "9998503335",
+      "regon": "999187460",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999955",
+    "numer_postepowania": "SWZ.120.2026",
+    "numer_ted": null,
+    "tytul": "Odbiór i zagospodarowanie odpadów komunalnych powstałych w obiektach"
+  }
+}

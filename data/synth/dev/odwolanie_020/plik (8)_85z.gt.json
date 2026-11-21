@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-07-06",
+    "czynnosc_powod_id": 10,
+    "czynnosc_opis": "Zaniechanie unieważnienia postępowania",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9998339046",
+      "nazwa": "Gorlan Pojazdy sp. z o.o.",
+      "nip": "9994387323",
+      "regon": null,
+      "przez-pelnomocnika": 0,
+      "pelnomocnik": {
+        "imie_nazwisko": null,
+        "nazwa": null,
+        "mail": null
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9995664683",
+      "nazwa": "Aurelink Sieci sp. k.",
+      "nip": "9993074480",
+      "regon": "999279238",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999374",
+    "numer_postepowania": "SWZ.780.2026",
+    "numer_ted": "999344-2026",
+    "tytul": "Sukcesywna dostawa jednorazowych wyrobów medycznych do zabiegów endoskopowych w podziale na 6 pakietów"
+  }
+}

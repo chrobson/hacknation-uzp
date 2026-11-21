@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-06-15",
+    "czynnosc_dzien": "2026-06-09",
+    "czynnosc_powod_id": 1,
+    "czynnosc_opis": "Decyzja o odrzuceniu oferty",
+    "miejscowosc": "Kraków"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9996902468",
+      "nazwa": "Opalit Serwis sp. k.",
+      "nip": "9992251714",
+      "regon": "999950475",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Dorota Zawadzki",
+        "nazwa": "Kancelaria Radców Prawnych Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@biuro.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9999495942",
+      "nazwa": "Corvella Sieci sp. k.",
+      "nip": "9997193358",
+      "regon": "999209545",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999180",
+    "numer_postepowania": "DAZ/PN/67/26",
+    "numer_ted": null,
+    "tytul": "Termomodernizacja budynków użyteczności publicznej wraz z instalacją pomp ciepła"
+  }
+}

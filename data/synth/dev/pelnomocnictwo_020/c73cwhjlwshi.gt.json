@@ -1,0 +1,31 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9992671408",
+        "nazwa": "Elmontex Energetyka sp. z o.o.",
+        "nip": "9996380214",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Ryszard Lewandowski"
+        },
+        {
+          "imie_nazwisko": "Alicja Nowicka"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Magdalena Ostrowska",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Barbara Zalewska",
+      "pesel": null
+    }
+  ]
+}

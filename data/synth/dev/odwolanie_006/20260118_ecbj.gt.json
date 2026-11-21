@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-03-04",
+    "czynnosc_dzien": "2026-02-27",
+    "czynnosc_powod_id": 7,
+    "czynnosc_opis": "Zaniechanie odrzucenia oferty",
+    "miejscowosc": "Łódź"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "RAVELO-BUD Sebastian Tomaszewski",
+      "nip": "9997975723",
+      "regon": "999544334",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Halina Walczak",
+        "nazwa": "Kancelaria Adwokacka i Partnerzy",
+        "mail": "biuro@poczta.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9995815812",
+      "nazwa": "Corvantis Serwis sp. k.",
+      "nip": null,
+      "regon": null,
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999010",
+    "numer_postepowania": "ZP.50.2026",
+    "numer_ted": "999985-2026",
+    "tytul": "Modernizacja sieci ciepłowniczej wraz z budową węzłów cieplnych w rejonie ulic Hallera i Powstańców Śląskich we Wrocławiu"
+  }
+}

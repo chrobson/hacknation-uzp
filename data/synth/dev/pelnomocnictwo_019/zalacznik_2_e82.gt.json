@@ -1,0 +1,32 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": "Robert Łukaszewski",
+        "krs": null,
+        "nazwa": "Robert Łukaszewski Firma Handlowo-Usługowa",
+        "nip": "9996841281",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Robert Łukaszewski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Zofia Urbańska",
+      "pesel": "82081961081"
+    },
+    {
+      "imie_nazwisko": "Alicja Biernacka",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Tadeusz Borkowski",
+      "pesel": null
+    }
+  ]
+}

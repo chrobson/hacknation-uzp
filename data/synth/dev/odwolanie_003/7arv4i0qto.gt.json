@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-05-13",
+    "czynnosc_dzien": "2026-05-03",
+    "czynnosc_powod_id": 3,
+    "czynnosc_opis": "Decyzja o wykluczeniu wykonawcy",
+    "miejscowosc": "Lublin"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Kavendis Infrastruktura sp. z o.o.",
+      "nip": "9999892540",
+      "regon": "999263852",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Cezary Bartoszewicz",
+        "nazwa": "Kancelaria Adwokacka Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9999716254",
+      "nazwa": "Aurelink Automatyka S.A.",
+      "nip": "9997518659",
+      "regon": "999184816",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "SWZ.189.2026",
+    "numer_ted": "999165-2026",
+    "tytul": "Świadczenie usług utrzymania infrastruktury sieciowej w budynkach administracyjnych"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-07-01",
+    "czynnosc_dzien": "2026-06-25",
+    "czynnosc_powod_id": 7,
+    "czynnosc_opis": "Zaniechanie odrzucenia oferty",
+    "miejscowosc": "Warszawa"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9990430692",
+      "nazwa": "Prestal Dystrybucja Medyczna S.A.",
+      "nip": "9990396494",
+      "regon": "999666290",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Bartosz Jastrzębski",
+        "nazwa": "Kancelaria Radców Prawnych Spółka z ograniczoną odpowiedzialnością",
+        "mail": "biuro@biuro.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9991809197",
+      "nazwa": "Talveris Automatyka sp. j.",
+      "nip": "9994312880",
+      "regon": "999732519",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999997",
+    "numer_postepowania": "ZP.246.2026",
+    "numer_ted": null,
+    "tytul": "Dostawa materiałów eksploatacyjnych do urządzeń biurowych"
+  }
+}

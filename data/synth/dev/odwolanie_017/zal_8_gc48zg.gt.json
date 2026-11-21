@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-03-14",
+    "czynnosc_powod_id": 10,
+    "czynnosc_opis": "Zaniechanie unieważnienia postępowania",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9999360925",
+      "nazwa": "Silvatica Technologie sp. z o.o.",
+      "nip": "9998966348",
+      "regon": "999450212",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Halina Jabłończyk",
+        "nazwa": "Kancelaria Radców Prawnych i Partnerzy",
+        "mail": "biuro@poczta.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Miejskie Przedsiębiorstwo Komunikacyjne w Sosnowej Woli sp. z o.o.",
+      "nip": "9998400266",
+      "regon": "999862962",
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": null,
+      "nazwa": "Uldaris Systemy sp. j.",
+      "nip": "9998031630",
+      "regon": "999107260",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999508",
+    "numer_postepowania": "SWZ.429.2026",
+    "numer_ted": "999584-2026",
+    "tytul": "Dostawa i wdrożenie oprogramowania do obsługi dokumentacji wraz z serwisem wsparcia technicznego"
+  }
+}

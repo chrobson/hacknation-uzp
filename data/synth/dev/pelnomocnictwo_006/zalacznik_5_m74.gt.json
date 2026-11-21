@@ -1,0 +1,28 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9994427040",
+        "nazwa": "„Altrona Infrastruktura” spółka z ograniczoną odpowiedzialnością",
+        "nip": "9998214401",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Tadeusz Sadowski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Karolina Tomaszewska",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Monika Jaworska",
+      "pesel": null
+    }
+  ]
+}

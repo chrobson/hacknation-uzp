@@ -1,0 +1,27 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9996325136",
+        "nazwa": "Wexford Systemy sp. z o.o.",
+        "nip": "9991432253",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Celina Grabowska"
+        },
+        {
+          "imie_nazwisko": "Weronika Borkowska"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Iwona Jurgielewicz",
+      "pesel": null
+    }
+  ]
+}

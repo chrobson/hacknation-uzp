@@ -1,0 +1,24 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": "Anna Kowalczyk",
+        "krs": null,
+        "nazwa": "Przedsiębiorstwo Usługowe „Prestal” Anna Kowalczyk",
+        "nip": "9996867464",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Anna Kowalczyk"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Małgorzata Szewczyk",
+      "pesel": "66011707408"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": "Olga Baran",
+        "krs": null,
+        "nazwa": "BOMARK-BUD Olga Baran",
+        "nip": "9996203312",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Olga Baran"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9991500432",
+        "nazwa": "Corvella Rozwiązania S.A.",
+        "nip": "9990271196",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Adam Maciejewski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Edyta Pawłowska",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Ignacy Maciejewski",
+      "pesel": null
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-06-30",
+    "czynnosc_powod_id": 9,
+    "czynnosc_opis": "Decyzja o unieważnieniu postępowania",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9992008329",
+      "nazwa": "Quantis Serwis sp. k.",
+      "nip": "9992052831",
+      "regon": "999795900",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Zbigniew Dobrowolski",
+        "nazwa": "Kancelaria Prawna i Partnerzy",
+        "mail": "biuro@kontakt.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9995815812",
+      "nazwa": "Corvantis Serwis sp. k.",
+      "nip": "9998984352",
+      "regon": "999756827",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999010",
+    "numer_postepowania": "MCLM/ZP/07/2026",
+    "numer_ted": "999599-2026",
+    "tytul": "Usługi ochrony fizycznej i monitoringu w systemie całodobowym"
+  }
+}

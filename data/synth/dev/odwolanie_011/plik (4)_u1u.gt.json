@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-08-25",
+    "czynnosc_dzien": "2026-08-21",
+    "czynnosc_powod_id": 2,
+    "czynnosc_opis": "Ogłoszenie wyboru oferty",
+    "miejscowosc": "Kielce"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9996527940",
+      "nazwa": "Holdex Dystrybucja Medyczna sp. z o.o.",
+      "nip": "9998884068",
+      "regon": "999881092",
+      "przez-pelnomocnika": 0,
+      "pelnomocnik": {
+        "imie_nazwisko": null,
+        "nazwa": null,
+        "mail": null
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9993983774",
+      "nazwa": "Ilystera Automatyka sp. k.",
+      "nip": null,
+      "regon": null,
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999441",
+    "numer_postepowania": "DI.906.2026",
+    "numer_ted": null,
+    "tytul": "Odbiór i zagospodarowanie odpadów komunalnych z nieruchomości zamieszkałych"
+  }
+}

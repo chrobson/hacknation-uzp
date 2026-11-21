@@ -1,0 +1,48 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9990428468",
+        "nazwa": "Balttec Infrastruktura S.A.",
+        "nip": "9995059584",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Aleksander Olszewski"
+        },
+        {
+          "imie_nazwisko": "Rafał Wróblewski"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9996203344",
+        "nazwa": "Centaur Usługi sp. z o.o.",
+        "nip": null,
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Barbara Niedźwiecka"
+        },
+        {
+          "imie_nazwisko": "Teresa Baran"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Dariusz Dobrowolski",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Jarosław Najder",
+      "pesel": null
+    }
+  ]
+}

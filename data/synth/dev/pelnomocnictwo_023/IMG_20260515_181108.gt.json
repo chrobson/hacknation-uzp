@@ -1,0 +1,27 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9991105035",
+        "nazwa": "RAVELO sp.k.",
+        "nip": "9999708996",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Marek Szewczyk"
+        },
+        {
+          "imie_nazwisko": "Kamil Urbański"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Ryszard Górnicki",
+      "pesel": null
+    }
+  ]
+}

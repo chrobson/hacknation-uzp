@@ -1,0 +1,38 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": "Anna Głowacz",
+        "krs": null,
+        "nazwa": "Anna Głowacz Usługi Remontowo-Budowlane",
+        "nip": "9999137654",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Anna Głowacz"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9996516883",
+        "nazwa": "„Torvex Usługi” S.A.",
+        "nip": "9990163199",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Wiktor Sadowski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Ryszard Chmielewski",
+      "pesel": null
+    }
+  ]
+}
