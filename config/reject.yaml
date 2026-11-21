@@ -3,4 +3,7 @@
 reject:
   - {name: ogloszenie_bzp, pattern: '\A\s*Ogłoszenie\s+nr\s+\d{4}\s*/\s*BZP', head_chars: 300}
   - {name: ogloszenie_ted, pattern: 'See the notice on TED', head_chars: 500}
-  - {name: orzeczenie_kio, pattern: 'Sygn\.\s*akt', head_chars: 400}
+  # Orzeczenie KIO: nagłówek WYROK/POSTANOWIENIE oraz skład Izby lub przewodniczący (samo "Sygn. akt" nie wystarcza).
+  - name: orzeczenie_kio
+    all: ['^\s*(?-i:WYROK|POSTANOWIENIE)\b', 'Krajow\w+\s+Izb\w+\s+Odwoławcz\w+\s*[-–]?\s*w\s+składzie|Przewodnicząc\w*\s*:']
+    head_chars: 1500

@@ -4,6 +4,10 @@ name: odwolanie
 classify:
   # Suma wag pasujących sygnałów musi osiągnąć próg; wygrywa klasa z najwyższą sumą.
   threshold: 6
+  # Co najmniej jedna kotwica musi wystąpić, inaczej klasa odpada niezależnie od sumy wag.
+  required:
+    - '^\s*(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)\b'
+    - 'wnosz\w*\s.{0,40}odwołani'
   signals:
     - {pattern: '^\s*O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E\b', weight: 3}
     - {pattern: 'wnosz[eę]\s+(niniejsze\s+)?odwołani', weight: 3}
@@ -11,6 +15,13 @@ classify:
     - {pattern: '^\s*Odwołując\w*\s*:', weight: 2}
     - {pattern: '^\s*Zamawiając\w*\s*:', weight: 1}
     - {pattern: 'zarzut', weight: 1}
+    # Pisma w sprawie odwoławczej, które NIE są odwołaniem (przystąpienie, odpowiedź na odwołanie, orzeczenia):
+    - {pattern: 'przystąpieni\w*\s+do\s+postępowania\s+odwoławczego', weight: -6}
+    - {pattern: 'zgłasza\w*\s+przystąpienie|zgłoszenie\s+przystąpienia', weight: -6}
+    - {pattern: 'odpowied\w*\s+na\s+odwołanie', weight: -6}
+    - {pattern: 'wnosz\w*\s+o\s+oddalenie\s+odwołania', weight: -6}
+    - {pattern: '^\s*(?-i:WYROK|POSTANOWIENIE)\b', weight: -6, head_chars: 1500}
+    - {pattern: 'Sygn\.\s*akt', weight: -2, head_chars: 400}
 
 output_template:
   OdwolanieKIO:

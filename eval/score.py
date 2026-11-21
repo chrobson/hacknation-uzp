@@ -43,7 +43,12 @@ class Counts:
         return 1.0 if denom == 0 else 2 * self.tp / denom
 
 
+STRICT = False  # strict mode: no fuzzy matching, JSON types must match exactly (int vs float vs str)
+
+
 def _equal(path: str, gt: Any, pred: Any) -> bool:
+    if STRICT:
+        return type(gt) is type(pred) and gt == pred
     if isinstance(gt, (int, float)) and isinstance(pred, (int, float)) and not isinstance(gt, bool):
         return float(gt) == float(pred)
     if isinstance(gt, str) and isinstance(pred, str):

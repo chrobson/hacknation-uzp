@@ -20,6 +20,11 @@ class Signal:
     pattern: re.Pattern[str]
     weight: float
     head_chars: int | None  # search only the first N characters of the document; None = whole text
+    also: tuple[re.Pattern[str], ...] = ()  # extra patterns that must ALL match too (same head_chars)
+
+    def matches(self, text: str) -> bool:
+        hay = text[: self.head_chars] if self.head_chars else text
+        return bool(self.pattern.search(hay)) and all(p.search(hay) for p in self.also)
 
 
 @dataclass(frozen=True)
@@ -27,6 +32,7 @@ class DocClass:
     name: str
     signals: list[Signal]
     threshold: float
+    required: list[Signal]  # at least one must match, otherwise the class is not considered
     output_template: dict[str, Any]
     raw: dict[str, Any] = field(repr=False)
 
@@ -34,11 +40,15 @@ class DocClass:
 def _signals(items: list[dict[str, Any]] | None) -> list[Signal]:
     out = []
     for item in items or []:
+        if isinstance(item, str):
+            item = {"pattern": item}
+        patterns = item["all"] if "all" in item else [item["pattern"]]
         out.append(
             Signal(
-                pattern=re.compile(item["pattern"], _FLAGS),
+                pattern=re.compile(patterns[0], _FLAGS),
                 weight=float(item.get("weight", 1)),
                 head_chars=item.get("head_chars"),
+                also=tuple(re.compile(p, _FLAGS) for p in patterns[1:]),
             )
         )
     return out
@@ -51,6 +61,7 @@ def load_class(path: Path) -> DocClass:
         name=raw["name"],
         signals=_signals(cls.get("signals")),
         threshold=float(cls["threshold"]),
+        required=_signals(cls.get("required")),
         output_template=raw["output_template"],
         raw=raw,
     )

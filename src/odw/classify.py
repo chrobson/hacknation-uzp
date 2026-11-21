@@ -21,12 +21,9 @@ class Verdict:
 
 
 def score(doc_class: DocClass, text: str) -> float:
-    total = 0.0
-    for sig in doc_class.signals:
-        hay = text[: sig.head_chars] if sig.head_chars else text
-        if sig.pattern.search(hay):
-            total += sig.weight
-    return total
+    if doc_class.required and not any(sig.matches(text) for sig in doc_class.required):
+        return float("-inf")
+    return sum(sig.weight for sig in doc_class.signals if sig.matches(text))
 
 
 @cache
@@ -35,11 +32,7 @@ def _reject_rules() -> tuple[Signal, ...]:
 
 
 def rejected_by(text: str, rules: tuple[Signal, ...] | None = None) -> bool:
-    for sig in _reject_rules() if rules is None else rules:
-        hay = text[: sig.head_chars] if sig.head_chars else text
-        if sig.pattern.search(hay):
-            return True
-    return False
+    return any(sig.matches(text) for sig in (_reject_rules() if rules is None else rules))
 
 
 def classify(doc: Document, classes: list[DocClass]) -> Verdict:

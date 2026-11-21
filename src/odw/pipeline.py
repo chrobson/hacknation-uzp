@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import contextlib
 import copy
 import json
 import logging
+import signal
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -16,6 +19,32 @@ from .textio import Document, load_pdf
 
 log = logging.getLogger(__name__)
 
+DOC_TIMEOUT_S = 30  # per document; a pathological PDF or regex must not stall the batch
+
+
+class DocTimeout(Exception):
+    pass
+
+
+@contextlib.contextmanager
+def deadline(seconds: float):
+    """Raise DocTimeout after `seconds` (POSIX main thread only; elsewhere a no-op)."""
+    usable = hasattr(signal, "SIGALRM") and threading.current_thread() is threading.main_thread() and seconds > 0
+    if not usable:
+        yield
+        return
+
+    def _raise(signum, frame):
+        raise DocTimeout(f"document exceeded {seconds}s")
+
+    old = signal.signal(signal.SIGALRM, _raise)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, old)
+
 
 @dataclass
 class Result:
@@ -24,22 +53,40 @@ class Result:
     data: dict[str, Any]
 
 
-def extract(doc: Document, doc_class: DocClass) -> dict[str, Any]:
-    out = copy.deepcopy(doc_class.output_template)
+def extract(doc: Document, doc_class: DocClass, out: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Fill `out` (default: a fresh schema skeleton) in place, so a caller keeps partial work on timeout."""
+    if out is None:
+        out = copy.deepcopy(doc_class.output_template)
     ctx = Context(doc.text, doc_class.raw)
     excluded: dict[str, list[str]] = {}
     ctx.cfg = {**doc_class.raw, "_excluded_names": excluded}
+    # Every field is isolated: a failure (or the document deadline) keeps everything extracted so far.
     for path, specs in (doc_class.raw.get("fields") or {}).items():
-        value = extract_field(specs, ctx)
-        if isinstance(value, list):  # names-type field: remember names so other fields can exclude them
-            excluded[path] = [next(iter(v.values())) for v in value if isinstance(v, dict)]
-        if value is not None or not isinstance(out.get(path), list):
-            set_path(out, path, value)
+        try:
+            value = extract_field(specs, ctx)
+            if isinstance(value, list):  # names-type field: remember names so other fields can exclude them
+                excluded[path] = [next(iter(v.values())) for v in value if isinstance(v, dict)]
+            if value is not None or not isinstance(out.get(path), list):
+                set_path(out, path, value)
+        except DocTimeout:
+            raise
+        except Exception:
+            log.exception("%s: field %s failed", doc.path, path)
     for path, spec in (doc_class.raw.get("lists") or {}).items():
-        template = doc_class.output_template[path][0]
-        out[path] = extract_list(spec, ctx, template)
+        try:
+            template = doc_class.output_template[path][0]
+            out[path] = extract_list(spec, ctx, template)
+        except DocTimeout:
+            raise
+        except Exception:
+            log.exception("%s: list %s failed", doc.path, path)
     for path, spec in (doc_class.raw.get("derive") or {}).items():
-        set_path(out, path, _derive(out, spec))
+        try:
+            set_path(out, path, _derive(out, spec))
+        except DocTimeout:
+            raise
+        except Exception:
+            log.exception("%s: derived field %s failed", doc.path, path)
     return out
 
 
@@ -57,11 +104,30 @@ def _derive(out: dict[str, Any], spec: dict[str, Any]) -> Any:
     return table.get(source)
 
 
-def process_pdf(path: Path, classes: list[DocClass]) -> Result:
-    doc = load_pdf(path)
-    verdict = classify(doc, classes)
-    data = extract(doc, verdict.cls) if verdict.cls else {}
-    return Result(path, verdict, data)
+def process_pdf(path: Path, classes: list[DocClass], timeout: float = DOC_TIMEOUT_S) -> Result:
+    """Never raises. Unreadable/unclassifiable → {}; extraction failure → partial result."""
+    verdict = Verdict(None, {})
+    try:
+        with deadline(timeout):
+            doc = load_pdf(path)
+            verdict = classify(doc, classes)
+            if verdict.cls is None:
+                return Result(path, verdict, {})
+            partial = _partial_or_template(verdict.cls)
+            try:
+                extract(doc, verdict.cls, partial)
+            except DocTimeout:
+                log.error("%s: extraction timed out after %ss; keeping fields extracted so far", path, timeout)
+            return Result(path, verdict, partial)
+    except DocTimeout:
+        log.error("%s: timed out before classification finished → {}", path)
+    except Exception:
+        log.exception("%s: failed before extraction → {}", path)
+    return Result(path, verdict if verdict.cls else Verdict(None, {}), _partial_or_template(verdict.cls) if verdict.cls else {})
+
+
+def _partial_or_template(doc_class: DocClass) -> dict[str, Any]:
+    return copy.deepcopy(doc_class.output_template)
 
 
 def run(input_dir: Path, output_dir: Path, classes: list[DocClass] | None = None) -> list[Result]:
@@ -71,8 +137,11 @@ def run(input_dir: Path, output_dir: Path, classes: list[DocClass] | None = None
         rel = pdf.relative_to(input_dir).with_suffix(".json")
         result = process_pdf(pdf, classes)
         target = output_dir / rel
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(result.data, ensure_ascii=False, indent=2), encoding="utf-8")
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(json.dumps(result.data, ensure_ascii=False, indent=2), encoding="utf-8")
+        except OSError:
+            log.exception("cannot write %s", target)
         log.info("%s -> %s", rel.with_suffix(".pdf"), result.verdict.name or "{} (rejected)")
         results.append(result)
     return results

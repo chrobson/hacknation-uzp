@@ -3,6 +3,9 @@ name: pelnomocnictwo
 
 classify:
   threshold: 4
+  required:
+    - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', head_chars: 800}
+    - 'udziel\w*\s+(\w+\s+)?pełnomocnictw|ustanawia\w*\s+(\w+\s+)?pełnomocnik|upoważniam'
   signals:
     - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', weight: 3, head_chars: 600}
     - {pattern: 'ustanawia\w*\s+(\w+\s+)?pełnomocnik|udziela\w*\s+(\w+\s+)*?pełnomocnictw|umocowan', weight: 2}
@@ -11,6 +14,12 @@ classify:
     - {pattern: 'Pełnomocnictwo\s+przyjmuję|przyjmuję\s+pełnomocnictwo', weight: 1}
     # Odwołanie też wspomina pełnomocnictwo ("w oparciu o załączone pełnomocnictwo"):
     - {pattern: 'wnosz[eę]\s+(niniejsze\s+)?odwołani', weight: -4}
+    # Pisma procesowe, które nie są pełnomocnictwem:
+    - {pattern: 'zgłasza\w*\s+przystąpienie|zgłoszenie\s+przystąpienia', weight: -6}
+    - {pattern: 'odpowied\w*\s+na\s+odwołanie', weight: -6}
+    - {pattern: 'wnosz\w*\s+o\s+oddalenie\s+odwołania', weight: -6}
+    - {pattern: '^\s*(?-i:WYROK|POSTANOWIENIE)\b', weight: -6, head_chars: 1500}
+    - {pattern: 'Sygn\.\s*akt', weight: -2, head_chars: 400}
 
 output_template:
   mocodawca:

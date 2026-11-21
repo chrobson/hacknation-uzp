@@ -7,3 +7,5 @@ output/*
 
 # Notatki robocze (plany, research, ustalenia, taski): tylko lokalnie, nie trafiają do repo
 notes/
+logs/
+evidence/
