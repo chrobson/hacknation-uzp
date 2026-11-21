@@ -13,6 +13,7 @@ classify:
     - {pattern: 'P\s*E\s*Ł\s*N\s*O\s*M\s*O\s*C\s*N\s*I\s*C\s*T\s*W', weight: 3, head_chars: 600}
     - {pattern: 'ustanawia\w*\s+(\w+\s+)?pełnomocnik|udziela\w*\s+(\w+\s+)*?pełnomocnictw|umocowan', weight: 2}
     - {pattern: 'mocodaw', weight: 2}
+    - {pattern: '(?:upoważnia|ustanawia|udziela)\w*\s+(?:[\w„”.-]+\s+){0,5}?do\s+reprezentowania', weight: 2}
     - {pattern: 'pełnomocnik', weight: 1}
     - {pattern: 'Pełnomocnictwo\s+przyjmuję|przyjmuję\s+pełnomocnictwo', weight: 1}
     # Odwołanie też wspomina pełnomocnictwo ("w oparciu o załączone pełnomocnictwo"):
@@ -42,41 +43,78 @@ sections:
   # Część dokumentu opisująca mocodawcę (przed ustanowieniem pełnomocników).
   mocodawcy:
     start: '\A'
-    end: ['udziela\w*\s+(niniejszym\s+)?pełnomocnictw', 'ustanawia\w*', 'upoważniam\w*', 'udzielają', '^\s*Pełnomocni(cy|k)\b', '§\s*2\b', 'reprezentowan\w*\s+przez\s+osoby']
+    end: ['udziela\w*\s+(niniejszym\s+)?pełnomocnictw', 'ustanawia\w*', 'upoważniam\w*', 'udzielają', '\budzielam(?:y)?\b', 'postanawia\w*\s+udziel', '^\s*Pełnomocni(cy|k)\b', '§\s*2\b', 'reprezentowan\w*\s+przez\s+osoby']
+
+  # Formularz/tabela: nagłówek "PEŁNOMOCNIK", "PEŁNOMOCNICY" albo "2. Pełnomocnik" w osobnej linii.
+  pelnomocnicy_formularz:
+    start: '^[ \t]*(?:\d\.[ \t]*|[IVX]+\.[ \t]*)?Pełnomocni(?:cy|k)[ \t]*$'
+    end: ['^[ \t]*(?:\d\.[ \t]*)?Zakres\b', '^[ \t]*Postępowanie\b', 'do\s+reprezentowania']
 
 fields:
-  # Pełnomocnicy: imię i nazwisko po tytule zawodowym (adw., r. pr., ...), bez powtórzeń.
+  # Pełnomocnicy. Najpierw formularz/tabela pod nagłówkiem "PEŁNOMOCNIK(CY)" ("Imię i nazwisko X"),
+  # potem cały dokument: nazwisko po tytule zawodowym, wiersz tabeli "1 X Y adwokat", punktor "• X Y – r. pr.".
   pelnomocnicy:
-    type: names
-    pattern:
-      - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
-      # bez tytułu zawodowego: "udziela pełnomocnictwa: Jan Kowalski"
-      - '(?:udziel\w*|ustanawia\w*)\s+(?:niniejszym\s+)?pełnomocni\w+\s*:?\s*(?:Pan\w*\s+)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
-    extra: {pesel: null}
-    attrs: {pesel: 'PESEL\W{0,3}(\d{11})'}
+    - type: names
+      section: pelnomocnicy_formularz
+      pattern:
+        - 'Imię\s+i\s+nazwisko[ \t:]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+        - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+      extra: {pesel: null}
+      attrs: {pesel: '\A(?:(?!\boraz\b|\bi\b|[;•]|\n[ \t]*(?:[–•\-]|\d+[ \t]))[\s\S])*?(?:PESEL\W{0,3}|[ \t—–-])(\d{11})(?!\d)'}
+    - type: names
+      pattern:
+        - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+        # bez tytułu zawodowego: "udziela pełnomocnictwa: Jan Kowalski"
+        - '(?:udziel\w*|ustanawia\w*)\s+(?:niniejszym\s+)?pełnomocni\w+\s*:?\s*(?:Pan\w*\s+)?([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'
+        # wiersz tabeli pełnomocników: "1 Jan Kowalski adwokat — 12345678901"
+        - '^[ \t]*\d{1,2}\.?[ \t]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)[ \t]+(?:adw|r\.\s*pr|radc|apl|rzecz|—|–|-|brak)'
+        # punktor z nazwiskiem na początku: "• Jan Kowalski – r. pr."
+        - '^[ \t]*[•▪◦*][ \t]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)[ \t]*(?:–|-|,|\(|$)'
+      extra: {pesel: null}
+      attrs: {pesel: '\A(?:(?!\boraz\b|\bi\b|[;•]|\n[ \t]*(?:[–•\-]|\d+[ \t]))[\s\S])*?(?:PESEL\W{0,3}|[ \t—–-])(\d{11})(?!\d)'}
 
 lists:
   mocodawca:
     section: mocodawcy
-    split: '(?:^|[\s:;])\d\)\s+(?=[A-ZŁŚŻŹĆŃÓ])'   # konsorcjum: "1) Firma A ...; 2) Firma B ..."
+    # Konsorcjum: "1) Firma A ...; 2) Firma B ...", "1. Firma A" w osobnych liniach, nagłówki
+    # "LIDER KONSORCJUM" / "PARTNER KONSORCJUM" albo "MOCODAWCA 1" / "MOCODAWCA 2".
+    split: '(?:^|[\s:;])\d\)\s+(?=[A-ZŁŚŻŹĆŃÓ])|^[ \t]*\d\.[ \t]+(?=[A-ZŁŚŻŹĆŃÓ„])|(?-i:^[ \t]*(?:LIDER|PARTNER|CZŁONEK|UCZESTNIK)[ \t]+KONSORCJUM\b[^\n]*\n|^[ \t]*MOCODAWCA[ \t]+\d+\b[^\n]*\n)'
     fields:
       data.nazwa:
-        - {type: pattern, pattern: 'pod\s+firmą\s+([\s\S]+?),\s*(?:ul\.|al\.|pl\.|os\.)', clean: true}
-        # Pierwsza nazwa firmy: wyrazy z wielkiej litery (dopuszczalne łączniki i/w/z) + forma prawna.
+        # Formularz: "Firma (nazwa) X" / "Nazwa / firma X".
+        - {type: pattern, pattern: '^[ \t]*(?:Firma[ \t]*\(nazwa\)|Nazwa[ \t]*/[ \t]*firma|Nazwa[ \t]+Mocodawcy|Firma)[ \t:]+([^\n]+?)[ \t]*$', clean: true, reject: ['^\(', 'nie\s+dotyczy']}
+        - {type: pattern, pattern: 'pod\s+firmą\s+([\s\S]+?),\s*(?:ul\.|al\.|pl\.|os\.|z\s+miejscem|z\s+siedzibą|NIP\b|\d{2}-\d{3})', clean: true}
+        # Nazwa w cudzysłowie + forma prawna, w jednej linii (cudzysłów otwierający należy do nazwy).
+        - {type: pattern, pattern: '(?-i:(?<![\w])(„[^”\n]+”(?:[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)*[ \t]+(?:S\.A\.|sp\.\s*z\s*o\.\s*o\.(?:\s*sp\.\s*k\.)?|sp\.\s*k\.|sp\.\s*j\.|sp\.\s*p\.|s\.c\.|Sp\.\s*z\s*o\.\s*o\.|Spółka\s+[\w ]+?(?=,|\n|\s\()|spółka\s+(?:akcyjna|jawna|komandytowa|partnerska|z\s+ograniczoną\s+odpowiedzialnością))))'}
+        # Pierwsza nazwa firmy: wyrazy z wielkiej litery / wersalikami (dopuszczalne łączniki i/w/z) + forma prawna.
         - type: pattern
           clean: true
-          pattern: '(?-i:(?<![\w])((?:(?!Mocodaw|Działając|Pełnomoc|Dane\b|Zamawiaj|Wykonawc|Konsorcj|Ja\b)[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż][\w\-.&]*|[A-ZŁŚŻŹĆŃÓ0-9][\w]*-[\w\-]+|„[^”]+”)(?:[ \t\n]+(?:(?!Mocodaw|Działając|Pełnomoc|Dane\b|Zamawiaj|Wykonawc|Konsorcj|Ja\b)[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż][\w\-.&]*|[A-ZŁŚŻŹĆŃÓ0-9][\w]*-[\w\-]+|i|w|z|oraz|im\.|„[^”]+”))*?[ \t\n]+(?:S\.A\.|sp\.\s*z\s*o\.\s*o\.(?:\s*sp\.\s*k\.)?|sp\.\s*k\.|sp\.\s*j\.|sp\.\s*p\.|s\.c\.|Sp\.\s*z\s*o\.\s*o\.|Spółka\s+[\w ]+?(?=,|\n|\s\())))'
+          pattern: '(?-i:(?<![\w])((?:(?!Mocodaw|Działając|Pełnomoc|Dane\b|Zamawiaj|Wykonawc|Konsorcj|Ja\b)[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż][\w\-.&]*|[A-ZŁŚŻŹĆŃÓ0-9][\w]*-[\w\-]+|[A-ZŁŚŻŹĆŃÓ]{2,}(?=[ \t])|„[^”]+”)(?:[ \t\n]+(?:(?!Mocodaw|Działając|Pełnomoc|Dane\b|Zamawiaj|Wykonawc|Konsorcj|Ja\b)[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż][\w\-.&]*|[A-ZŁŚŻŹĆŃÓ0-9][\w]*-[\w\-]+|[A-ZŁŚŻŹĆŃÓ]{2,}(?=[ \t])|„[^”]+”|i|w|z|oraz|im\.))*?[ \t\n]+(?:S\.A\.|sp\.\s*z\s*o\.\s*o\.(?:\s*sp\.\s*k\.)?|sp\.\s*k\.|sp\.\s*j\.|sp\.\s*p\.|s\.c\.|Sp\.\s*z\s*o\.\s*o\.|Spółka\s+[\w ]+?(?=,|\n|\s\()|spółka\s+(?:akcyjna|jawna|komandytowa|partnerska|z\s+ograniczoną\s+odpowiedzialnością))))'
+        # Przedsiębiorca bez formy prawnej: pierwsza linia pozycji "MARKA-BUD Jan Kowalski".
+        - {type: pattern, pattern: '(?-i:^[ \t]*(?:Lider\s+konsorcjum\s*[–-]\s*)?((?:[A-ZŁŚŻŹĆŃÓ0-9]+-)*[A-ZŁŚŻŹĆŃÓ0-9]{2,}(?:-[A-ZŁŚŻŹĆŃÓ0-9]+)*[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?))(?=[ \t]*(?:,|\n))'}
+        # Przedsiębiorca: "Jan Kowalski Usługi Remontowo-Budowlane" (imię i nazwisko + określenie działalności).
+        - {type: pattern, pattern: '(?-i:^[ \t]*([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+(?:Usługi|Firma|Przedsiębiorstwo|Zakład|Handel|Transport|Usługowo|Handlowo|Produkcja|Biuro|Pracownia)\b[^\n,;]*?))[ \t]*$'}
         - {type: pattern, pattern: 'Mocodawc\w*[ \t]+(?:jest[ \t]+)?(?!ustanaw|upoważ|udziel)([A-ZŁŚŻŹĆŃÓ0-9„"][^\n,(]+?)(?=,|\n|\s+\()', clean: true, reject: ['^(?-i:[A-ZŁŚŻŹĆŃÓ \t]+)$', 'pełnomoc']}
-      data.krs: {type: pattern, pattern: 'KRS\W{0,3}(\d(?:[  ]?\d){9})(?!\d)', digits: true}
-      data.nip: {type: pattern, pattern: 'NIP\W{0,3}(?:PL[  -]?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
-      data.typ: {type: exists, scope: section, pattern: ['działalnoś\w*\s+gospodarcz', 'CEIDG', 'Ewidencji\s+i\s+Informacji'], if_true: osoba_fizyczna, if_false: osoba_prawna}
+      data.krs: {type: pattern, pattern: 'KRS\W{0,3}(?:pod\s+(?:nr|numerem)\W{0,3})?(\d(?:[  ]?\d){9})(?!\d)', digits: true}
+      data.nip: {type: pattern, pattern: 'NIP\W{0,3}(?:PL\s?-?)?(\d(?:[  -]?\d){9})(?!\d)', digits: true}
+      # Osoba fizyczna: wpis do CEIDG / działalność gospodarcza / zaznaczone pole; inaczej osoba prawna,
+      # gdy w pozycji jest forma prawna albo KRS; pozycja bez formy prawnej i bez KRS to przedsiębiorca.
+      data.typ:
+        - {type: exists, pattern: ['działalnoś\w*\s+gospodarcz', 'CEIDG', 'Ewidencji\s+i\s+Informacji', '\[\s*X\s*\]\s*osoba\s+fizyczn', '[–-][ \t]*(?:Właściciel|Przedsiębiorca)\b'], if_true: osoba_fizyczna, if_false: null}
+        - {type: exists, pattern: ['KRS\W{0,3}(?:pod\s+(?:nr|numerem)\W{0,3})?\d', '(?-i:\bS\.\s?A\.|\b[Ss]p\.\s*(?:z\s*o\.|k\.|j\.|p\.)|\bs\.c\.|\b[Ss]półk)'], if_true: osoba_prawna, if_false: osoba_fizyczna}
       data.imie_nazwisko:
-        - {type: pattern, scope: section, pattern: 'niżej\s+podpisan\w*(?:\s*\(a\))?\s+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż-]+)'}
+        - {type: pattern, pattern: 'niżej\s+podpisan\w*(?:\s*\(a\))?\s+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?\s+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'}
+        - {type: pattern, pattern: '^[ \t]*Imię\s+i\s+nazwisko[ \t:]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)'}
+        - {type: pattern, pattern: '(?-i:([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)[ \t]*[–-][ \t]*(?:Właściciel|Przedsiębiorca)\b)'}
+        - {type: pattern, pattern: '(?-i:^[ \t]*(?:Lider\s+konsorcjum\s*[–-]\s*)?(?:[A-ZŁŚŻŹĆŃÓ0-9]+-)*[A-ZŁŚŻŹĆŃÓ0-9]{2,}(?:-[A-ZŁŚŻŹĆŃÓ0-9]+)*[ \t]+([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?))(?=[ \t]*(?:,|\n))'}
       # Podpisujący: nazwiska w bloku podpisów (po pierwszej linii kropek), bez pełnomocników i nazw funkcji.
       podpisujacy:
         type: names
         scope: document
-        after: '\.{8,}'
+        # Blok podpisów zaczyna się od pierwszej linii kropek/podkreśleń/kresek lub znacznika podpisu.
+        after: '\.{8,}|…{2,}|_{5,}|-{8,}|\(podpis\)|/podpis/|/-/|(?-i:^[ \t]*Podpis(?:y\b|[ \t]+Mocodaw|:))'
+        # Dwa wyrazy z wielkiej litery, ale nie nazwa firmy (po nich forma prawna).
+        pattern: '(?<![\w-])([A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?[ \t]+[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+(?:-[A-ZŁŚŻŹĆŃÓ][a-ząćęłńóśźż]+)?)(?![\w-]|[ \t]+(?:S\.\s?A\.|[Ss]p\.|[Ss]półk))'
         segment_by: '^\s*(?:W\s+imieniu|Za)\s[^\n]*:\s*$'
         exclude_from: pelnomocnicy
-        stopwords: [Za, W, Imieniu, Prezes, Wiceprezes, Członek, Zarządu, Prokurent, Dyrektor, Właściciel, Wspólnik, Pełnomocnik, Pełnomocnictwo, Mocodawca, Mocodawcy, Zarząd, Generalny, Finansowy, Komplementariusz, Partner, Kierownik, Imię, Nazwisko, Podpis, Data, Miejsce, Strona, Sp, Spółka, Prezesa, Członka, Upoważniony, Upoważniona, Główny, Księgowy, Handlowy]
+        stopwords: [Za, W, Imieniu, Prezes, Wiceprezes, Członek, Zarządu, Prokurent, Dyrektor, Właściciel, Wspólnik, Pełnomocnik, Pełnomocnictwo, Mocodawca, Mocodawcy, Zarząd, Generalny, Finansowy, Komplementariusz, Partner, Kierownik, Imię, Nazwisko, Podpis, Data, Miejsce, Strona, Sp, Spółka, Prezesa, Członka, Upoważniony, Upoważniona, Główny, Księgowy, Handlowy, Przedsiębiorca, Samoistny, Management, Board, President, Member, Principal, Attorney, Przyjęcie, Wykonawca, Wykonawcy, Lider, Konsorcjum]
