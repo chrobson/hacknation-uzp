@@ -73,8 +73,8 @@ sections:
   # Lista pełnomocników po „udziela pełnomocnictwa:” aż do „do reprezentowania” (bez tytułów zawodowych, np. skany).
   pelnomocnicy_lista:
     isolated: true
-    start: 'udziela\w*\s+(?:niniejszym\s+)?pełnomocnictw\w*\s*:'
-    end: ['do\s+reprezentowania', '\bw\s+zakresie\b', 'do\s+działania']
+    start: ['udziela\w*\s+(?:niniejszym\s+)?pełnomocnictw\w*\s*:', '(?-i:\b(?:upoważniam|udzielam|ustanawiam)(?:y)?\b[^:\nA-ZĄĆĘŁŃÓŚŹŻ]{0,80}:)']
+    end: ['do\s+reprezentowania', '\bw\s+zakresie\b', 'do\s+działania', 'do\s+jednoosobowego', 'do\s+samodzielnego', 'pełnomocnictwa\s+do\b']
 
 fields:
   # Pełnomocnicy. Najpierw formularz/tabela pod nagłówkiem "PEŁNOMOCNIK(CY)" ("Imię i nazwisko X"),
@@ -89,7 +89,7 @@ fields:
         - 'Imię\s+i\s+nazwisko[ \t:]+([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?[ \t]+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?)'
         - '(?:\badw\.|\br\.\s*pr\.|\bradc\w*\s+prawn\w*|\badwokat\w*|\bapl\.\s*adw\.|\brzecznik\w*\s+patentow\w*)\s*([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?)'
       reject_context: &rep_ctx ['(?:Prezes|Wiceprezes|Członek|Prokurent|Dyrektor|President|Director|Board|Management)\w*\s+(?:Zarządu|of|the)?', '\bwspólnik\w*\b']
-      stopwords: &rep_stop [Pan, Pani, Panią, Pana, Panu, Krajowa, Krajową, Krajowej, Izba, Izbą, Izby, Zarząd, Zarządu, Spółki, Spółka, Spółkę, Członek, Prezes, Wiceprezes, Prokurent, Mocodawca, Mocodawcy, Odwołujący, Zamawiający, Wykonawca, Sąd, Sądem]
+      stopwords: &rep_stop [Pan, Pani, Panią, Pana, Panu, Krajowa, Krajową, Krajowej, Izba, Izbą, Izby, Zarząd, Zarządu, Spółki, Spółka, Spółkę, Członek, Prezes, Wiceprezes, Prokurent, Mocodawca, Mocodawcy, Odwołujący, Zamawiający, Wykonawca, Sąd, Sądem, Kancelaria, Kancelarii, Adwokatów, Adwokacka, Radców, Prawnych, Radcy, Prawnego, Dzienniku, Urzędowym, Biuletynie, Zamówień, Publicznych, Adwokat, Radca, Prawny, Pani, Panu, Panią]
       extra: {pesel: null}
       attrs: &rep_attrs {pesel: '\A(?:(?!\boraz\b|\bi\b|[;•]|\n[ \t]*(?:[–•\-]|\d+[ \t]))[\s\S])*?(?:PESEL\W{0,3}|[ \t—–-])(\d{11})(?!\d)'}
     - type: names
@@ -97,7 +97,10 @@ fields:
       titlecase: true
       section: pelnomocnicy_lista
       field: imie_nazwisko
-      pattern: '(?<![\w-])(?<!ul\.[ \t])(?<!al\.[ \t])(?<!im\.[ \t])(?<!pl\.[ \t])([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?[ \t]*\n?[ \t]*[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?)(?![\wąćęłńóśźż])(?![ \t]+(?:sp\.|S\.A\.|spółk|Sp\.))'
+      pattern:
+        - '(?<![\w-])(?<!ul\.[ \t])(?<!al\.[ \t])(?<!im\.[ \t])(?<!pl\.[ \t])([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?[ \t]*\n?[ \t]*[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?)(?![\wąćęłńóśźż])(?![ \t]+(?:sp\.|S\.A\.|spółk|Sp\.))'
+        # imię i nazwisko WIELKIMI literami w osobnej linii („DARIUSZ ZIEMBIŃSKI”)
+        - '^[ \t]*(?:\d{1,2}[.)][ \t]*)?([A-ZĄĆĘŁŃÓŚŹŻ]{2,}[ \t]+[A-ZĄĆĘŁŃÓŚŹŻ]{2,}(?:-[A-ZĄĆĘŁŃÓŚŹŻ]{2,})?)[ \t]*$'
       reject_context: *rep_ctx
       stopwords: *rep_stop
       min_word_len: 3

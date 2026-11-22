@@ -370,6 +370,7 @@ def _keyword_map_pass(spec: dict[str, Any], text: str, folded: bool) -> Any:
 
 
 NAME = r"[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?"
+_LEGAL_AFTER = re.compile(r"[ \t]*(?:sp\.|spółk|s\.\s?a\.|sp\s*\.?\s*z\s*o)", re.IGNORECASE)
 _LEGAL_FORM = re.compile(r"\bS\.\s?A\.|\b[Ss]p\.|\b[Ss]półk", re.IGNORECASE)
 
 
@@ -423,6 +424,8 @@ def _names(spec: dict[str, Any], ctx: Context) -> Any:
             continue
         if any(len(w) < min_len for w in words) or (company and " ".join(m.group(1).split()) in company):
             continue
+        if words[-1] in ("Sp", "Spółka", "Spółki") or _LEGAL_AFTER.match(text, m.end()):
+            continue  # a company name ("Malik Development Spółka z o.o.", "AG-Complex Sp. z o.o."), not a person
         if "reject_context" in spec:  # e.g. a board member: "Jan Kowalski – Prezes Zarządu" is not a representative
             around = text[max(0, m.start(1) - 40) : m.end(1) + 50]
             if any(r.search(around) for r in _compile(spec["reject_context"])):
