@@ -4,6 +4,14 @@
 # "wyrok_kio" dodana przez --classes-dir) jest oceniana normalnie także dla dokumentu z listy odrzuceń.
 protects: [odwolanie, pelnomocnictwo, przelew]
 reject:
+  # Poradnik / informacja o procedurze (opis przepisów w trzeciej osobie), nie pismo w sprawie:
+  - name: poradnik_informacja
+    pattern: 'podstawowe\s+informacje\s+o\s+postępowani|jest\s+jednym\s+ze\s+środków\s+ochrony\s+prawnej|mogą\s+działać\s+w\s+postępowaniu[\s\S]{0,160}?przez\s+pełnomocnika|podmioty\s+uprawnione\s+do\s+wniesienia\s+odwołania'
+    head_chars: 2000
+  # Wzór do wypełnienia: co najmniej 5 pól ze słowami w nawiasach kwadratowych (nie przypisy [10]) ("[imię i nazwisko]", "[adres]"):
+  - name: wzor_do_wypelnienia
+    pattern: '(?:\[[^\]\n]{0,30}[a-ząćęłńóśźż][^\]\n]{1,40}\][^\[]*?){5}'
+    head_chars: 3000
   - {name: ogloszenie_bzp, pattern: '\A\s*Ogłoszenie\s+nr\s+\d{4}\s*/\s*BZP', head_chars: 300}
   - {name: ogloszenie_ted, pattern: 'See\s+the\s+notice\s+on\s+TED', head_chars: 500}
   # Orzeczenie KIO: nagłówek WYROK/POSTANOWIENIE oraz skład Izby lub przewodniczący (samo "Sygn. akt" nie wystarcza).
@@ -15,7 +23,5 @@ reject:
   - {name: faktura, pattern: '^\s*(?:Faktura(?:\s+VAT)?|FAKTURA(?:\s+VAT)?)\s*(?:nr\b|$)', head_chars: 300}
   # Przelew / pełnomocnictwo bez ŻADNEGO kontekstu sprawy (zamówienie, odwołanie, KIO, wpis, opłata skarbowa za pełnomocnictwo):
   # np. zapłata za fakturę, pełnomocnictwo do urzędu skarbowego. Wzorce bez polskich znaków (działają też po zdjęciu diakrytyków).
-  - name: przelew_bez_kontekstu
-    pattern: '\A(?![\s\S]*(?:zam\w*\s+publiczn|\bUZP\b|\bwpis|odwo\w*|\bKIO\b|krajow\w+\s+izb|op\w*\.?\s+skarb|pe\w{1,2}nomocni|\bpe\wn\.|appeal|power\s+of\s+attorney|stamp\s+duty|procurement))(?=[\s\S]*(?:przelew|transfer|payment|transakcj|rachun))'
   - name: pelnomocnictwo_bez_kontekstu
     pattern: '\A(?![\s\S]*(?:zam\w*ieni|odwo\w*|\bKIO\b|krajow\w+\s+izb|przetarg|post\w{1,2}powani|\bPzp\b|procurement|appeal|tender|op\w*\s+skarbow|przelew|payment|transfer))(?=[\s\S]*(?:pe\w{1,2}nomocni|power\s+of\s+attorney))'

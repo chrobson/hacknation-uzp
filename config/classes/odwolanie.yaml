@@ -29,7 +29,7 @@ classify:
     - {pattern: '^\s*Zamawiając\w*\s*:', weight: 1}
     - {pattern: 'zarzut', weight: 1}
     # Pisma w sprawie odwoławczej, które NIE są odwołaniem (przystąpienie, odpowiedź na odwołanie, orzeczenia):
-    - {pattern: 'przystąpieni\w*\s+do\s+postępowania\s+odwoławczego', weight: -6}
+    - {pattern: 'przystąpieni\w*\s+do\s+postępowania\s+odwoławczego', weight: -6, head_chars: 2500}   # w odwołaniu bywa dalej w treści
     - {pattern: 'zgłasza\w*\s+przystąpienie|zgłoszenie\s+przystąpienia', weight: -6}
     - {pattern: 'odpowied\w*\s+na\s+odwołanie', weight: -6}
     - {pattern: 'wnosz\w*\s+o\s+oddalenie\s+odwołania', weight: -6}
