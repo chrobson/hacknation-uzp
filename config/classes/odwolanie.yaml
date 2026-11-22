@@ -91,13 +91,16 @@ sections:
     end: ['^\s*(?:Pełnomocnik|Przedmiot\s+postępowania|Zamówienie\b)']
   # bloki stron między krótkim „wnoszę odwołanie” a zarzutami są wycinane, sekcja czynności trwa dalej
   czynnosc:
-    start: 'wnosz[eę]'
+    # „wnoszę o uwzględnienie / nakazanie …” i „wnoszę i wywodzę jak w petitum” to żądania, nie zaskarżona czynność
+    # (gołe „wnoszę o:” przed zarzutami zostaje); „zaskarżam czynności …” też otwiera sekcję
+    start: ['wnosz[eę]\b(?!\s+(?:i\s+wywodz|jak\b))(?!\s+o\s*:?\s*(?:\d+[.)]\s*)?(?:uwzględnieni|nakazani|merytoryczn|zasądzeni|dopuszczeni|oddaleni|przeprowadzeni))', '\bzaskarżam\b']
     end: ['Zarzut\s+nr\s*2\b', '^\s*Uzasadnienie']
     resume_after: [zamawiajacy, odwolujacy, dotyczy]
   # zapas, gdy brak „wnoszę”: 3. osoba, „składam odwołanie”, „odwołanie od/wobec …”, „zarzucam”; isolated = nie ucina innych sekcji
   czynnosc_alt:
     isolated: true
-    start: ['\bwnos(?:i|imy|zą)\b', '\bskłada(?:m|my)?\s+(?:niniejsze\s+)?odwołani', '\bodwołani\w*\s+(?:od|wobec|na)\s', '\bodwołanie\s+dotyczy', '\bzarzuca(?:m|my)?\b']
+    start: ['\bwnos(?:i|imy|zą)\b(?!\s+o\s*:?\s*(?:\d+[.)]\s*)?(?:uwzględnieni|nakazani|merytoryczn|zasądzeni|dopuszczeni|oddaleni|przeprowadzeni))',
+            '^[ \t]*(?:Część\s+\w\.\s*)?Zaskarżon\w*\s+czynnoś', '\bskłada(?:m|my)?\s+(?:niniejsze\s+)?odwołani', '\bodwołani\w*\s+(?:od|wobec|na)\s', '\bodwołanie\s+dotyczy', '\bzarzuca(?:m|my)?\b']
     end: ['Zarzut\s+nr\s*2\b', '^\s*Uzasadnienie', '^\s*(?:II|2)[.)]\s']
   dotyczy: {start: ['^\s*dotyczy\s*:?', '\bdotyczy\s*:'], end: ['^\s*Działając', 'wnosz[eę]']}
   _end:
@@ -123,10 +126,21 @@ fields:
     - {type: pattern, pattern: '^\s*([A-ZĄĆĘŁŃÓŚŹŻ][^\n,\d:]{1,40}),\s*(?:dnia\s+)?\d', clean: true}
     - {type: pattern, pattern: '^\s*([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:[ \t-][A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)*)[ \t]+(?:dnia[ \t]+)?\d{1,2}[.\-/]\d{1,2}[.\-/]\d{4}', clean: true}
   OdwolanieKIO.czynnosc_dzien:
+    # Wiarygodność: zaskarżona czynność jest 1–25 dni PRZED datą odwołania (termin 5/10 dni + doręczenie); data spoza
+    # okna (data ustawy, wydruku KRS, ogłoszenia sprzed miesięcy) jest pomijana i szukana jest następna etykieta.
+    # reject_before: etykieta „z dnia” należy do cytatu aktu („ustawy z dnia 11 września 2019 r.”, „KRS z dnia”).
     # data z pierwszej pozycji wyliczenia zaskarżonych czynności ("1) ... (25.06.2026 r.);")
-    - {type: labeled, value: date, labels: ['(?:(?:polegając\w*|w\s+postaci|tj\.)\s*(?:na\s*)?:?|wobec\s*:)\W{0,6}1[.)](?=[^;]*\d{4})'], window: 250, section: czynnosc}
-    - {type: labeled, value: date, labels: ['w\s+dniu', 'z\s+dnia'], window: 40, section: czynnosc}
-    - {type: labeled, value: date, labels: ['w\s+dniu', 'z\s+dnia', '\bdnia'], window: 40, section: czynnosc_alt}
+    - {type: labeled, value: date, labels: ['(?:(?:polegając\w*|w\s+postaci|tj\.)\s*(?:na\s*)?:?|wobec\s*:)\W{0,6}1[.)](?=[^;]*\d{4})'], window: 250, section: czynnosc, within_days: [1, 25], of_field: OdwolanieKIO.data}
+    - &czd_label {type: labeled, value: date, labels: ['w\s+dniu', 'z\s+dnia'], window: 40, section: czynnosc, within_days: [1, 25], of_field: OdwolanieKIO.data,
+       reject_before_window: 300,
+       # …oraz etykieta wewnątrz 2., 3. … pozycji wyliczenia czynności (data innej czynności niż pierwsza)
+       reject_before: ['(?m)^[ \t]*[2-9][.)][ \t][^\n]*(?:\n(?![ \t]*\d{1,2}[.)][ \t])[^\n]*){0,3}\Z', &act_cite '(?:ustaw\w*|rozporządze\w*|kodeks\w*|dyrektyw\w*|obwieszcze\w*|Dz\.\s*U\.?|KRS|Sądow\w*|Rejestr\w*|wydruk\w*)(?:\s+(?!czynno|zamawiaj|wyb|ofert|odrzuc|zaniecha|informacj|zawiadom|pism)[^\s.;]+){0,4}\s*\Z']}
+    - {<<: *czd_label, labels: ['w\s+dniu', 'z\s+dnia', '\bdnia'], section: czynnosc_alt}
+    # cała treść (np. „[termin] … informacja … przekazana w dniu 12 marca”), tylko w oknie wiarygodności
+    - {<<: *czd_label, labels: ['w\s+dniu', 'z\s+dnia', '\bdnia'], section: null, strict: true, reject_before: [*act_cite]}
+    # data bez etykiety tuż przed czasownikiem czynności („Zamawiający 27.03.2025 r. poinformował …”)
+    - {<<: *czd_label, section: null, strict: true, window: 30, reject_before: [*act_cite],
+       labels: ['(?=\b\d{1,2}(?:[./-]\d{1,2}[./-]|\s+[a-ząćęłńóśźż]+\s+)\d{4}\s*(?:r\.|roku)?,?\s*(?:\w+\s+){0,2}(?:poinformowa|przekaza|przesła|opublikowa|zamieści|udostępni|wybra|odrzuci|zawiadomi|unieważni)\w*)']}
     # LLM (jeśli włączony) tylko gdy żadna reguła nie zadziałała; dostaje fragment od "wnoszę" do drugiego zarzutu.
     # pierwszy zarzut (dla LLM): początek wg priorytetu, koniec na drugim zarzucie/uzasadnieniu; brak kotwic → początek pisma
     - {type: llm, excerpt: &first_charge {start: ['wnosz[eę]', '\bwnos(?:i|imy)\b', '\bzarzuca\w*', 'Zarzut\s+nr\s*1\b', '(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)'], end: ['Zarzut\s+nr\s*2\b', '^\s*(?:2|II)[.)]\s', '§\s*2\b', '^\s*Uzasadnienie', 'W\s+związku\s+z\s+powyższym'], fallback_chars: 2500}, max_chars: 1500, value: date, question: 'Podaj datę (YYYY-MM-DD) czynności lub zaniechania zamawiającego, której dotyczy PIERWSZY zarzut odwołania.', schema: {type: string, pattern: '\d{4}-\d{2}-\d{2}'}}
@@ -138,11 +152,14 @@ fields:
       until: ';'
       cast: int
       map:
-        12: ['projektowan\w*\s+postanowie\w*\s+umowy']
-        10: ['zaniechani\w*\s+unieważnieni', 'nie\s+unieważnił']
+        # projektowane postanowienia umowy; „ustalenie treści SWZ …, w tym wzoru umowy” (zaskarżony głównie wzór) → 12,
+        # ale „SWZ w zakresie warunków udziału, kryteriów i wzoru umowy” zostaje 4
+        # (remis pozycji z kodem 4 rozstrzyga kolejność mapy: 12 jest pierwsze)
+        12: &umowa12 ['projektowan\w*\s+postanowie\w*\s+umown?', 'specyfikacj\w*\s+warunków\s+zamówienia(?=[^;]{0,300}?\bw\s+tym\s+(?:wz[oó]r\w*|projekt\w*)\s+umowy)']
+        10: ['zaniechani\w*\s+(?:czynności\s+)?unieważnieni', 'nie\s+unieważnił']
         9: ['unieważnieni\w*\s+postępowani', 'unieważnił\w*\s+postępowani']
-        8: ['zaniechani\w*\s+wykluczeni', 'nie\s+wykluczył']
-        7: ['zaniechani\w*\s+odrzuceni', 'nie\s+odrzucił']
+        8: ['zaniechani\w*\s+(?:czynności\s+)?wykluczeni', 'nie\s+wykluczył']
+        7: ['zaniechani\w*\s+(?:czynności\s+)?odrzuceni', 'nie\s+odrzucił']
         3: ['wykluczeni\w*', 'wykluczył\w*']
         1: ['odrzuceni\w*\s+ofert', 'odrzucił\w*\s+ofert']
         2: ['wyb[oó]r\w*\s+(?:jako\s+)?(?:najkorzystniejsz|ofert)', 'wynik\w*\s+postępowania']
@@ -172,12 +189,12 @@ fields:
       section: czynnosc
       cast: int
       map:
-        12: ['projektowan\w*\s+postanowie\w*\s+umowy']
-        10: ['zaniecha\w*\s+unieważnieni', 'nie\s+unieważnił']
+        12: *umowa12
+        10: ['zaniecha\w*\s+(?:czynności\s+)?unieważnieni', 'nie\s+unieważnił']
         9: ['unieważni\w*\s+postępowanie', 'o\s+unieważnieniu']
-        8: ['nie\s+wykluczył', 'zaniecha\w*\s+wykluczeni']
+        8: ['nie\s+wykluczył', 'zaniecha\w*\s+(?:czynności\s+)?wykluczeni']
         3: ['wykluczy\w*', 'o\s+wykluczeniu']
-        7: ['nie\s+odrzucił', 'zaniecha\w*\s+odrzuceni']
+        7: ['nie\s+odrzucił', 'zaniecha\w*\s+(?:czynności\s+)?odrzuceni']
         1: ['odrzucił\w*\s+ofert', 'o\s+odrzuceniu', 'odrzuceni\w*\s+ofert']
         2: ['wyb[oó]r\w*\s+oferty', 'dokonał\w*\s+wyboru']
         5: ['zmodyfikował', 'modyfikacj\w*', 'zmienił\w*\s+treść']
@@ -189,11 +206,11 @@ fields:
       section: czynnosc_alt
       cast: int
       map:
-        12: ['projektowan\w*\s+postanowie\w*\s+umowy']
-        10: ['zaniecha\w*\s+unieważni', 'nie\s+unieważnił']
+        12: *umowa12
+        10: ['zaniecha\w*\s+(?:czynności\s+)?unieważni', 'nie\s+unieważnił']
         9: ['unieważni\w*\s+(?:całego\s+)?postępowani', 'o\s+unieważnieniu']
-        8: ['zaniecha\w*\s+wykluczeni', 'nie\s+wykluczył']
-        7: ['zaniecha\w*\s+odrzuceni', 'nie\s+odrzucił']
+        8: ['zaniecha\w*\s+(?:czynności\s+)?wykluczeni', 'nie\s+wykluczył']
+        7: ['zaniecha\w*\s+(?:czynności\s+)?odrzuceni', 'nie\s+odrzucił']
         3: ['wykluczeni\w*', 'wykluczy\w*']
         1: ['odrzuceni\w*\s+ofert', 'odrzucił\w*\s+ofert', 'o\s+odrzuceniu']
         2: ['wyb[oó]r\w*\s+(?:jako\s+)?(?:oferty\s+)?(?:najkorzystniejsz|ofert)', 'dokonał\w*\s+wyboru', 'wynik\w*\s+postępowania']

@@ -24,7 +24,7 @@ def test_whole_amounts_next_to_currency(text, expected):
 
 def _odw(dotyczy: bool, ted: str) -> dict:
     body = "dotyczy:\npostępowania pn. „Dostawa sprzętu biurowego dla urzędu”, " if dotyczy else "W postępowaniu pn. „Dostawa sprzętu biurowego dla urzędu”, "
-    text = f"""Warszawa, dnia 1 marca 2026 r.
+    text = f"""Warszawa, dnia 28 września 2026 r.
 Prezes Krajowej Izby Odwoławczej
 Odwołujący:
 Alfa Budownictwo sp. z o.o.

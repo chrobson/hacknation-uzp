@@ -17,6 +17,7 @@ New document classes reuse these types through configuration only.
 from __future__ import annotations
 
 import re
+import datetime as _dt
 from typing import Any, Callable
 
 from . import normalize as N
@@ -228,6 +229,8 @@ def _assign_accounts(text: str, cfg: dict[str, Any]) -> dict[str, str]:
 def _labeled(spec: dict[str, Any], ctx: Context) -> Any:
     find = _finder(spec.get("value", "token"), spec)
     window = int(spec.get("window", 160))
+    rejects = _compile(spec.get("reject_before", []))
+    back = int(spec.get("reject_before_window", 60))
     # second pass only when the exact labels gave nothing: labels with diacritics folded ("Tytul przelewu")
     for folded in (False, True):
         hay = fold(ctx.text) if folded else ctx.text
@@ -237,11 +240,29 @@ def _labeled(spec: dict[str, Any], ctx: Context) -> Any:
         # default: earliest label in the document; `label_priority`: labels in the YAML order (strongest first)
         order = (lambda h: (h[0], h[1].start())) if spec.get("label_priority") else (lambda h: h[1].start())
         for _, m in sorted(hits, key=order):
+            # `reject_before`: the label belongs to a citation ("ustawy z dnia 11 września 2019 r.", "KRS z dnia")
+            if rejects and any(r.search(ctx.text[max(0, m.start() - back) : m.start()]) for r in rejects):
+                continue
             after = ctx.text[m.end() : m.end() + window].lstrip(" \t:.…")
             value = find(after)
-            if value not in (None, ""):
+            if value not in (None, "") and _plausible_date(spec, ctx, value):
                 return value
     return None
+
+
+def _plausible_date(spec: dict[str, Any], ctx: Context, value: Any) -> bool:
+    """`within_days: [lo, hi]` + `of_field: path`: the date lies lo..hi days BEFORE that field's value (e.g. the
+    challenged act 1–25 days before the appeal's own date). Unknown reference date or unparsable value → accepted,
+    unless `strict: true` (a whole-document fallback that is only safe inside the window)."""
+    if "within_days" not in spec:
+        return True
+    ref = ctx.values.get(spec.get("of_field", ""))
+    try:
+        days = (_dt.date.fromisoformat(str(ref)) - _dt.date.fromisoformat(str(value))).days
+    except (TypeError, ValueError):
+        return not spec.get("strict")
+    lo, hi = spec["within_days"]
+    return lo <= days <= hi
 
 
 def _text_after_label(spec: dict[str, Any], ctx: Context) -> Any:
@@ -713,11 +734,12 @@ def extract_field(specs: dict[str, Any] | list[dict[str, Any]], ctx: Context,
         ctx_for_sections = c
         if "unless_section" in spec and ctx_for_sections.section(spec["unless_section"]) is not None:
             continue  # fallback used only when the document has no such section
-        if "section" in spec:
+        if spec.get("section"):  # `section: null` overrides an inherited section (whole document)
             text = ctx_for_sections.section(spec["section"])
             if text is None:
                 continue
             c = ctx_for_sections.sub(text)
+            c.values = ctx_for_sections.values  # cross-field checks (e.g. `within_days`) still see earlier fields
             c.index, c.n_items, c.label = ctx_for_sections.index, ctx_for_sections.n_items, ctx_for_sections.label
         value = TYPES[spec["type"]](spec, c)
         if value not in (None, ""):
