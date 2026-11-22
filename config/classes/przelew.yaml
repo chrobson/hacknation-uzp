@@ -83,7 +83,7 @@ fields:
   przelew_bankowy.numer_transakcji:
     # Etykieta złamana między wierszami: "Numer 305494\ntransakcji".
     - {type: pattern, pattern: '^[ \t]*Numer[ \t]+([A-Z0-9]{5,})[ \t|:.]*\n[ \t]*transakcji\b'}
-    - {type: labeled, value: token, labels: ['nr\.?\s*ref\w*\.?', 'numer\s+referencyjny', 'numer\s+transakcji(\s+operacji)?', '(id|identyfikator)\s+transakcji', 'nr\s+transakcji', 'referencj\w+'], token_pattern: '[A-Z]{2,}[0-9]{6,}|[0-9]{8,}', window: 80}
+    - {type: labeled, value: token, labels: ['nr\.?\s*ref\w*\.?', 'numer\s+referencyjny', 'numer\s+transakcji(\s+operacji)?', '(id|identyfikator)\s+transakcji', 'nr\s+transakcji', 'referencj\w+'], token_pattern: '[0-9]{6,}-[0-9]{6,}|[A-Z]{1,4}[0-9]{8,}|[A-Z]{2,}[0-9]{6,}|[0-9]{8,}', window: 80}   # mBank: 37265484-000032223; Pekao: C992315809908514
     # Układ nieznany: identyfikator w pobliżu "ref / transakcja / identyfikator / ID" (bez 26-cyfrowych rachunków):
     - {type: near, value: token, anchors: ['\bref\w*', 'transakcj\w*', 'identyfikator\w*', '\bID\b', 'numer\s+operacji', 'transaction'], token_pattern: '\b(?!PL\d{26}\b)[A-Z]{2,}[0-9]{6,}\b|(?<![\w\s/-])[0-9]{8,20}(?!\w|\.\w)', window: 120}
     - {type: pattern, pattern: '\b([A-Z]{3}\d{10,})\b'}

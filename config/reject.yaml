@@ -6,11 +6,12 @@ protects: [odwolanie, pelnomocnictwo, przelew]
 reject:
   # Poradnik / informacja o procedurze (opis przepisów w trzeciej osobie), nie pismo w sprawie:
   - name: poradnik_informacja
-    pattern: 'podstawowe\s+informacje\s+o\s+postępowani|jest\s+jednym\s+ze\s+środków\s+ochrony\s+prawnej|mogą\s+działać\s+w\s+postępowaniu[\s\S]{0,160}?przez\s+pełnomocnika|podmioty\s+uprawnione\s+do\s+wniesienia\s+odwołania'
+    # tylko gdy na początku nie ma czynności piszącego (pełnomocnictwo / odwołanie też bywa opisowe w treści)
+    pattern: '\A(?![\s\S]{0,4000}?(?:\budzielam|\budzielamy|udziela\w*\s+(?:niniejszym\s+)?pełnomocnictw|\bustanawiam|\bniniejszym\b|\bwnosz[eę]\b|działając\s+w\s+imieniu))[\s\S]{0,2000}?(?:podstawowe\s+informacje\s+o\s+postępowani|jest\s+jednym\s+ze\s+środków\s+ochrony\s+prawnej|mogą\s+działać\s+w\s+postępowaniu[\s\S]{0,160}?przez\s+pełnomocnika|podmioty\s+uprawnione\s+do\s+wniesienia\s+odwołania)'
     head_chars: 2000
-  # Wzór do wypełnienia: co najmniej 5 pól ze słowami w nawiasach kwadratowych (nie przypisy [10]) ("[imię i nazwisko]", "[adres]"):
+  # Wzór do wypełnienia: co najmniej 8 pól ze słowami w nawiasach kwadratowych (nie przypisy [10]) ("[imię i nazwisko]", "[adres]"):
   - name: wzor_do_wypelnienia
-    pattern: '(?:\[[^\]\n]{0,30}[a-ząćęłńóśźż][^\]\n]{1,40}\][^\[]*?){5}'
+    pattern: '(?:\[[^\]\n]{0,30}[a-ząćęłńóśźż][^\]\n]{1,40}\][^\[]*?){8}'
     head_chars: 3000
   - {name: ogloszenie_bzp, pattern: '\A\s*Ogłoszenie\s+nr\s+\d{4}\s*/\s*BZP', head_chars: 300}
   - {name: ogloszenie_ted, pattern: 'See\s+the\s+notice\s+on\s+TED', head_chars: 500}

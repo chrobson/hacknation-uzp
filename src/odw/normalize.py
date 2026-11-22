@@ -35,8 +35,9 @@ DATE_RE = re.compile(
 AMOUNT_RE = re.compile(r"(?<![\d.,])(\d{1,3}(?:[  .]\d{3})+|\d+)[,.](\d{2})(?![\d])")
 
 # 26-digit Polish account number, optional PL, any whitespace (incl. line breaks) between groups.
-# group "num" = the digits, group "pl" = the country prefix when the document prints one.
-ACCOUNT_RE = re.compile(r"(?<![\dA-Z])(?:(?P<pl>PL)[\s-]?)?(?P<num>(?:\d[\s-]?){25}\d)(?!\d)")
+# group "num" = the digits, group "pl" = the country prefix when the document prints one (on the same line:
+# "WARSZAWA PL" ending an address line above the number is not a prefix).
+ACCOUNT_RE = re.compile(r"(?<![\dA-Z])(?:(?P<pl>PL)[ \t -]?)?(?P<num>(?:\d[\s-]?){25}\d)(?!\d)")
 
 
 def account_value(m: re.Match[str]) -> str:
