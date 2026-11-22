@@ -45,6 +45,8 @@ def _finder(kind: str, spec: dict[str, Any]) -> Callable[[str], Any]:
         return lambda s: (m := tok.search(s)) and m.group(0).rstrip(".,;")
     if kind == "company":
         return N.find_company
+    if kind == "lawfirm":
+        return find_lawfirm
     if kind in N.ID_PATTERNS:
         return lambda s: N.find_id(kind, s)
     if kind == "regex":
@@ -580,6 +582,110 @@ def _near(spec: dict[str, Any], ctx: Context) -> Any:
     return None
 
 
+# ---- law firm of a representative (Odwołujący's pełnomocnik) -------------------------------------------------------
+_UP = "A-ZĄĆĘŁŃÓŚŹŻ"
+_LF_MARKER = re.compile(r"Kancelari|Adwokac|\bRadc|Prawn[aiy]\b|Prawnicz|Legal|\bLaw\b|Partners|Wspólni|Partnerzy"
+                        r"|Spółka\s+Partnersk|\bsp\.\s?p\.|Attorney|\bLex\b", re.IGNORECASE)
+# labels that introduce the firm name itself: the next text is the firm even without a law-firm word
+_LF_INTRO = re.compile(r"^(?:.*\b(?:z\s+(?-i:kancelari\w*(?:\s+prawn\w*)?)|z\s+(?=(?-i:Kancelari))|pod\s+firmą)|(?:Law\s+firm\s*/\s*)?Kancelaria\s*:|"
+                       r"Nazwa\s+kancelarii\s*:?)\s*", re.IGNORECASE)
+_LF_ADDR_LABEL = re.compile(r"^(?:adres\w*\s+(?:do|dla)\s+(?:korespondencji|doręczeń)|Law\s+firm\s*/\s*Kancelaria"
+                            r"(?=\s+Kancelari))\s*[:–-]?\s*", re.IGNORECASE)
+_LF_PERSON = re.compile(r"^.*?\b(?:adw\.|(?-i:adwokat\w*|radc\w*\s+prawn\w*)|r\.\s*pr\.|mec\.|apl\.\s*\w+\.?)\s+"
+                        rf"(?-i:[{_UP}]\w+(?:\s+[{_UP}][\w-]+)?)(?:\s*[,;–—-]\s*|\s+|$)", re.IGNORECASE)
+_LF_NOT = re.compile(r"^(?:ul\.|al\.|pl\.|os\.|tel|fax|e-?mail|adres|NIP|KRS|REGON|www\.|\d|\(|"
+                     r"Zamawiaj|Odwołuj|Dotyczy|ODWOŁANIE|Imię|Przedstawiciel|Pełnomocni|reprezent|Za\s+Odwołuj|"
+                     r"W\s+imieniu|Dane|Nr\b|Numer)", re.IGNORECASE)
+_LF_END = re.compile(r"(?:\bsp\.\s?[kjp]\.|\bs\.\s?c\.|\bS\.A\.|sp\.\s*z\s*o\.\s*o\.|odpowiedzialnością|Spółka\s+Partnerska"
+                     r"|Spółka\s+Akcyjna|Partnerzy|Wspólnicy\s+sp\.\s?\w\.)\s*$", re.IGNORECASE)
+_LF_CUT = re.compile(r"\s*;|\s*[,;]?\s*(?:\b(?:ul\.|al\.|pl\.|os\.)(?:\s|$)|\d{2}\s?-\s?\d{3}\b|\(|\||\btel\.|\be-?mail\b"
+                     r"|\bOddział\b|[\w.+-]+@)|\s*,\s*(?=[^,]*\d)", re.IGNORECASE)
+# a lower-case line still continues the name when the name broke inside the legal form ("Spółka z\nograniczoną …")
+_LF_CONT_LOWER = re.compile(r"^(?:ograniczon\w*|odpowiedzialno\w*|o\.\s?o\.|i\s|spółka\b|sp\.)", re.IGNORECASE)
+_LF_GEN = [(r"\bKancelarii\b", "Kancelaria"), (r"\bPrawnej\b", "Prawna"), (r"\bAdwokackiej\b", "Adwokacka"),
+           (r"\bRadcowskiej\b", "Radcowska"), (r"\bPrawniczej\b", "Prawnicza")]
+
+
+def _lf_clean(v: str) -> str:
+    m = _LF_CUT.search(v)
+    v = v[: m.start()] if m and m.start() > 0 else v
+    v = " ".join(v.split()).strip(" ,;:–—-")
+    v = re.sub(r"^(Kancelari\w*)\s+(?=Kancelari)", "", v)  # table label + value: "Kancelaria Kancelaria X"
+    if v.startswith("Kancelarii"):
+        for a, b in _LF_GEN:
+            v = re.sub(a, b, v)
+    return v
+
+
+def find_lawfirm(seg: str) -> str | None:
+    """The representative's law firm in the text after a representation anchor ("reprezentowany przez", "Pełnomocnik",
+    "adres do doręczeń"): a firm-shaped line with a law-firm word, or the text right after "z Kancelarii"/"Kancelaria:";
+    a wrapped name is joined with its continuation line, the address that follows is cut off."""
+    lines = seg.split("\n")[:8]
+    for i, raw in enumerate(lines):
+        line = raw.strip(" \t:–—-,;")
+        if not line:
+            continue
+        intro = False
+        m = _LF_ADDR_LABEL.match(line)
+        if m:
+            line = line[m.end():]
+        m = _LF_INTRO.match(line)
+        if m and (m.end() < len(line) or i + 1 < len(lines)):
+            intro, line = True, line[m.end():].strip(" :–—-,")
+            if not line:  # "z kancelarii prawnej" at the end of the line: the firm is the next line
+                j = next((k for k in range(i + 1, len(lines)) if lines[k].strip()), None)
+                if j is None:
+                    return None
+                i, line = j, lines[j].strip(" \t:–—-,;")
+        person = False
+        pm = _LF_PERSON.match(line)
+        if pm:
+            person, line = True, line[pm.end():].strip()
+            if not line:
+                continue
+        k = re.search(rf"(?-i:(?:(?!Pełnomocni|Odwołuj|Adres|Law\b|Firm|Nazwa|Kancelaria\s+Kancelari)[{_UP}][\w&.-]*[ \t]+){{0,3}}?Kancelari)", line)
+        if k and not intro:
+            line = line[k.start():]
+        if not line or not re.match(rf"(?-i:[{_UP}0-9])", line) or _LF_NOT.match(line):
+            if _LF_NOT.match(line or "") and re.match(r"(?:Zamawiaj|Dotyczy|ODWOŁANIE)", line or "", re.IGNORECASE):
+                return None
+            continue
+        if not (intro or person or _LF_MARKER.search(line)):
+            continue
+        cand, joined = line, 0
+        while (not _LF_CUT.search(cand) and not _LF_END.search(cand) and joined < 2 and i + 1 < len(lines)):
+            nxt = lines[i + 1].strip(" \t,;")
+            if (not nxt or _LF_NOT.match(nxt) or ":" in nxt
+                    or not (re.match(rf"(?-i:[{_UP}])", nxt) or _LF_CONT_LOWER.match(nxt) or re.search(r"\b(?:z|i|w|oraz|&)$", cand))
+                    or (_LF_MARKER.search(cand) and re.fullmatch(rf"(?-i:[{_UP}]\w+[ \t]+[{_UP}][\w-]+)", nxt))):
+                break
+            cand, i, joined = cand + " " + nxt, i + 1, joined + 1
+        if not (intro or _LF_MARKER.search(cand)):
+            continue
+        value = _lf_clean(cand)
+        if len(value) >= 6 and not re.fullmatch(rf"(?-i:[{_UP}]\w+[ \t]+[{_UP}][\w-]+)", value):
+            return value
+    return None
+
+
+def _person_email(spec: dict[str, Any], ctx: Context) -> Any:
+    """E-mail whose local part carries the surname of an already extracted person (`person`: item field path),
+    e.g. 'Angelika Pikoń' → a.pikon@…; among several such addresses the first one in the text."""
+    item = ctx.item or {}
+    name = _get_path(item, spec["person"]) if item else ctx.values.get(spec["person"])
+    if not isinstance(name, str) or len(name.split()) < 2:
+        return None
+    surname = fold(name.split()[-1].split("-")[0]).lower()
+    if len(surname) < 3:
+        return None
+    for m in re.finditer(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+", ctx.text):
+        local = fold(m.group(0).split("@")[0]).lower()
+        if surname in local or surname[:-1] in local and len(surname) > 5:
+            return m.group(0).rstrip(".")
+    return None
+
+
 TYPES: dict[str, Callable[[dict[str, Any], Context], Any]] = {
     "labeled": _labeled,
     "text_after_label": _text_after_label,
@@ -591,6 +697,7 @@ TYPES: dict[str, Callable[[dict[str, Any], Context], Any]] = {
     "names": _names,
     "llm": _llm,
     "near": _near,
+    "person_email": _person_email,
 }
 
 
@@ -630,6 +737,7 @@ def extract_list(spec: dict[str, Any], ctx: Context, item_template: dict[str, An
         # on the whole document, producing a single item.
         item = copy.deepcopy(item_template)
         doc = ctx.sub(ctx.text)
+        doc.item = item  # later fields may read earlier ones (e.g. the representative's e-mail by surname)
         for path, fspecs in spec["fields"].items():
             usable = [f for f in (fspecs if isinstance(fspecs, list) else [fspecs]) if f.get("if_no_section")]
             if usable:

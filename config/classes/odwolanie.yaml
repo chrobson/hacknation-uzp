@@ -286,18 +286,40 @@ lists:
         - {<<: *odw_near, value: regon}
       przez-pelnomocnika:
         # (spójność: wyodrębniony pełnomocnik ⇒ 1, patrz `imply` na końcu listy)
-        - {if_no_section: true, type: exists, scope: document, pattern: ['reprezentowan\w*\s+(?:jest\s+)?przez', 'pełnomocnik(?!\w*\s+Odwołującego\s*$)']}
+        # „wynagrodzenia pełnomocnika” (koszty) to nie wskazanie pełnomocnika; pełnomocnictwo w załącznikach — tak,
+        # chyba że pismo podpisał członek zarządu/prokurent (wtedy pełnomocnictwo dotyczy kogoś innego)
+        - {if_no_section: true, type: exists, scope: document, pattern: ['reprezentowan\w*\s+(?:jest\s+)?przez', '(?<!wynagrodzenia\s)(?<!kosztów\s)pełnomocni(?:k(?!\w*\s+Odwołującego\s*$)|cy\b)', 'Przedstawiciel\w*\s*\(\s*imię', 'w\s+imieniu\s+(?:którego|której|których)\s+działa',
+             '\A(?![\s\S]*[—–-][ \t]*(?:Prezes|Wiceprezes|Członek|Prokurent)\w*(?:[ \t]+Zarządu)?[ \t]*$)[\s\S]*?^[ \t]*(?:\d+[ \t]*[.)/]|[-–•])[ \t]*Pełnomocnictw']}
+      # osoba: po etykiecie/kotwicy reprezentacji, opcjonalnie tytuł zawodowy (każda odmiana); imię i nazwisko mogą
+      # być złamane między wierszami; forma zależna → mianownik
       pelnomocnik.imie_nazwisko:
-        - {if_no_section: true, type: pattern, scope: document, pattern: '(?:reprezentowan\w*\s+(?:jest\s+)?przez|pełnomocnik\w*(?:\s*\(cy\))?(?:\s+Odwołując\w*)?)\s*[:–-]?\s*(?:pełnomocnika\s*[–-]?\s*)?(?:(?:adw\.|r\.\s*pr\.|apl\.\s*adw\.|radc\w*\s+prawn\w*|adwokat\w*|mec\.)\s*)?((?-i:[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+[ \t]+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?))(?![\w.])', nominative: true}
+        - &pp_name {if_no_section: true, type: pattern, scope: document, nominative: true,
+           reject: ['\b(?:Kancelari|Spół|Adres|Imię|Zarząd|Prezes|Wiceprezes|Prokurent|Członk|Firma|Nazwa|Odwołuj|Zamawiaj|Signature|Dokument|Podpis|Wykonawc|Krajow|Izb|Lider|Partner|Konsorcj|Dotyczy|Przedmiot|Pełnomocni|Sąd|Urz)\w*'],
+           pattern: '(?:reprezentowan\w*\s+(?:jest\s+)?przez|pełnomocni(?:k\w*|cy\b)(?:\s*\(cy\))?(?:\s+Odwołując\w*)?)\s*[:–-]?\s*(?:Imię\s+i\s+nazwisko\s*:?\s*)?(?:pełnomocnika\s*[–-]?\s*)?(?:(?:adw\.|adwokat\w*|r\.\s*pr\.|apl\.\s*adw\.|apl\.\s*radc\.?|radc\w*\s+prawn\w*|mec\.)\s*)?((?-i:[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?))(?![\w.])'}
+        - {<<: *pp_name, pattern: 'Przedstawiciel\w*(?:\s*\([^)\n]{0,30}\))?\s*:\s*(?:(?:adw\.|adwokat\w*|r\.\s*pr\.|radc\w*\s+prawn\w*|mec\.)\s*)?((?-i:[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?))(?![\w.])'}
+        - {<<: *pp_name, pattern: '(?:w\s+imieniu\s+(?:którego|której|których)\s+działa\w*|działając\w*\s+jako\s+pełnomocnik\w*)\s*:?\s*(?:adw\.|adwokat\w*|r\.\s*pr\.|radc\w*\s+prawn\w*|mec\.)\s*((?-i:[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?))(?![\w.])'}
+        # bez etykiety: wiersz „radca prawny X Y” / „adw. X Y” w bloku Odwołującego (etykieta zgubiona przy OCR)
+        - {<<: *pp_name, scope: section, pattern: '^[ \t]*(?:adw\.|adwokat|r\.\s*pr\.|radca\s+prawny|mec\.)[ \t]*((?-i:[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+[ \t]+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?))[ \t]*,?[ \t]*$'}
+        # podpis pełnomocnika: „r. pr. X Y” nad „(podpisano …)” albo „adw. X Y — pełnomocnik Odwołującego”
+        - {<<: *pp_name, pattern: '^[ \t]*(?:adw\.|adwokat|r\.\s*pr\.|radca\s+prawny|mec\.)[ \t]*((?-i:[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+[ \t]+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?))[ \t]*(?:\n[ \t]*\(?podpisan|[—–-]+[ \t]*pełnomocnik)'}
       pelnomocnik.nazwa:
+        # kancelaria w tekście po wskazaniu pełnomocnika (wiersz z wyrazem prawniczym albo po „z Kancelarii”/„Kancelaria:”)
+        - {if_no_section: true, type: near, scope: document, value: lawfirm, window: 500,
+           anchors: ['reprezentowan\w*\s+(?:jest\s+)?przez', 'pełnomocni(?:k\w*|cy\b)(?:\s*\(cy\))?', 'adres\w*\s+(?:do|dla)\s+(?:korespondencji|doręczeń)', 'w\s+imieniu\s+(?:którego|której|których)\s+działa\w*', 'Przedstawiciel\w*'],
+           stop: ['^\s*Zamawiając', '^\s*(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)', '^\s*Dotyczy', 'Zamawiając\w*\s*:', '^\s*(?:Contracting\s+authority|Przedmiot\s+postępowania)', 'wnosz[eę]']}
         - {if_no_section: true, type: pattern, scope: document, pattern: 'adres\s+do\s+korespondencji:\s*([\s\S]+?)(?=,\s*(?:ul\.|al\.|pl\.|os\.)|\n\s*(?:ul\.|tel))', clean: true, strip_inserts: true, require: ['Kancelari|adwokac|radc|prawn|legal|partnersk|attorney|\blaw\b']}
         # nazwa kancelarii tylko w pobliżu wskazania pełnomocnika (inaczej null: GT nie ma kancelarii)
         - {if_no_section: true, type: near, scope: document, value: regex, window: 400, before: 400,
            anchors: ['reprezentowan\w*\s+(?:jest\s+)?przez', 'pełnomocnik\w*', 'adres\w*\s+do\s+(?:korespondencji|doręczeń)'],
            stop: ['^\s*Zamawiając', '^\s*(?-i:O\s*D\s*W\s*O\s*Ł\s*A\s*N\s*I\s*E)', '^\s*Dotyczy', 'Zamawiając\w*\s*:'],
            value_pattern: '((?-i:Kancelari)\w*[ \t]+[^,;()|\n]*?(?:\n(?!\s*(?:ul\.|al\.|pl\.|tel|e-?mail|adres|[\d+])|[^\n]*:)[^,;()|\n]*?)?)(?=\s*[,;()|]|\s+(?:ul\.|al\.|pl\.)\s|\s*\n|\s*$)'}
+        # papier firmowy kancelarii: wiersz „Kancelaria …” w bloku Odwołującego albo w nagłówku pisma
+        - {if_no_section: true, type: pattern, scope: section, pattern: '^[ \t]*((?-i:Kancelari\w*[ \t]+[A-ZĄĆĘŁŃÓŚŹŻ][^,;|\n]{3,}?))[ \t]*(?:[,;|]|$)', clean: true}
+        - {if_no_section: true, type: pattern, scope: document, pattern: '\A\s*((?-i:Kancelari\w*[ \t]+[A-ZĄĆĘŁŃÓŚŹŻ][^,;|\n]{3,}?))[ \t]*(?:[,;|]|$)', clean: true}
       pelnomocnik.mail:
-        - {if_no_section: true, type: pattern, scope: document, pattern: '(?:reprezentowan|pełnomocnik|Kancelari|korespondencji|doręczeń)[\s\S]{0,300}?([\w.+-]+@[\w-]+(?:\.[\w-]+)+)'}
+        # adres z nazwiskiem pełnomocnika w części lokalnej (a.pikon@…), potem pierwszy adres po kotwicy — nigdy z bloku Zamawiającego
+        - {if_no_section: true, type: person_email, scope: document, person: pelnomocnik.imie_nazwisko}
+        - {if_no_section: true, type: pattern, scope: document, pattern: '(?:reprezentowan|pełnomocni|Kancelari|korespondencji|doręczeń|Przedstawiciel)(?:(?!Zamawiając\w*\s*:|^\s*Zamawiając)[\s\S]){0,300}?([\w.+-]+@[\w-]+(?:\.[\w-]+)+)'}
   Zamawiajacy:
     section: zamawiajacy
     # pozycje: "1) Zamawiający – Lider:", "Zamawiający 2 …", "1. Nazwa …", proza "…; oraz Nazwa …"
