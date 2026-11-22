@@ -22,19 +22,20 @@ Opcje (`bash start.sh --help`): `--input`, `--output`, `--classes-dir DIR` (doda
 Na końcu przebiegu program wypisuje podsumowanie: liczbę PDF, odrzucone, użycie modelu językowego oraz ostrzeżenie, jeśli jakiś skan został nieodczytany z braku OCR.
 
 ## Wyniki (F1 wg metryki UZP)
-| zbiór | reguły | reguły + LLM |
+| zbiór | F1 | uwagi |
 |---|---|---|
-| dane treningowe UZP (45 spraw) | 1,000 | 1,000 |
-| holdout z danych UZP (15 spraw, nieużywany do strojenia) | 1,000 | 1,000 |
-| synth-dev (120 dokumentów o innych układach, także wielopodmiotowe) | 0,942 | 0,942 |
-| skany UZP przez OCR (30 dokumentów) | 0,953 | 0,953 |
-| **niezależny zbiór kontrolny** (110 dokumentów o nieznanych układach, mierzony bez wglądu w dokumenty, nieużywany do strojenia) | **0,840** | 0,840 |
+| **prawdziwe dokumenty z sieci** (58 dok.: odwołania opublikowane przez zamawiających, potwierdzenia bankowe, pełnomocnictwa, 20 negatywów; GT zweryfikowane) | **0,829** | klasyfikacja 57/58; zbiór z publicznie dostępnych dokumentów, połowa odłożona i mierzona tylko liczbą, do diagnoz używana wyłącznie druga połowa |
+| **niezależny syntetyczny zbiór kontrolny** (110 dok. o nieznanych układach) | **0,851** | mierzony bez wglądu w dokumenty, nieużywany do strojenia |
+| skany UZP przez OCR (30 dok.) | 0,980 | strojone na tych skanach; pomiar na maszynie oceniającej UZP (x86_64, 2 vCPU, 0 błędów klasyfikacji) |
+| synth-dev (120 dok. o innych układach, także wielopodmiotowe) | 0,958 | używany do strojenia |
+| dane treningowe UZP (45 spraw) | 1,000 | dane strojenia |
+| holdout z danych UZP (15 spraw) | 1,000 | nieużywany do strojenia, ten sam generator co dane treningowe |
 
-Wynik 1,000 na danych UZP to dane, na których powstawały reguły; realną jakość na nowych dokumentach lepiej opisuje zbiór kontrolny i skany.
+Liczby z modelem językowym `ministral-8b-2512`; same reguły dają te same wyniki na skanach, synth-dev i danych UZP. Wynik 1,000 na danych UZP to dane, na których powstawały reguły; realną jakość na nowych dokumentach opisują dwa pierwsze wiersze.
 
 Numery rachunków są zapisywane tak, jak w dokumencie: z prefiksem `PL`, jeśli dokument go podaje (bez spacji, np. `PL61109010140000071219812874`), w przeciwnym razie 26 cyfr. Tak potwierdził UZP (21.11.2026); lokalne dane wzorcowe poprawiono skryptem `eval/gt_account_pl.py`, bo część wzorcowych JSON-ów UZP pomijała `PL`.
 
-Dokumenty obce (ogłoszenia, wyroki KIO, SWZ, faktury, umowy, pisma podobne do klas): 0 przyjętych na 56 w naszych zbiorach (w tym 20 typowych pism z folderu sprawy KIO: nota obciążeniowa, zestawienie kosztów, uzupełnienie braków, cofnięcie odwołania, skarga, UPO), 2 przyjęte na 20 w zbiorze kontrolnym. Bramka jakości (`make gate`, 9 testów, m.in. brak regresji, 0 fałszywych przyjęć, niezależność od nazw plików, praca bez LLM, < 1 s/dokument) pilnuje każdej zmiany.
+Dokumenty obce (ogłoszenia, wyroki KIO, SWZ, faktury, umowy, pisma podobne do klas): 0 przyjętych na 56 w naszych zbiorach (w tym 20 typowych pism z folderu sprawy KIO: nota obciążeniowa, zestawienie kosztów, uzupełnienie braków, cofnięcie odwołania, skarga, UPO), 2 przyjęte na 20 w syntetycznym zbiorze kontrolnym, 0 na 20 negatywów wśród prawdziwych dokumentów do diagnozy. Bramka jakości (`make gate`, 9 testów, m.in. brak regresji, 0 fałszywych przyjęć, niezależność od nazw plików, praca bez LLM, < 1 s/dokument) pilnuje każdej zmiany.
 
 ## Jak to działa
 1. **Tekst**: `pdfplumber` (słowa ze współrzędnymi); PDF bez warstwy tekstowej → lokalny OCR (Tesseract `pol`, strony równolegle; przekrzywiony skan jest prostowany i czytany ponownie; typowe błędy OCR, np. „@” czytane jako „(O”, są poprawiane). Dwukolumnowe nagłówki stron są czytane kolumnami.
@@ -117,21 +118,21 @@ bash start.sh --input input --output output --map rejestr_kio
 
 **Ablacja (ile daje model i jaki rozmiar):**
 
-| wariant | train | skany | synth-dev | zbiór kontrolny (bez wglądu) | wywołania modelu |
+| wariant | train | skany | synth-dev | starszy, trudniejszy zbiór kontrolny (110 dok., pomiar rc4) | wywołania modelu |
 |---|---|---|---|---|---|
 | same reguły (0 parametrów) | 1,000 | 0,953 | 0,942 | 0,731 | 0 |
 | reguły + `ministral-3b-2512` | 1,000 | 0,953 | 0,942 | 0,747 | 5 na 300 dok. |
 | reguły + `ministral-8b-2512` (domyślnie) | 1,000 | 0,953 | 0,942 | **0,754** | 5 na 300 dok. |
 | sam LLM 8b (cały tekst + specyfikacja, bez reguł; 60 dok.) | — | 0,861 | 0,784 | — | 60 na 60, ok. 1000× więcej tokenów |
 
-Pomiar na wersji rc4 (bez zmian w kodzie, tylko `model:` i `--llm`), dwa przebiegi, rozrzut 0. Model jest ostatnią deską ratunku: na naszych zbiorach pytany 5 razy na 300 dokumentów; zysk widać na trudniejszym zbiorze kontrolnym (data czynności, powód). Zmiana modelu to jedna linia `model:` w `config/llm.yaml` (albo `LLM_MODEL` w `.env`).
+Pomiar na wersji rc4 (bez zmian w kodzie, tylko `model:` i `--llm`), dwa przebiegi, rozrzut 0. Model jest ostatnią deską ratunku: na naszych zbiorach pytany 5 razy na 300 dokumentów; zysk widać na starszym, trudniejszym zbiorze kontrolnym (powód czynności 0,61 → 0,89, data czynności 0,53 → 0,82). Na nowym zbiorze kontrolnym model dodaje ok. 0. Zmiana modelu to jedna linia `model:` w `config/llm.yaml` (albo `LLM_MODEL` w `.env`).
 
 **Klucz w pliku `.env` (wzór: `.env.example`); bez klucza działa tryb regułowy.** Bez sieci, z `LLM_ENABLED=0` albo z `--llm off` również działają same reguły. Po nieudanym wywołaniu (timeout, 401/429, brak sieci) model jest wyłączany do końca przebiegu.
 
 ## OCR i wydajność
 - **OCR jest lokalny**: Tesseract (`tesseract -l pol`) uruchamiany jako proces na tym samym komputerze, bez modelu językowego i bez żadnego API. Bez programu `tesseract` i bez uprawnień administratora (brak sudo) skany czyta biblioteka `tesserocr` (wbudowany Tesseract, instalowana z zależnościami Pythona) z modelem `pol` pobranym przez `start.sh` do `~/.local/share/tessdata`; wynik na skanach UZP jest identyczny (sprawdzone w kontenerze Ubuntu 24.04 bez sudo, `--cpus=2`).
 - **Budżet czasu**: najpierw przetwarzane są wszystkie PDF-y z warstwą tekstową, każdy skan od razu dostaje plik `{}`, a OCR nadpisuje go po kolei. Gdy prognoza przekracza budżet (`ODW_BUDGET_S`, domyślnie 38 min), OCR przechodzi w tryb okrojony (3 pierwsze strony i ostatnia, jeden przebieg, bez LLM); po budżecie pozostałe skany zostają jako `{}`. Liczba wątków OCR wynika z rdzeni faktycznie dostępnych procesowi (także limitu `--cpus` w kontenerze).
-- Czas zmierzony na laptopie (Apple M2 Pro, LLM włączony): **226 PDF (dane treningowe + 30 skanów) w ok. 2,5 min**: 196 PDF z warstwą tekstową w 31 s (0,16 s/PDF), 30 skanów w 123 s (ok. 4 s/skan, z prostowaniem i drugim przebiegiem OCR).
+- Czas zmierzony na laptopie (Apple M2 Pro, LLM włączony): **226 PDF (dane treningowe + 30 skanów) w ok. 2,5 min**: 196 PDF z warstwą tekstową w 31 s (0,16 s/PDF), 30 skanów w 123 s (ok. 4 s/skan, z prostowaniem i drugim przebiegiem OCR). Na maszynie oceniającej UZP (2 vCPU): ok. 0,3 s na PDF z tekstem i ok. 12 s na skan.
 - Najgorszy przypadek: OCR maks. 12 stron na dokument i 60 s na stronę, limit 180 s na dokument (wtedy zapisywany jest wynik częściowy), model językowy po awarii sieci (15 s × 2 próby) lub odrzuconym kluczu wyłączony do końca przebiegu; przy limicie zapytań (HTTP 429/503) program czeka zgodnie z `Retry-After` (łącznie maks. 5 min). Limit konkursowy (150 PDF w 45 min) jest spełniony z dużym zapasem.
 
 ## Uruchomienie w Dockerze (alternatywa)
