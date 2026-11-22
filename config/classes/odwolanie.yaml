@@ -243,9 +243,12 @@ fields:
     # 0) pierwsza pozycja wyliczenia zaskarżonych czynności po "wnoszę odwołanie ... polegających na:" ("1) ...;")
     # 1) konkretny nagłówek pierwszego zarzutu; 2) zdanie o czynności po "wnoszę". Wygrywa najwcześniejsze dopasowanie.
   ZamowieniePubliczne.numer_bzp:
-    - {type: pattern, section: dotyczy, pattern: '(\d{4})\s*/\s*BZP\s*(\d{8})((?:\s*/\s*\d{2})?)', format: '{1}/BZP{2}{3}', nospace: true}
+    # cyfry numeru mogą być rozdzielone spacjami ("2023/BZP 021 13995")
+    - {type: pattern, section: dotyczy, pattern: '(\d{4})\s*/\s*BZP\s*((?:\d[ \t]?){7}\d)((?:\s*/\s*\d{2})?)', format: '{1}/BZP{2}{3}', nospace: true}
     # Brak sekcji "dotyczy": szukaj w całym dokumencie.
-    - {type: pattern, unless_section: dotyczy, pattern: '(\d{4})\s*/\s*BZP\s*(\d{8})((?:\s*/\s*\d{2})?)', format: '{1}/BZP{2}{3}', nospace: true}
+    - {type: pattern, unless_section: dotyczy, pattern: '(\d{4})\s*/\s*BZP\s*((?:\d[ \t]?){7}\d)((?:\s*/\s*\d{2})?)', format: '{1}/BZP{2}{3}', nospace: true}
+    # format sprzed 2021: "522995-N-2020" (także złamany wierszem po myślniku)
+    - {type: pattern, pattern: '(?<![\d-])(\d{5,6})\s*-\s*N\s*-\s*(\d{4})(?!\d)', format: '{1}-N-{2}'}
   ZamowieniePubliczne.numer_ted:
     # 'YYYY/S NNN-NNNNNN' → 'NNNNNN-YYYY'; eForms '00364525-2025' (wiodące zera) → '364525-2025'
     - {type: pattern, section: dotyczy, pattern: '(\d{4})\s*/\s*S\s*\d{1,3}\s*-\s*(\d{5,8})', format: '{2}-{1}', pad: {2: 6}}
@@ -255,15 +258,35 @@ fields:
     # numer TED poza sekcją "dotyczy" lub po złamaniu wiersza ("ogłoszenia TED\n999000-2026", "Dz. Urz. UE nr ...")
     - {type: pattern, unless_section: dotyczy, pattern: '(?:\bTED\b|Dz\.\s*Urz\.(?:\s*UE)?|Dzienni\w*\s+Urzędow\w*)[^\d]{0,40}?(\d{4})\s*/\s*S\s*\d{1,3}\s*-\s*(\d{5,8})', format: '{2}-{1}', pad: {2: 6}}
     - {type: pattern, unless_section: dotyczy, pattern: '(?:\bTED\b|Dz\.\s*Urz\.(?:\s*UE)?|Dzienni\w*\s+Urzędow\w*)[^\d]{0,40}?(?<![\d/])(\d{5,8})\s*-\s*(\d{4})(?!\d)', format: '{1}-{2}', pad: {1: 6}}
+    # "Dz.U./S 43 03/03/2021 106827-2021-PL" (numer wydania i data przed numerem, sufiks języka po nim)
+    - {type: pattern, pattern: 'Dz\.\s*U\.?\s*/\s*S\b[^\n]{0,40}?(?<![\d/])(\d{5,8})\s*-\s*(\d{4})(?!\d)', format: '{1}-{2}', pad: {1: 6}}
+    # "Numer (publikacji) ogłoszenia: 108118-2025" — postać NNNNNN-RRRR to numer TED (BZP ma inną postać)
+    - {type: pattern, pattern: 'Numer\s+(?:publikacji\s+)?ogłoszenia\s*:?\s*(?<![\d/])(\d{5,8})\s*-\s*(\d{4})(?![\d-])', format: '{1}-{2}', pad: {1: 6}}
   ZamowieniePubliczne.numer_postepowania:
     - type: labeled
       value: token
-      labels: ['nr\s+referencyjn\w*(\s+sprawy)?', 'numer\s+referencyjn\w*(\s+sprawy)?', 'numer\s+postępowania', 'znak\s+sprawy', 'nr\s+sprawy', 'nr\s+postępowania', 'oznaczenie\s+sprawy', 'postępowanie\s+nr', 'identyfikator\s+postępowania', '(?<!nasz\s)\bznak\s*:']
-      token_pattern: '[A-Z0-9][A-Za-z0-9./\-]*\d[A-Za-z0-9./\-]*'
+      labels: ['nr\s+referencyjn\w*(\s+sprawy)?', 'numer\s+referencyjn\w*(\s+sprawy)?', 'numer\s+postępowania', 'znak\s+sprawy', 'nr\s+sprawy', 'numer\s+sprawy', 'nr\s+postępowania', 'znak\s+postępowania', 'oznaczenie\s+sprawy', 'postępowanie\s+nr', 'identyfikator\s+postępowania', '(?<!nasz\s)\bznak\s*:', 'Reference\s+no\.?\s*/\s*N(?:r|umer)\.?(?:\s+postępowania)?']
+      # krótki prefiks z wielkich liter oddzielony spacją należy do znaku ("SP ZOZ ZSM/ZP/11/2020", "Te 2300-40/2023")
+      token_pattern: '(?:(?-i:(?:[A-Z]{2,4}|[A-Z][a-z])[ \t])){0,2}[A-Z0-9][A-Za-z0-9./\-]*\d[A-Za-z0-9./\-]*'
       window: 60
+    # "Dotyczy: [Postępowanie] KP-272-PNU-19/2024 „…”"
+    - {type: pattern, pattern: '\bDotyczy\s*:\s*(?:Postępowani\w*\s+)?((?-i:[A-Z][A-Za-z]{0,7})(?:[./-][A-Za-z0-9]+){2,})(?=[\s;,(„"]|$)', reject: ['^\d+[./-]\d+[./-]\d{2,4}$']}
+    # znak bez etykiety tuż po cudzysłowie zamykającym tytuł: "„…”; DI.906.2026; 2026/BZP…", "„…” ZP/13/022/D/21 (zwane"
+    - {type: pattern, pattern: '”\s*[;,]?\s*((?-i:[A-Z][A-Za-z]{0,7})(?:[./-][A-Za-z0-9]+){2,})(?=[\s;,(]|$)', require: ['\d']}
   ZamowieniePubliczne.tytul:
-    - {type: pattern, pattern: 'pn\.?:?\s*[„"]([^”"]+)[”"]', clean: true}
-    - {type: pattern, pattern: '[„"]([^”"]{15,})[”"]', clean: true}
+    - {type: pattern, pattern: 'pn\.?:?\s*(?:[„"]|,,)([^”"]+)[”"]', clean: true}
+    # tytuł w cudzysłowie w bloku "Dotyczy:" (także otwarcie ',,' z OCR/maszynopisu)
+    - {type: pattern, section: dotyczy, pattern: '(?:[„"]|,,)\s*([^”"„]{15,400}?)[”"]', clean: true}
+    # tytuł bez cudzysłowu po "pn."/"pod nazwą" w zdaniu o postępowaniu, do "nr sprawy", ", numer referencyjny", "(nr"…
+    - type: pattern
+      clean: true
+      pattern: '(?:zamówieni|postępowani|zadani|przetarg|trybie)\w*[^.;”]{0,120}?\s(?:pn\.|pod\s+nazwą)\s*:?\s*(?![„",])((?-i:[A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż])[^\n„”"]{4,}?(?:\n[^\n„”"]+?){0,3}?)(?=\s*,?\s+(?:nr\.?\s*(?:sprawy|postępowania|ref|ogł|:)|numer\b|znak\b|ogłoszen|opublikowan|prowadzon|zwan)|\s*\((?:nr|znak|dalej)|\s*[,.]?\s*\n\s*(?:Uzasadnienie|ODWOŁANIE|W\s+imieniu|Działając))'
+    # blok "Dotyczy:" kończący się tytułem bez cudzysłowu w osobnych wierszach po numerze ogłoszenia
+    - {type: pattern, section: dotyczy, clean: true, pattern: '(?:BZP|/S)[^\n]*\n((?-i:[A-ZĄĆĘŁŃÓŚŹŻ])[^\n]{15,}(?:\n[^\n]+){0,3}?)\.?\s*\Z', reject: ['^(?:Nr|Numer|Znak|Oznaczenie|Identyfikator|Data|Termin|Tryb)\b']}
+    # tabela dwujęzyczna "Contract title / Tytuł [zamówienia] X" z zawinięciem ("…\nzamówienia gwarancyjnym")
+    - {type: pattern, clean: true, format: '{1} {2} {3}', pattern: '^[^\n/]{0,40}/[ \t]*Tytuł(?:\s+zamówienia)?[ \t]+([^\n]+)(?:\n(?:zamówienia[ \t]+)?((?-i:[a-ząćęłńóśźż0-9])[^\n]*))?(?:\n((?-i:[a-ząćęłńóśźż0-9])[^\n]*))?'}
+    # pierwszy dłuższy cytat; bez przepisów i fragmentów SWZ cytowanych w uzasadnieniu
+    - {type: pattern, pattern: '[„"]([^”"„]{15,})[”"]', clean: true, reject: ['\bart\.\s*\d', '\bust\.\s*\d', '\bustaw', '\bzał\.', 'przysługuje', '\bS?I?WZ\s*$', '^\W']}
     # tytuł bez cudzysłowu po etykiecie "Nazwa/Tytuł/Przedmiot zamówienia" (do następnej etykiety)
     - {type: text_after_label, labels: ['^\s*(?:Nazwa|Tytuł|Przedmiot)\s+zamówienia\s*:?'], max_lines: 3, stop_labels: ['^\s*(?:Tryb|Data|Numer|Nr|Znak|Ogłoszenie|Oznaczenie|Identyfikator|Wartość|CPV)\b']}
     - {type: llm, section: dotyczy, question: 'Podaj pełny tytuł (nazwę) zamówienia publicznego, którego dotyczy odwołanie, dokładnie tak jak w tekście.', schema: {type: string}, verbatim: true}
