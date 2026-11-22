@@ -83,6 +83,11 @@ def test_costs_of_representation_are_not_a_representative():
      "Kancelaria Adwokacka i Partnerzy"),
     (" Odwołującego:\nr. pr. Katarzyna Michalak\nMichalak Legal Kancelaria Radcy Prawnego\nul. Jagiellońska 9",
      "Michalak Legal Kancelaria Radcy Prawnego"),
+    (": r. pr. Aleksander Kubiak, r. pr. Weronika Jabłońska\nadres do korespondencji: Kancelaria Radców Prawnych Kubiak "
+     "Jabłońska i Partnerzy\nsp.p., ul. Długie Ogrody 8, 80-765 Gdańsk\n",
+     "Kancelaria Radców Prawnych Kubiak Jabłońska i Partnerzy sp.p."),
+    (": adw. Bartosz Rutkowski, adw. Olga Bąk\nadres do korespondencji: Rutkowski i Bąk Kancelaria Prawna sp.k., "
+     "ul. Szkolna 33, 31-716\nKraków\n", "Rutkowski i Bąk Kancelaria Prawna sp.k."),
     (": Jan Kowalski – Prezes Zarządu\nZamawiający: Gmina", None),
 ])
 def test_find_lawfirm(seg, expected):

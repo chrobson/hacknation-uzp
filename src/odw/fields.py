@@ -638,6 +638,11 @@ def _lf_clean(v: str) -> str:
     return v
 
 
+def _lf_form_follows(cand: str, nxt: str) -> bool:
+    """'... i Partnerzy' / '... i Wspólnicy' ends a firm name unless its legal form wrapped to the next line ('sp.p.')."""
+    return bool(re.search(r"\b(?:Partnerzy|Wspólnicy)\s*$", cand) and re.match(r"\s*(?:sp\.\s?[kjp]\.|s\.\s?c\.|spółk)", nxt, re.IGNORECASE))
+
+
 def find_lawfirm(seg: str) -> str | None:
     """The representative's law firm in the text after a representation anchor ("reprezentowany przez", "Pełnomocnik",
     "adres do doręczeń"): a firm-shaped line with a law-firm word, or the text right after "z Kancelarii"/"Kancelaria:";
@@ -665,7 +670,7 @@ def find_lawfirm(seg: str) -> str | None:
             person, line = True, line[pm.end():].strip()
             if not line:
                 continue
-        k = re.search(rf"(?-i:(?:(?!Pełnomocni|Odwołuj|Adres|Law\b|Firm|Nazwa|Kancelaria\s+Kancelari)[{_UP}][\w&.-]*[ \t]+){{0,3}}?Kancelari)", line)
+        k = re.search(rf"(?-i:(?:(?!Pełnomocni|Odwołuj|Adres|Law\b|Firm|Nazwa|Kancelaria\s+Kancelari)[{_UP}][\w&.-]*[ \t]+(?:(?:i|oraz|&)[ \t]+)?){{0,3}}?Kancelari)", line)
         if k and not intro:
             line = line[k.start():]
         if not line or not re.match(rf"(?-i:[{_UP}0-9])", line) or _LF_NOT.match(line):
@@ -675,7 +680,8 @@ def find_lawfirm(seg: str) -> str | None:
         if not (intro or person or _LF_MARKER.search(line)):
             continue
         cand, joined = line, 0
-        while (not _LF_CUT.search(cand) and not _LF_END.search(cand) and joined < 2 and i + 1 < len(lines)):
+        while (not _LF_CUT.search(cand) and joined < 2 and i + 1 < len(lines)
+               and (not _LF_END.search(cand) or _lf_form_follows(cand, lines[i + 1]))):
             nxt = lines[i + 1].strip(" \t,;")
             if (not nxt or _LF_NOT.match(nxt) or ":" in nxt
                     or not (re.match(rf"(?-i:[{_UP}])", nxt) or _LF_CONT_LOWER.match(nxt) or re.search(r"\b(?:z|i|w|oraz|&)$", cand))
